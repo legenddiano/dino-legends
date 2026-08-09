@@ -1,164 +1,129 @@
 "use strict";
 
 /* =========================================================
-   DINO LEGENDS — ULTIMATE GAME ENGINE
-   Compatible with the HTML structure you sent
-========================================================= */
+   DINO LEGENDS — COMPLETE GAME ENGINE
+   ========================================================= */
 
 const canvas = document.getElementById("gameCanvas");
-const ctx = canvas ? canvas.getContext("2d") : null;
+const ctx = canvas.getContext("2d");
 
-/* =========================================================
-   SAFE DOM
-========================================================= */
+const gemsEl = document.getElementById("gems");
+const bestScoreEl = document.getElementById("bestScore");
+const levelEl = document.getElementById("level");
 
-const $ = id => document.getElementById(id);
+const scoreEl = document.getElementById("score");
+const comboEl = document.getElementById("combo");
+const healthEl = document.getElementById("health");
 
-const gemsEl = $("gems");
-const bestScoreEl = $("bestScore");
-const levelEl = $("level");
+const finalScoreEl = document.getElementById("finalScore");
 
-const scoreEl = $("score");
-const comboEl = $("combo");
-const healthEl = $("health");
+const startScreen = document.getElementById("startScreen");
+const gameOverScreen = document.getElementById("gameOverScreen");
 
-const finalScoreEl = $("finalScore");
+const startButton = document.getElementById("startButton");
+const restartButton = document.getElementById("restartButton");
 
-const startScreen = $("startScreen");
-const gameOverScreen = $("gameOverScreen");
+const jumpButton = document.getElementById("jumpButton");
+const dashButton = document.getElementById("dashButton");
+const shieldButton = document.getElementById("shieldButton");
 
-const startButton = $("startButton");
-const restartButton = $("restartButton");
+const characterGrid = document.getElementById("characterGrid");
+const upgradeGrid = document.getElementById("upgradeGrid");
+const worldGrid = document.getElementById("worldGrid");
+const characterCountEl = document.getElementById("characterCount");
 
-const jumpButton = $("jumpButton");
-const dashButton = $("dashButton");
-const shieldButton = $("shieldButton");
-
-const characterGrid = $("characterGrid");
-const upgradeGrid = $("upgradeGrid");
-const worldGrid = $("worldGrid");
-const characterCountEl = $("characterCount");
-
-const codeInput = $("codeInput");
-const redeemButton = $("redeemButton");
-const codeMessage = $("codeMessage");
+const codeInput = document.getElementById("codeInput");
+const redeemButton = document.getElementById("redeemButton");
+const codeMessage = document.getElementById("codeMessage");
 
 
 /* =========================================================
-   SAVE
-========================================================= */
+   SAVE SYSTEM
+   ========================================================= */
 
-const SAVE_KEY = "DINO_LEGENDS_ULTIMATE_V10";
+const SAVE_KEY = "DINO_LEGENDS_FINAL_V10";
 
 const defaultSave = {
     gems: 0,
     bestScore: 0,
 
-    xp: 0,
-    level: 1,
-
     selectedCharacter: 0,
     unlockedCharacters: [0],
+
+    selectedWorld: 0,
+    unlockedWorlds: [0],
 
     upgrades: {
         jump: 0,
         shield: 0,
-        dash: 0,
-        health: 0,
-        magnet: 0,
-        score: 0
+        dash: 0
     },
 
-    unlockedWorlds: [0],
-    selectedWorld: 0,
+    usedCodes: [],
 
-    missions: {
-        distance: 0,
-        gems: 0,
-        jumps: 0,
-        dashes: 0,
-        shields: 0,
-        runs: 0
-    },
-
-    claimedMissions: [],
-
-    stats: {
-        runs: 0,
-        totalScore: 0,
-        totalGems: 0,
-        totalDistance: 0,
-        obstaclesDodged: 0
-    },
-
-    usedCodes: []
+    playerXP: 0
 };
 
-function cloneDefault() {
+function cloneDefaultSave() {
     return JSON.parse(JSON.stringify(defaultSave));
 }
 
 function loadGame() {
-
     try {
-
         const raw = localStorage.getItem(SAVE_KEY);
 
         if (!raw) {
-            return cloneDefault();
+            return cloneDefaultSave();
         }
 
         const data = JSON.parse(raw);
-        const base = cloneDefault();
+        const fresh = cloneDefaultSave();
 
         return {
-            ...base,
+            ...fresh,
             ...data,
-
             upgrades: {
-                ...base.upgrades,
+                ...fresh.upgrades,
                 ...(data.upgrades || {})
             },
+            unlockedCharacters:
+                Array.isArray(data.unlockedCharacters)
+                    ? data.unlockedCharacters
+                    : [0],
 
-            missions: {
-                ...base.missions,
-                ...(data.missions || {})
-            },
+            unlockedWorlds:
+                Array.isArray(data.unlockedWorlds)
+                    ? data.unlockedWorlds
+                    : [0],
 
-            stats: {
-                ...base.stats,
-                ...(data.stats || {})
-            }
+            usedCodes:
+                Array.isArray(data.usedCodes)
+                    ? data.usedCodes
+                    : []
         };
 
-    } catch (error) {
-
-        console.warn("Save corrupted. Resetting save.");
-
-        return cloneDefault();
+    } catch {
+        return cloneDefaultSave();
     }
 }
 
 let save = loadGame();
 
 function saveGame() {
-
     try {
         localStorage.setItem(
             SAVE_KEY,
             JSON.stringify(save)
         );
-    } catch (error) {
-        console.warn("Could not save game.", error);
-    }
+    } catch {}
 }
 
 
 /* =========================================================
-   100 LEGENDARY SKINS
-========================================================= */
+   100 CHARACTERS
+   ========================================================= */
 
-const skinNames = [
+const characterNames = [
     "Rex",
     "Blaze",
     "Frost",
@@ -167,237 +132,241 @@ const skinNames = [
     "Inferno",
     "Phantom",
     "Titan",
-    "Venom",
-    "Cyber",
     "Storm",
+    "Cyber Rex",
+
     "Neon",
     "Galaxy",
-    "Void",
+    "Venom",
+    "Crystal",
+    "Dark Lord",
     "Solar",
     "Lunar",
-    "Crystal",
-    "Golden",
-    "Ruby",
-    "Emerald",
-    "Sapphire",
-    "Amethyst",
-    "Obsidian",
-    "Plasma",
-    "Quantum",
-    "Cosmic",
+    "Thunder",
+    "Omega",
     "Dragon",
-    "Demon",
-    "Angel",
+
+    "Void",
+    "Golden Rex",
+    "Royal",
+    "Blood Moon",
+    "Ancient",
+    "Cosmic",
+    "Plasma",
+    "Glacier",
+    "Meteor",
+    "Eclipse",
+
+    "Doom",
+    "Ghost",
+    "Hunter",
     "Samurai",
     "Ninja",
     "Knight",
-    "Wizard",
-    "Hunter",
-    "Glacier",
-    "Thunder",
-    "Phoenix",
-    "Magma",
-    "Toxic",
-    "Specter",
-    "Abyss",
-    "Royal",
-    "Ancient",
-    "Mystic",
-    "Astral",
-    "Cyberpunk",
-    "Stealth",
-    "Warrior",
+    "Warlord",
+    "Emperor",
     "Legend",
-    "Omega",
-    "Alpha",
-    "Beta",
-    "Gamma",
-    "Delta",
-    "Eclipse",
-    "Supernova",
-    "Meteor",
-    "Comet",
-    "Starlight",
-    "Nightmare",
-    "Dream",
-    "Arcane",
-    "Runic",
-    "Infernal",
-    "Celestial",
-    "Dark Matter",
-    "Time Lord",
-    "Space Lord",
-    "Earth Lord",
-    "Ice Lord",
-    "Fire Lord",
-    "Storm Lord",
-    "Shadow Lord",
-    "Light Lord",
-    "Chaos",
-    "Order",
-    "Cyber Rex",
-    "Mecha",
-    "Steel",
-    "Chrome",
-    "Diamond",
-    "Platinum",
-    "Titanium",
-    "Royal Gold",
-    "Blood Moon",
-    "Star King",
-    "Void King",
-    "Dragon King",
-    "Dino King",
-    "Ultimate",
-    "Infinity",
-    "God Mode",
-    "Eternal",
     "Mythic",
-    "Legendary",
+
+    "Astral",
+    "Cyber",
+    "Quantum",
+    "Radiant",
+    "Darkstar",
+    "Fireborn",
+    "Iceborn",
+    "Stormborn",
+    "Starborn",
+    "Dragonborn",
+
+    "Shadowfang",
+    "Ironclaw",
+    "Goldfang",
+    "Nightmare",
+    "Sky King",
+    "Earth King",
+    "Ocean King",
+    "Volcano King",
+    "Ice King",
+    "Space King",
+
+    "Dino X",
+    "Dino Z",
+    "Dino Prime",
+    "Dino Ultra",
+    "Dino Max",
+    "Dino Apex",
+    "Dino God",
+    "Dino King",
+    "Dino Emperor",
+    "Dino Legend",
+
+    "Mystic",
+    "Specter",
+    "Ragnar",
+    "Titan X",
+    "Omega X",
+    "Infinity",
+    "Eternal",
     "Supreme",
-    "Final Boss",
-    "???",
-    "OMEGA X"
+    "Overlord",
+    "Destroyer",
+
+    "Phoenix",
+    "Leviathan",
+    "Kraken",
+    "Colossus",
+    "Behemoth",
+    "Cerberus",
+    "Draco",
+    "Hydra",
+    "Atlas",
+    "Zeus",
+
+    "ARES",
+    "HADES",
+    "POSEIDON",
+    "APOLLO",
+    "ARES X",
+    "GOD MODE",
+    "ETERNAL X",
+    "ULTIMATE",
+    "LEGENDARY",
+    "THE ONE"
 ];
 
-const colors = [
-    "#50f5a1",
-    "#ff714d",
-    "#7de8ff",
-    "#ffe05d",
-    "#b994ff",
-    "#ff553d",
-    "#8c7bff",
-    "#d4d7dd",
-    "#67ff62",
-    "#46eaff",
-    "#557cff",
-    "#00ffe1",
-    "#9b6cff",
-    "#5b5bff",
-    "#ffd34d",
-    "#d8f4ff",
-    "#b8ffff",
-    "#c89cff",
-    "#ffd84d",
-    "#58ff91",
-    "#54bfff",
-    "#d36cff",
-    "#4d4d5c",
-    "#ff5d6c",
-    "#48fff3"
+const characterEmojis = [
+    "🦖","🔥","❄️","⚡","🌌",
+    "🔥","👻","🗿","🌩️","🤖",
+    "💠","🌠","☠️","💎","👑",
+    "☀️","🌙","⚡","Ω","🐉",
+    "🕳️","🟡","👑","🌑","🏺",
+    "🌌","🔮","🧊","☄️","🌘",
+    "💀","👻","🏹","🥷","⚔️",
+    "🛡️","⚔️","👑","⭐","✨",
+    "🌌","🤖","⚛️","🌟","🌑",
+    "🔥","❄️","🌪️","⭐","🐲",
+    "🦷","🦾","🟨","😈","☁️",
+    "🌍","🌊","🌋","🧊","🚀",
+    "❌","🆉","💎","⚡","💥",
+    "👑","☠️","🔥","🌟","🏆",
+    "🔮","👻","🪓","🤖","Ω",
+    "♾️","🌌","👑","☠️","💀",
+    "🔥","🐉","🐙","🗿","🐲",
+    "🐺","🐉","🐍","🏛️","⚡",
+    "⚔️","☠️","🌊","☀️","⚔️",
+    "💀","♾️","🌟","👑","👑"
 ];
 
-function generateCharacters() {
+const characterColors = [
+    "#50f5a1","#ff7139","#7de8ff","#ffe05d","#b994ff",
+    "#ff4b35","#c9d1ff","#b0b8c8","#5ce1ff","#45ffcb",
+    "#00ffff","#a86cff","#72ff72","#a9ffff","#ff4d75",
+    "#ffe66d","#b18cff","#4deaff","#ffca3a","#ff5b35",
+    "#8f6cff","#ffd700","#fff1a8","#7b3f9e","#d4b36a",
+    "#9d6cff","#ff67e7","#9defff","#ffb347","#c78aff",
+    "#ff3158","#c8d0d8","#7eff9d","#a5a5ff","#f5f5f5",
+    "#7e9fff","#ffbb66","#fff1b0","#69faff","#ffd34d",
+    "#9d7cff","#4df0ff","#ff8cf4","#ffff78","#7777ff",
+    "#ff7744","#b4ffff","#64dfff","#fff04d","#ff9cff",
+    "#b8ffcf","#d5d5d5","#ffdf55","#8b78ff","#d0eaff",
+    "#70eaff","#64ffb4","#44d9ff","#bcefff","#b5b5ff",
+    "#ffcf55","#70ffff","#ff8dff","#72ff72","#ff6d6d",
+    "#ffe066","#b4a0ff","#ff5757","#ffccff","#fff",
+    "#bda5ff","#b7b7ff","#ffaf5e","#72c9ff","#ffcc55",
+    "#b38cff","#ffffff","#d1a4ff","#ff536f","#8b5cff",
+    "#ff754d","#ff477e","#4d9cff","#ffdc65","#ff8b4d",
+    "#8eeeff","#ff78e8","#b9ff71","#6ddcff","#ffe17a",
+    "#ff4444","#7b68ee","#00bfff","#ffd700","#ff4444",
+    "#ff2e63","#b300ff","#00ffcc","#ffffff","#00ffff"
+];
 
-    const result = [];
+const characterCosts = [];
 
-    for (let i = 0; i < 100; i++) {
+for (let i = 0; i < 100; i++) {
+    /*
+       قیمت‌ها از 1,000,000 شروع می‌شوند
+       و اسکین آخر 26,000,000,000 است.
+    */
 
-        let cost;
+    const progress = i / 99;
 
-        if (i === 0) {
-            cost = 0;
-        } else if (i === 1) {
-            cost = 1000000;
-        } else {
-            const progress = (i - 1) / 98;
+    const cost =
+        Math.round(
+            1000000 +
+            progress *
+            (26000000000 - 1000000)
+        );
 
-            cost = Math.round(
-                1000000 +
-                Math.pow(progress, 2.05) *
-                (26000000000 - 1000000)
-            );
-        }
-
-        result.push({
-            id: i,
-            name: skinNames[i] || `Legend ${i + 1}`,
-            emoji: "🦖",
-            subtitle:
-                i === 0
-                    ? "THE ORIGINAL LEGEND"
-                    : i >= 95
-                        ? "ULTIMATE MYTHIC"
-                        : i >= 80
-                            ? "MYTHIC LEGEND"
-                            : i >= 60
-                                ? "LEGENDARY"
-                                : i >= 30
-                                    ? "EPIC"
-                                    : "RARE",
-
-            description:
-                i === 0
-                    ? "The original Dino Legend."
-                    : "A unique legendary skin with its own energy aura.",
-
-            cost,
-            color: colors[i % colors.length],
-
-            glow:
-                colors[(i * 3) % colors.length]
-        });
-    }
-
-    return result;
+    characterCosts.push(cost);
 }
 
-const characters = generateCharacters();
+const characters = characterNames.map((name, i) => ({
+    name,
+    emoji: characterEmojis[i],
+    color: characterColors[i],
+    cost: characterCosts[i],
+    subtitle:
+        i === 0
+            ? "THE ORIGINAL LEGEND"
+            : i === 99
+                ? "THE ULTIMATE LEGEND"
+                : "LEGENDARY SKIN",
+    description:
+        i === 0
+            ? "The original DINO LEGENDS hero."
+            : "A legendary character with unique energy and style."
+}));
 
 
 /* =========================================================
    WORLDS
-========================================================= */
+   ========================================================= */
 
 const worlds = [
     {
-        name: "JURASSIC JUNGLE",
+        name: "NEON JUNGLE",
         className: "jungle",
-        description: "Ancient jungle filled with giant shadows.",
+        description: "A dangerous neon jungle filled with ancient energy.",
         cost: 0,
-        skyTop: "#12394a",
-        skyBottom: "#07161e",
-        ground: "#173e2b"
+        skyTop: "#071d2a",
+        skyBottom: "#061019",
+        ground: "#102f26"
     },
-
     {
         name: "GOLDEN DESERT",
         className: "desert",
-        description: "A massive golden desert.",
-        cost: 5000000,
-        skyTop: "#704715",
-        skyBottom: "#1c1006",
-        ground: "#654116"
+        description: "Infinite golden dunes under a burning sky.",
+        cost: 500000,
+        skyTop: "#613b0b",
+        skyBottom: "#170b02",
+        ground: "#573713"
     },
-
     {
         name: "FROZEN ERA",
         className: "ice",
-        description: "Frozen mountains and deadly storms.",
-        cost: 50000000,
-        skyTop: "#1d5876",
-        skyBottom: "#071827",
-        ground: "#164256"
+        description: "A frozen dimension of storms and ancient beasts.",
+        cost: 2000000,
+        skyTop: "#14516d",
+        skyBottom: "#061520",
+        ground: "#164b61"
     },
-
     {
         name: "VOLCANO CORE",
         className: "volcano",
-        description: "A volcanic battlefield.",
-        cost: 500000000,
-        skyTop: "#56111a",
-        skyBottom: "#180408",
-        ground: "#4b1517"
+        description: "A world where lava flows beneath your feet.",
+        cost: 10000000,
+        skyTop: "#551019",
+        skyBottom: "#110205",
+        ground: "#421015"
     },
-
     {
         name: "COSMIC VOID",
         className: "space",
-        description: "The final dimension.",
-        cost: 5000000000,
-        skyTop: "#130d35",
-        skyBottom: "#05040e",
+        description: "The final dimension beyond reality.",
+        cost: 50000000,
+        skyTop: "#130936",
+        skyBottom: "#03020a",
         ground: "#171238"
     }
 ];
@@ -405,126 +374,49 @@ const worlds = [
 
 /* =========================================================
    UPGRADES
-========================================================= */
+   ========================================================= */
 
 const upgrades = [
     {
         key: "jump",
-        emoji: "🦘",
+        emoji: "🌀",
         name: "SUPER JUMP",
-        description: "Increase jump power."
+        description: "Increase jump power.",
     },
-
     {
         key: "shield",
         emoji: "🛡️",
         name: "SHIELD CORE",
-        description: "Increase shield duration."
+        description: "Increase shield duration.",
     },
-
     {
         key: "dash",
         emoji: "⚡",
         name: "DASH ENGINE",
-        description: "Increase dash power."
-    },
-
-    {
-        key: "health",
-        emoji: "❤️",
-        name: "VITAL CORE",
-        description: "Increase maximum health."
-    },
-
-    {
-        key: "magnet",
-        emoji: "🧲",
-        name: "GEM MAGNET",
-        description: "Increase gem collection range."
-    },
-
-    {
-        key: "score",
-        emoji: "🏆",
-        name: "SCORE MATRIX",
-        description: "Increase score multiplier."
+        description: "Increase dash duration.",
     }
 ];
 
-
-/* =========================================================
-   MISSIONS
-========================================================= */
-
-const missions = [
-    {
-        id: "distance",
-        title: "ROAD WARRIOR",
-        description: "Travel 5,000 distance.",
-        target: 5000,
-        reward: 500000
-    },
-
-    {
-        id: "gems",
-        title: "GEM HUNTER",
-        description: "Collect 100 gems.",
-        target: 100,
-        reward: 1000000
-    },
-
-    {
-        id: "jumps",
-        title: "SKY MASTER",
-        description: "Jump 100 times.",
-        target: 100,
-        reward: 750000
-    },
-
-    {
-        id: "dashes",
-        title: "SPEED DEMON",
-        description: "Use dash 50 times.",
-        target: 50,
-        reward: 1500000
-    },
-
-    {
-        id: "shields",
-        title: "GUARDIAN",
-        description: "Use shield 30 times.",
-        target: 30,
-        reward: 2000000
-    },
-
-    {
-        id: "runs",
-        title: "NEVER STOP",
-        description: "Complete 25 runs.",
-        target: 25,
-        reward: 5000000
-    }
-];
+function getUpgradeCost(level) {
+    return 200000 + level * 300000;
+}
 
 
 /* =========================================================
    GAME STATE
-========================================================= */
+   ========================================================= */
 
 let gameRunning = false;
 let animationId = null;
 
 let score = 0;
 let combo = 1;
-
 let health = 3;
-let maxHealth = 3;
 
 let gameSpeed = 8;
 let distance = 0;
 
 let lastTime = 0;
-
 let obstacleTimer = 0;
 let gemTimer = 0;
 
@@ -539,140 +431,92 @@ let collectibles = [];
 let clouds = [];
 let stars = [];
 
-let shake = 0;
-
-const BASE_WIDTH = 1200;
-const BASE_HEIGHT = 500;
-
 const groundY = 420;
-
-
-/* =========================================================
-   PLAYER
-========================================================= */
 
 const player = {
     x: 150,
     y: groundY - 80,
-
     width: 62,
     height: 80,
-
     velocityY: 0,
-
     gravity: 0.75,
-
     jumpPower: -15,
-
     grounded: true,
-
-    color: "#50f5a1",
-
-    glow: "#50f5a1"
+    color: "#50f5a1"
 };
 
 
 /* =========================================================
-   LEVEL SYSTEM
-========================================================= */
+   BACKGROUND
+   ========================================================= */
 
-function xpNeeded(level) {
+function createBackground() {
 
-    return Math.floor(
-        1000 *
-        Math.pow(level, 1.35)
-    );
-}
+    clouds = [];
+    stars = [];
 
-function addXP(amount) {
+    for (let i = 0; i < 10; i++) {
 
-    save.xp += amount;
-
-    while (
-        save.xp >= xpNeeded(save.level)
-    ) {
-
-        save.xp -= xpNeeded(save.level);
-
-        save.level++;
-
-        save.gems +=
-            100000 * save.level;
-
-        createFloatingText(
-            canvas.width / 2,
-            130,
-            "LEVEL UP!",
-            "#ffd34d"
-        );
+        clouds.push({
+            x: Math.random() * 1200,
+            y: 30 + Math.random() * 180,
+            size: 25 + Math.random() * 55,
+            speed: 0.2 + Math.random() * 0.5
+        });
     }
 
-    saveGame();
+    for (let i = 0; i < 120; i++) {
+
+        stars.push({
+            x: Math.random() * 1200,
+            y: Math.random() * 330,
+            size: 1 + Math.random() * 2,
+            alpha: 0.2 + Math.random() * 0.8
+        });
+    }
 }
 
 
 /* =========================================================
    UI
-========================================================= */
+   ========================================================= */
 
 function updateUI() {
 
-    if (gemsEl) {
-        gemsEl.textContent =
-            formatNumber(save.gems);
-    }
+    gemsEl.textContent =
+        Number(save.gems).toLocaleString();
 
-    if (bestScoreEl) {
-        bestScoreEl.textContent =
-            formatNumber(save.bestScore);
-    }
+    bestScoreEl.textContent =
+        Math.floor(save.bestScore).toLocaleString();
 
-    if (levelEl) {
-        levelEl.textContent =
-            save.level;
-    }
+    const level =
+        Math.max(
+            1,
+            Math.floor(save.bestScore / 1000) + 1
+        );
 
-    if (scoreEl) {
-        scoreEl.textContent =
-            formatNumber(Math.floor(score));
-    }
+    levelEl.textContent = level;
 
-    if (comboEl) {
-        comboEl.textContent =
-            "x" + combo;
-    }
+    scoreEl.textContent =
+        Math.floor(score).toLocaleString();
 
-    if (healthEl) {
+    comboEl.textContent =
+        "x" + combo;
 
-        healthEl.textContent =
-            "❤️".repeat(Math.max(0, health)) +
-            "🖤".repeat(
-                Math.max(0, maxHealth - health)
-            );
-    }
+    healthEl.textContent =
+        "❤️".repeat(Math.max(0, health)) +
+        "🖤".repeat(Math.max(0, 3 - health));
 
-    if (characterCountEl) {
-
-        characterCountEl.textContent =
-            save.unlockedCharacters.length +
-            " / " +
-            characters.length;
-    }
-}
-
-function formatNumber(number) {
-
-    if (!Number.isFinite(number)) {
-        return "0";
-    }
-
-    return Math.floor(number).toLocaleString("en-US");
+    characterCountEl.textContent =
+        save.unlockedCharacters.length +
+        " / " +
+        characters.length;
 }
 
 
 /* =========================================================
    TABS
-========================================================= */
+   ========================================================= */
 
 document.querySelectorAll(".tab").forEach(tab => {
 
@@ -681,18 +525,14 @@ document.querySelectorAll(".tab").forEach(tab => {
         const target =
             tab.dataset.panel;
 
-        document
-            .querySelectorAll(".tab")
+        document.querySelectorAll(".tab")
             .forEach(button => {
                 button.classList.remove("active");
             });
 
-        document
-            .querySelectorAll(".panel")
+        document.querySelectorAll(".panel")
             .forEach(panel => {
-                panel.classList.remove(
-                    "active-panel"
-                );
+                panel.classList.remove("active-panel");
             });
 
         tab.classList.add("active");
@@ -701,9 +541,7 @@ document.querySelectorAll(".tab").forEach(tab => {
             document.getElementById(target);
 
         if (panel) {
-            panel.classList.add(
-                "active-panel"
-            );
+            panel.classList.add("active-panel");
         }
     });
 });
@@ -711,19 +549,16 @@ document.querySelectorAll(".tab").forEach(tab => {
 
 /* =========================================================
    CHARACTER SHOP
-========================================================= */
+   ========================================================= */
 
 function renderCharacters() {
-
-    if (!characterGrid) return;
 
     characterGrid.innerHTML = "";
 
     characters.forEach((character, index) => {
 
         const unlocked =
-            save.unlockedCharacters
-                .includes(index);
+            save.unlockedCharacters.includes(index);
 
         const selected =
             save.selectedCharacter === index;
@@ -733,14 +568,20 @@ function renderCharacters() {
 
         card.className =
             "character-card" +
-            (selected
-                ? " selected"
-                : "");
+            (selected ? " selected" : "");
 
-        card.style.setProperty(
-            "--skin-color",
-            character.color
-        );
+        const costText =
+            unlocked
+                ? "✓ OWNED"
+                : "💎 " +
+                  character.cost.toLocaleString();
+
+        const buttonText =
+            selected
+                ? "SELECTED"
+                : unlocked
+                    ? "SELECT"
+                    : "UNLOCK";
 
         card.innerHTML = `
             <div class="card-top">
@@ -750,7 +591,7 @@ function renderCharacters() {
                     style="
                         color:${character.color};
                         text-shadow:
-                        0 0 20px ${character.glow};
+                        0 0 20px ${character.color};
                     ">
                     ${character.emoji}
                 </div>
@@ -776,31 +617,13 @@ function renderCharacters() {
             <div class="card-footer">
 
                 <span class="card-cost">
-
-                    ${
-                        unlocked
-                            ? "✓ OWNED"
-                            : "💎 " +
-                              formatNumber(
-                                  character.cost
-                              )
-                    }
-
+                    ${costText}
                 </span>
 
                 <button
-                    class="card-btn
-                    ${unlocked ? "" : "locked"}"
+                    class="card-btn ${unlocked ? "" : "locked"}"
                     data-character="${index}">
-
-                    ${
-                        selected
-                            ? "SELECTED"
-                            : unlocked
-                                ? "SELECT"
-                                : "UNLOCK"
-                    }
-
+                    ${buttonText}
                 </button>
 
             </div>
@@ -818,9 +641,7 @@ function renderCharacters() {
                 () => {
 
                     selectOrUnlockCharacter(
-                        Number(
-                            button.dataset.character
-                        )
+                        Number(button.dataset.character)
                     );
 
                 }
@@ -828,38 +649,38 @@ function renderCharacters() {
         });
 }
 
+
 function selectOrUnlockCharacter(index) {
 
     const character =
         characters[index];
 
-    if (!character) return;
-
     if (
-        save.unlockedCharacters
-            .includes(index)
+        save.unlockedCharacters.includes(index)
     ) {
 
-        save.selectedCharacter =
-            index;
+        save.selectedCharacter = index;
 
-        applyCharacter();
+        player.color =
+            character.color;
 
         saveGame();
-
         renderCharacters();
-
         updateUI();
 
         showMessage(
-            `${character.name} selected!`,
+            character.name +
+            " selected!",
             "#50f5a1"
         );
 
         return;
     }
 
-    if (save.gems < character.cost) {
+    if (
+        save.gems <
+        character.cost
+    ) {
 
         showMessage(
             "Not enough gems!",
@@ -872,76 +693,44 @@ function selectOrUnlockCharacter(index) {
     save.gems -=
         character.cost;
 
-    save.unlockedCharacters.push(
-        index
-    );
+    save.unlockedCharacters.push(index);
 
-    save.selectedCharacter =
-        index;
-
-    applyCharacter();
-
-    saveGame();
-
-    renderCharacters();
-
-    updateUI();
-
-    showMessage(
-        `${character.name} unlocked!`,
-        "#50f5a1"
-    );
-}
-
-function applyCharacter() {
-
-    const character =
-        characters[
-            save.selectedCharacter
-        ];
-
-    if (!character) return;
+    save.selectedCharacter = index;
 
     player.color =
         character.color;
 
-    player.glow =
-        character.glow;
+    saveGame();
+
+    renderCharacters();
+    updateUI();
+
+    showMessage(
+        character.name +
+        " unlocked!",
+        "#50f5a1"
+    );
 }
 
 
 /* =========================================================
    UPGRADES
-========================================================= */
-
-function getUpgradeCost(level) {
-
-    return Math.floor(
-        200000 *
-        Math.pow(2.05, level)
-    );
-}
+   ========================================================= */
 
 function renderUpgrades() {
-
-    if (!upgradeGrid) return;
 
     upgradeGrid.innerHTML = "";
 
     upgrades.forEach(upgrade => {
 
         const currentLevel =
-            save.upgrades[
-                upgrade.key
-            ];
+            save.upgrades[upgrade.key];
 
         const maxed =
-            currentLevel >= 10;
+            currentLevel >= 5;
 
         const cost =
-            getUpgradeCost(
-                currentLevel
-            );
+            getUpgradeCost(currentLevel);
 
         const card =
             document.createElement("article");
@@ -963,9 +752,7 @@ function renderUpgrades() {
                     </h3>
 
                     <p class="card-subtitle">
-                        LEVEL
-                        ${currentLevel}
-                        / 10
+                        LEVEL ${currentLevel} / 5
                     </p>
 
                 </div>
@@ -979,25 +766,19 @@ function renderUpgrades() {
             <div class="card-footer">
 
                 <span class="card-cost">
-
                     ${
                         maxed
                             ? "MAX LEVEL"
                             : "💎 " +
-                              formatNumber(cost)
+                              cost.toLocaleString()
                     }
-
                 </span>
 
                 <button
                     class="card-btn"
                     data-upgrade="${upgrade.key}"
                     ${maxed ? "disabled" : ""}>
-
-                    ${maxed
-                        ? "MAX"
-                        : "UPGRADE"}
-
+                    ${maxed ? "MAX" : "UPGRADE"}
                 </button>
 
             </div>
@@ -1013,28 +794,21 @@ function renderUpgrades() {
             button.addEventListener(
                 "click",
                 () => {
-
                     upgradePlayer(
                         button.dataset.upgrade
                     );
-
                 }
             );
         });
 }
 
-function upgradePlayer(key) {
 
-    if (
-        save.upgrades[key] === undefined
-    ) {
-        return;
-    }
+function upgradePlayer(key) {
 
     const current =
         save.upgrades[key];
 
-    if (current >= 10) {
+    if (current >= 5) {
         return;
     }
 
@@ -1052,17 +826,15 @@ function upgradePlayer(key) {
     }
 
     save.gems -= cost;
-
     save.upgrades[key]++;
 
     saveGame();
 
+    renderUpgrades();
     updateUI();
 
-    renderUpgrades();
-
     showMessage(
-        "⚡ UPGRADE COMPLETE!",
+        "Upgrade complete!",
         "#50f5a1"
     );
 }
@@ -1070,19 +842,16 @@ function upgradePlayer(key) {
 
 /* =========================================================
    WORLDS
-========================================================= */
+   ========================================================= */
 
 function renderWorlds() {
-
-    if (!worldGrid) return;
 
     worldGrid.innerHTML = "";
 
     worlds.forEach((world, index) => {
 
         const unlocked =
-            save.unlockedWorlds
-                .includes(index);
+            save.unlockedWorlds.includes(index);
 
         const selected =
             save.selectedWorld === index;
@@ -1092,15 +861,11 @@ function renderWorlds() {
 
         card.className =
             "world-card" +
-            (selected
-                ? " selected"
-                : "");
+            (selected ? " selected" : "");
 
         card.innerHTML = `
-
             <div
-                class="world-preview
-                ${world.className}">
+                class="world-preview ${world.className}">
             </div>
 
             <h3 class="card-title">
@@ -1117,20 +882,19 @@ function renderWorlds() {
 
                     ${
                         unlocked
-                            ? selected
-                                ? "✓ ACTIVE"
-                                : "✓ UNLOCKED"
-                            : "💎 " +
-                              formatNumber(
-                                  world.cost
+                            ? (
+                                selected
+                                    ? "✓ ACTIVE"
+                                    : "✓ UNLOCKED"
                               )
+                            : "💎 " +
+                              world.cost.toLocaleString()
                     }
 
                 </span>
 
                 <button
-                    class="card-btn
-                    ${unlocked ? "" : "locked"}"
+                    class="card-btn ${unlocked ? "" : "locked"}"
                     data-world="${index}">
 
                     ${
@@ -1158,9 +922,7 @@ function renderWorlds() {
                 () => {
 
                     selectOrUnlockWorld(
-                        Number(
-                            button.dataset.world
-                        )
+                        Number(button.dataset.world)
                     );
 
                 }
@@ -1168,20 +930,17 @@ function renderWorlds() {
         });
 }
 
+
 function selectOrUnlockWorld(index) {
 
     const world =
         worlds[index];
 
-    if (!world) return;
-
     if (
-        save.unlockedWorlds
-            .includes(index)
+        save.unlockedWorlds.includes(index)
     ) {
 
-        save.selectedWorld =
-            index;
+        save.selectedWorld = index;
 
         saveGame();
 
@@ -1196,7 +955,10 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
-    if (save.gems < world.cost) {
+    if (
+        save.gems <
+        world.cost
+    ) {
 
         showMessage(
             "Not enough gems!",
@@ -1209,17 +971,12 @@ function selectOrUnlockWorld(index) {
     save.gems -=
         world.cost;
 
-    save.unlockedWorlds.push(
-        index
-    );
-
-    save.selectedWorld =
-        index;
+    save.unlockedWorlds.push(index);
+    save.selectedWorld = index;
 
     saveGame();
 
     updateUI();
-
     renderWorlds();
 
     showMessage(
@@ -1231,228 +988,20 @@ function selectOrUnlockWorld(index) {
 
 
 /* =========================================================
-   MISSIONS PANEL
-========================================================= */
-
-function renderMissionsIfPossible() {
-
-    const panel =
-        document.getElementById("missions");
-
-    if (!panel) return;
-
-    const existing =
-        panel.querySelector(
-            ".missions-grid"
-        );
-
-    if (existing) return;
-
-    const grid =
-        document.createElement("div");
-
-    grid.className =
-        "grid missions-grid";
-
-    missions.forEach(mission => {
-
-        const value =
-            save.missions[
-                mission.id
-            ] || 0;
-
-        const claimed =
-            save.claimedMissions
-                .includes(mission.id);
-
-        const percent =
-            Math.min(
-                100,
-                (value /
-                    mission.target) *
-                    100
-            );
-
-        const card =
-            document.createElement("article");
-
-        card.className =
-            "upgrade-card";
-
-        card.innerHTML = `
-
-            <div class="card-top">
-
-                <div class="card-emoji">
-                    🎯
-                </div>
-
-                <div>
-
-                    <h3 class="card-title">
-                        ${mission.title}
-                    </h3>
-
-                    <p class="card-subtitle">
-                        ${value.toLocaleString()}
-                        /
-                        ${mission.target.toLocaleString()}
-                    </p>
-
-                </div>
-
-            </div>
-
-            <p class="card-description">
-                ${mission.description}
-            </p>
-
-            <div style="
-                height:8px;
-                border-radius:10px;
-                background:rgba(255,255,255,.08);
-                overflow:hidden;
-                margin:15px 0;
-            ">
-
-                <div style="
-                    width:${percent}%;
-                    height:100%;
-                    background:#2ce1ff;
-                    box-shadow:0 0 15px #2ce1ff;
-                "></div>
-
-            </div>
-
-            <div class="card-footer">
-
-                <span class="card-cost">
-                    💎 ${formatNumber(mission.reward)}
-                </span>
-
-                <button
-                    class="card-btn"
-                    data-mission="${mission.id}"
-                    ${claimed ? "disabled" : ""}>
-
-                    ${
-                        claimed
-                            ? "CLAIMED"
-                            : value >= mission.target
-                                ? "CLAIM"
-                                : "LOCKED"
-                    }
-
-                </button>
-
-            </div>
-        `;
-
-        grid.appendChild(card);
-    });
-
-    panel.appendChild(grid);
-
-    grid.querySelectorAll(
-        "[data-mission]"
-    ).forEach(button => {
-
-        button.addEventListener(
-            "click",
-            () => {
-
-                claimMission(
-                    button.dataset.mission
-                );
-
-                grid.remove();
-
-                renderMissionsIfPossible();
-            }
-        );
-    });
-}
-
-function claimMission(id) {
-
-    const mission =
-        missions.find(
-            item => item.id === id
-        );
-
-    if (!mission) return;
-
-    if (
-        save.claimedMissions
-            .includes(id)
-    ) {
-        return;
-    }
-
-    const value =
-        save.missions[id] || 0;
-
-    if (value < mission.target) {
-
-        showMessage(
-            "Mission not completed!",
-            "#ff5571"
-        );
-
-        return;
-    }
-
-    save.claimedMissions.push(id);
-
-    save.gems +=
-        mission.reward;
-
-    addXP(500);
-
-    saveGame();
-
-    updateUI();
-
-    showMessage(
-        "🎯 MISSION REWARD CLAIMED!",
-        "#50f5a1"
-    );
-}
-
-
-/* =========================================================
-   START
-========================================================= */
+   GAME START
+   ========================================================= */
 
 function startGame() {
 
-    if (!canvas || !ctx) {
-        console.error(
-            "gameCanvas not found."
-        );
-        return;
-    }
-
     if (animationId) {
-
-        cancelAnimationFrame(
-            animationId
-        );
-
-        animationId = null;
+        cancelAnimationFrame(animationId);
     }
 
     score = 0;
     combo = 1;
-
-    maxHealth =
-        3 +
-        save.upgrades.health;
-
-    health = maxHealth;
+    health = 3;
 
     gameSpeed = 8;
-
     distance = 0;
 
     obstacleTimer = 0;
@@ -1462,70 +1011,46 @@ function startGame() {
     shieldTimer = 0;
     invincibleTimer = 0;
 
-    shake = 0;
-
     particles = [];
     obstacles = [];
     collectibles = [];
+
+    const character =
+        characters[
+            save.selectedCharacter
+        ];
+
+    player.color =
+        character.color;
 
     player.y =
         groundY -
         player.height;
 
     player.velocityY = 0;
-
     player.grounded = true;
-
-    applyCharacter();
 
     gameRunning = true;
 
     lastTime =
         performance.now();
 
-    if (startScreen) {
-        startScreen.classList.add(
-            "hidden"
-        );
-    }
-
-    if (gameOverScreen) {
-        gameOverScreen.classList.add(
-            "hidden"
-        );
-    }
-
-    save.stats.runs++;
-
-    save.missions.runs =
-        (save.missions.runs || 0) + 1;
-
-    saveGame();
+    startScreen.classList.add("hidden");
+    gameOverScreen.classList.add("hidden");
 
     updateUI();
 
     animationId =
-        requestAnimationFrame(
-            gameLoop
-        );
+        requestAnimationFrame(gameLoop);
 }
 
-
-/* =========================================================
-   GAME OVER
-========================================================= */
 
 function endGame() {
 
     gameRunning = false;
 
     if (animationId) {
-
-        cancelAnimationFrame(
-            animationId
-        );
-
-        animationId = null;
+        cancelAnimationFrame(animationId);
     }
 
     const finalScore =
@@ -1540,45 +1065,23 @@ function endGame() {
             finalScore;
     }
 
-    save.stats.totalScore +=
-        finalScore;
-
-    save.stats.totalDistance +=
-        Math.floor(distance);
-
-    save.missions.distance +=
-        Math.floor(distance);
-
-    addXP(
-        Math.floor(
-            finalScore * 0.2
-        )
-    );
+    save.playerXP +=
+        Math.floor(finalScore / 10);
 
     saveGame();
 
-    if (finalScoreEl) {
-
-        finalScoreEl.textContent =
-            formatNumber(
-                finalScore
-            );
-    }
+    finalScoreEl.textContent =
+        finalScore.toLocaleString();
 
     updateUI();
 
-    if (gameOverScreen) {
-
-        gameOverScreen.classList.remove(
-            "hidden"
-        );
-    }
+    gameOverScreen.classList.remove("hidden");
 }
 
 
 /* =========================================================
    GAME LOOP
-========================================================= */
+   ========================================================= */
 
 function gameLoop(timestamp) {
 
@@ -1588,92 +1091,60 @@ function gameLoop(timestamp) {
 
     const delta =
         Math.min(
-            (timestamp - lastTime) /
-                16.67,
+            (timestamp - lastTime) / 16.67,
             2
         );
 
-    lastTime = timestamp;
+    lastTime =
+        timestamp;
 
     update(delta);
-
     draw();
 
     animationId =
-        requestAnimationFrame(
-            gameLoop
-        );
+        requestAnimationFrame(gameLoop);
 }
 
 
 /* =========================================================
    UPDATE
-========================================================= */
+   ========================================================= */
 
 function update(delta) {
 
     distance +=
-        gameSpeed *
-        delta;
-
-    save.missions.distance =
-        Math.floor(distance);
+        gameSpeed * delta;
 
     score +=
         0.18 *
         combo *
         delta *
-        (
-            1 +
-            save.upgrades.score *
-            0.08
-        ) *
-        (
-            dashTimer > 0
-                ? 1.7
-                : 1
-        );
+        (dashTimer > 0 ? 1.7 : 1);
 
     gameSpeed =
         Math.min(
             20,
-            8 +
-            score / 1200
+            8 + score / 1000
         );
 
     updatePlayer(delta);
-
     updateTimers(delta);
-
     spawnObjects(delta);
-
     updateObstacles(delta);
-
     updateCollectibles(delta);
-
     updateParticles(delta);
-
-    if (shake > 0) {
-        shake -= delta;
-    }
 
     updateUI();
 }
 
 
-/* =========================================================
-   PLAYER
-========================================================= */
-
 function updatePlayer(delta) {
 
     player.velocityY +=
-        player.gravity *
-        delta;
+        player.gravity * delta;
 
     player.y +=
-        player.velocityY *
-        delta;
+        player.velocityY * delta;
 
     if (
         player.y >=
@@ -1686,48 +1157,37 @@ function updatePlayer(delta) {
             player.height;
 
         player.velocityY = 0;
-
         player.grounded = true;
     }
 }
 
+
 function updateTimers(delta) {
 
-    dashTimer =
-        Math.max(
-            0,
-            dashTimer - delta
-        );
+    if (dashTimer > 0) {
+        dashTimer -= delta;
+    }
 
-    shieldTimer =
-        Math.max(
-            0,
-            shieldTimer - delta
-        );
+    if (shieldTimer > 0) {
+        shieldTimer -= delta;
+    }
 
-    invincibleTimer =
-        Math.max(
-            0,
-            invincibleTimer - delta
-        );
+    if (invincibleTimer > 0) {
+        invincibleTimer -= delta;
+    }
 }
 
-
-/* =========================================================
-   SPAWN
-========================================================= */
 
 function spawnObjects(delta) {
 
     obstacleTimer += delta;
-
     gemTimer += delta;
 
     const obstacleInterval =
         Math.max(
-            48,
+            60,
             125 -
-            gameSpeed * 3.4
+            gameSpeed * 3
         );
 
     if (
@@ -1740,7 +1200,9 @@ function spawnObjects(delta) {
         obstacleTimer = 0;
     }
 
-    if (gemTimer > 38) {
+    if (
+        gemTimer > 48
+    ) {
 
         spawnGem();
 
@@ -1751,7 +1213,7 @@ function spawnObjects(delta) {
 
 /* =========================================================
    OBSTACLES
-========================================================= */
+   ========================================================= */
 
 function spawnObstacle() {
 
@@ -1760,7 +1222,7 @@ function spawnObstacle() {
         "rock",
         "bird",
         "crystal",
-        "spike"
+        "laser"
     ];
 
     const type =
@@ -1773,7 +1235,6 @@ function spawnObstacle() {
 
     let width = 40;
     let height = 60;
-
     let y =
         groundY -
         height;
@@ -1795,13 +1256,13 @@ function spawnObstacle() {
 
         y =
             groundY -
-            140 -
-            Math.random() * 90;
+            150 -
+            Math.random() * 70;
     }
 
     if (type === "crystal") {
 
-        width = 42;
+        width = 48;
         height = 75;
 
         y =
@@ -1809,33 +1270,27 @@ function spawnObstacle() {
             height;
     }
 
-    if (type === "spike") {
+    if (type === "laser") {
 
-        width = 70;
-        height = 35;
+        width = 80;
+        height = 18;
 
         y =
             groundY -
-            height;
+            70 -
+            Math.random() * 120;
     }
 
     obstacles.push({
-
         type,
-
-        x:
-            canvas.width +
-            80,
-
+        x: canvas.width + 50,
         y,
-
         width,
-
         height,
-
         counted: false
     });
 }
+
 
 function updateObstacles(delta) {
 
@@ -1845,8 +1300,7 @@ function updateObstacles(delta) {
             : 1;
 
     for (
-        let i =
-            obstacles.length - 1;
+        let i = obstacles.length - 1;
         i >= 0;
         i--
     ) {
@@ -1868,10 +1322,7 @@ function updateObstacles(delta) {
 
             hitPlayer();
 
-            obstacles.splice(
-                i,
-                1
-            );
+            obstacles.splice(i, 1);
 
             continue;
         }
@@ -1880,35 +1331,28 @@ function updateObstacles(delta) {
             !obstacle.counted &&
             obstacle.x +
                 obstacle.width <
-                player.x
+            player.x
         ) {
 
             obstacle.counted = true;
 
-            save.stats
-                .obstaclesDodged++;
-
             combo =
                 Math.min(
-                    20,
+                    10,
                     combo + 1
                 );
 
             score +=
-                25 *
-                combo;
+                25 * combo;
         }
 
         if (
             obstacle.x +
                 obstacle.width <
-                -100
+            -100
         ) {
 
-            obstacles.splice(
-                i,
-                1
-            );
+            obstacles.splice(i, 1);
         }
     }
 }
@@ -1916,27 +1360,26 @@ function updateObstacles(delta) {
 
 /* =========================================================
    GEMS
-========================================================= */
+   ========================================================= */
 
 function spawnGem() {
 
     collectibles.push({
 
         x:
-            canvas.width +
-            50,
+            canvas.width + 30,
 
         y:
             groundY -
-            70 -
-            Math.random() *
-            190,
+            80 -
+            Math.random() * 170,
 
         radius: 13,
 
         angle: 0
     });
 }
+
 
 function updateCollectibles(delta) {
 
@@ -1955,8 +1398,7 @@ function updateCollectibles(delta) {
             delta;
 
         gem.angle +=
-            0.12 *
-            delta;
+            0.12 * delta;
 
         if (
             circleRectCollision(
@@ -1965,16 +1407,36 @@ function updateCollectibles(delta) {
             )
         ) {
 
-            collectGem(
-                gem,
-                i
+            save.gems++;
+
+            score +=
+                50 * combo;
+
+            combo =
+                Math.min(
+                    10,
+                    combo + 1
+                );
+
+            createParticles(
+                gem.x,
+                gem.y,
+                16,
+                "#2ce1ff"
             );
+
+            collectibles.splice(
+                i,
+                1
+            );
+
+            saveGame();
 
             continue;
         }
 
         if (
-            gem.x < -80
+            gem.x < -50
         ) {
 
             collectibles.splice(
@@ -1985,60 +1447,17 @@ function updateCollectibles(delta) {
     }
 }
 
-function collectGem(
-    gem,
-    index
-) {
-
-    const reward =
-        1 +
-        save.upgrades.magnet;
-
-    save.gems += reward;
-
-    save.stats.totalGems +=
-        reward;
-
-    save.missions.gems +=
-        reward;
-
-    score +=
-        50 *
-        combo;
-
-    combo =
-        Math.min(
-            20,
-            combo + 1
-        );
-
-    createParticles(
-        gem.x,
-        gem.y,
-        18,
-        "#2ce1ff"
-    );
-
-    collectibles.splice(
-        index,
-        1
-    );
-
-    saveGame();
-}
-
 
 /* =========================================================
    COLLISION
-========================================================= */
+   ========================================================= */
 
 function checkCollision(a, b) {
 
     const padding = 10;
 
     return (
-        a.x +
-            padding <
+        a.x + padding <
             b.x +
             b.width -
             padding &&
@@ -2049,8 +1468,7 @@ function checkCollision(a, b) {
             b.x +
             padding &&
 
-        a.y +
-            padding <
+        a.y + padding <
             b.y +
             b.height -
             padding &&
@@ -2063,36 +1481,29 @@ function checkCollision(a, b) {
     );
 }
 
+
 function circleRectCollision(
     circle,
     rect
 ) {
 
-    const magnet =
-        save.upgrades.magnet *
-        4;
-
     const closestX =
         Math.max(
-            rect.x -
-                magnet,
+            rect.x,
             Math.min(
                 circle.x,
                 rect.x +
-                    rect.width +
-                    magnet
+                rect.width
             )
         );
 
     const closestY =
         Math.max(
-            rect.y -
-                magnet,
+            rect.y,
             Math.min(
                 circle.y,
                 rect.y +
-                    rect.height +
-                    magnet
+                rect.height
             )
         );
 
@@ -2107,12 +1518,11 @@ function circleRectCollision(
     return (
         dx * dx +
         dy * dy <
-        Math.pow(
-            circle.radius,
-            2
-        )
+        circle.radius *
+        circle.radius
     );
 }
+
 
 function hitPlayer() {
 
@@ -2124,11 +1534,11 @@ function hitPlayer() {
         createParticles(
             player.x + 30,
             player.y + 35,
-            20,
-            "#2ce1ff"
+            18,
+            shieldTimer > 0
+                ? "#2ce1ff"
+                : "#ffffff"
         );
-
-        shake = 8;
 
         return;
     }
@@ -2139,16 +1549,16 @@ function hitPlayer() {
 
     invincibleTimer = 75;
 
-    shake = 15;
-
     createParticles(
         player.x + 30,
         player.y + 40,
-        30,
+        25,
         "#ff5571"
     );
 
-    if (health <= 0) {
+    if (
+        health <= 0
+    ) {
 
         endGame();
     }
@@ -2157,119 +1567,83 @@ function hitPlayer() {
 
 /* =========================================================
    CONTROLS
-========================================================= */
+   ========================================================= */
 
 function jump() {
 
-    if (!gameRunning) return;
+    if (!gameRunning) {
+        return;
+    }
+
+    if (!player.grounded) {
+        return;
+    }
 
     const jumpLevel =
         save.upgrades.jump;
 
-    /*
-       DOUBLE JUMP
-    */
-
-    if (
-        !player.grounded &&
-        !player.canDoubleJump
-    ) {
-
-        if (
-            player.jumpCount >= 1
-        ) {
-
-            player.velocityY =
-                player.jumpPower -
-                jumpLevel * 1.15;
-
-            player.jumpCount++;
-
-            player.canDoubleJump = false;
-
-            createParticles(
-                player.x + 20,
-                player.y + 65,
-                15,
-                player.color
-            );
-
-            save.missions.jumps++;
-
-            return;
-        }
-
-        return;
-    }
-
     player.velocityY =
         player.jumpPower -
-        jumpLevel * 1.15;
+        jumpLevel * 1.1;
 
     player.grounded = false;
-
-    player.jumpCount =
-        1;
-
-    player.canDoubleJump =
-        true;
 
     createParticles(
         player.x + 20,
         groundY,
-        12,
+        10,
         "#91a8bd"
     );
-
-    save.missions.jumps++;
 }
+
 
 function dash() {
 
-    if (!gameRunning) return;
+    if (!gameRunning) {
+        return;
+    }
 
-    if (dashTimer > 0) return;
+    if (dashTimer > 0) {
+        return;
+    }
 
-    const level =
+    const dashLevel =
         save.upgrades.dash;
 
     dashTimer =
         35 +
-        level * 8;
-
-    score +=
-        100 *
-        combo;
-
-    save.missions.dashes++;
+        dashLevel * 8;
 
     createParticles(
         player.x,
         player.y + 40,
-        25,
+        20,
         "#ffd34d"
     );
 }
 
+
 function activateShield() {
 
-    if (!gameRunning) return;
+    if (!gameRunning) {
+        return;
+    }
 
-    if (shieldTimer > 0) return;
+    if (shieldTimer > 0) {
+        return;
+    }
 
-    const level =
+    const shieldLevel =
         save.upgrades.shield;
 
     shieldTimer =
         90 +
-        level * 20;
-
-    save.missions.shields++;
+        shieldLevel * 20;
 
     createParticles(
         player.x + 30,
         player.y + 40,
-        30,
+        24,
         "#2ce1ff"
     );
 }
@@ -2277,7 +1651,7 @@ function activateShield() {
 
 /* =========================================================
    KEYBOARD
-========================================================= */
+   ========================================================= */
 
 document.addEventListener(
     "keydown",
@@ -2303,141 +1677,77 @@ document.addEventListener(
         }
 
         if (
-            event.code === "KeyS"
+            event.code === "KeyS" ||
+            event.code === "ArrowDown"
         ) {
 
             activateShield();
         }
-
     }
 );
 
 
 /* =========================================================
-   BUTTON EVENTS
-========================================================= */
+   BUTTONS
+   ========================================================= */
 
-if (startButton) {
+startButton.addEventListener(
+    "click",
+    startGame
+);
 
-    startButton.addEventListener(
-        "click",
-        startGame
-    );
-}
+restartButton.addEventListener(
+    "click",
+    startGame
+);
 
-if (restartButton) {
+jumpButton.addEventListener(
+    "click",
+    jump
+);
 
-    restartButton.addEventListener(
-        "click",
-        startGame
-    );
-}
+dashButton.addEventListener(
+    "click",
+    dash
+);
 
-if (jumpButton) {
-
-    jumpButton.addEventListener(
-        "click",
-        jump
-    );
-}
-
-if (dashButton) {
-
-    dashButton.addEventListener(
-        "click",
-        dash
-    );
-}
-
-if (shieldButton) {
-
-    shieldButton.addEventListener(
-        "click",
-        activateShield
-    );
-}
-
-
-/* =========================================================
-   TOUCH
-========================================================= */
-
-if (canvas) {
-
-    canvas.addEventListener(
-        "pointerdown",
-        event => {
-
-            if (
-                event.pointerType ===
-                "touch"
-            ) {
-
-                jump();
-            }
-        }
-    );
-}
+shieldButton.addEventListener(
+    "click",
+    activateShield
+);
 
 
 /* =========================================================
    DRAW
-========================================================= */
+   ========================================================= */
 
 function draw() {
-
-    if (!ctx) return;
-
-    ctx.save();
-
-    if (shake > 0) {
-
-        ctx.translate(
-            (Math.random() - 0.5) *
-                shake,
-            (Math.random() - 0.5) *
-                shake
-        );
-    }
 
     ctx.clearRect(
         0,
         0,
-        BASE_WIDTH,
-        BASE_HEIGHT
+        canvas.width,
+        canvas.height
     );
 
     drawSky();
-
     drawBackground();
-
     drawGround();
-
     drawCollectibles();
-
     drawObstacles();
-
     drawPlayer();
-
     drawParticles();
-
-    drawVignette();
-
-    ctx.restore();
 }
 
 
 /* =========================================================
    SKY
-========================================================= */
+   ========================================================= */
 
 function drawSky() {
 
     const world =
-        worlds[
-            save.selectedWorld
-        ] ||
-        worlds[0];
+        worlds[save.selectedWorld];
 
     const gradient =
         ctx.createLinearGradient(
@@ -2463,7 +1773,7 @@ function drawSky() {
     ctx.fillRect(
         0,
         0,
-        BASE_WIDTH,
+        canvas.width,
         groundY
     );
 
@@ -2471,101 +1781,76 @@ function drawSky() {
         save.selectedWorld === 4
     ) {
 
-        drawStars();
+        stars.forEach(star => {
+
+            ctx.globalAlpha =
+                star.alpha;
+
+            ctx.fillStyle =
+                "#ffffff";
+
+            ctx.fillRect(
+                star.x,
+                star.y,
+                star.size,
+                star.size
+            );
+        });
+
+        ctx.globalAlpha = 1;
 
     } else {
 
         drawSun();
-
         drawClouds();
     }
 }
 
-function drawStars() {
-
-    stars.forEach(star => {
-
-        ctx.globalAlpha =
-            star.alpha;
-
-        ctx.fillStyle =
-            "#ffffff";
-
-        ctx.beginPath();
-
-        ctx.arc(
-            star.x,
-            star.y,
-            star.size,
-            0,
-            Math.PI * 2
-        );
-
-        ctx.fill();
-    });
-
-    ctx.globalAlpha = 1;
-}
 
 function drawSun() {
 
+    const world =
+        save.selectedWorld;
+
     let color =
-        "rgba(255,255,255,.35)";
+        "rgba(255,255,255,0.3)";
 
-    if (
-        save.selectedWorld === 1
-    ) {
-
+    if (world === 1) {
         color =
-            "rgba(255,211,77,.75)";
+            "rgba(255,211,77,0.7)";
     }
 
-    if (
-        save.selectedWorld === 2
-    ) {
-
+    if (world === 2) {
         color =
-            "rgba(180,240,255,.55)";
+            "rgba(180,240,255,0.5)";
     }
 
-    if (
-        save.selectedWorld === 3
-    ) {
-
+    if (world === 3) {
         color =
-            "rgba(255,85,113,.65)";
+            "rgba(255,85,113,0.55)";
     }
 
-    const glow =
-        ctx.createRadialGradient(
-            BASE_WIDTH - 150,
-            100,
-            5,
-            BASE_WIDTH - 150,
-            100,
-            100
-        );
-
-    glow.addColorStop(
-        0,
-        color
-    );
-
-    glow.addColorStop(
-        1,
-        "rgba(255,255,255,0)"
-    );
+    ctx.beginPath();
 
     ctx.fillStyle =
-        glow;
+        color;
 
-    ctx.fillRect(
-        BASE_WIDTH - 260,
+    ctx.shadowBlur = 35;
+    ctx.shadowColor = color;
+
+    ctx.arc(
+        canvas.width - 150,
+        100,
+        45,
         0,
-        220,
-        220
+        Math.PI * 2
     );
+
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
 }
+
 
 function drawClouds() {
 
@@ -2580,28 +1865,27 @@ function drawClouds() {
         ) {
 
             cloud.x =
-                BASE_WIDTH +
-                120;
+                canvas.width + 100;
         }
 
         ctx.fillStyle =
-            "rgba(255,255,255,.07)";
+            "rgba(255,255,255,0.08)";
 
         ctx.beginPath();
 
         ctx.arc(
             cloud.x,
             cloud.y,
-            cloud.size * .5,
+            cloud.size * 0.5,
             0,
             Math.PI * 2
         );
 
         ctx.arc(
             cloud.x +
-                cloud.size * .6,
+                cloud.size * 0.6,
             cloud.y - 10,
-            cloud.size * .65,
+            cloud.size * 0.65,
             0,
             Math.PI * 2
         );
@@ -2610,7 +1894,7 @@ function drawClouds() {
             cloud.x +
                 cloud.size * 1.2,
             cloud.y,
-            cloud.size * .45,
+            cloud.size * 0.45,
             0,
             Math.PI * 2
         );
@@ -2622,23 +1906,21 @@ function drawClouds() {
 
 /* =========================================================
    BACKGROUND
-========================================================= */
+   ========================================================= */
 
 function drawBackground() {
 
-    /*
-       Mountains
-    */
-
     ctx.fillStyle =
-        "rgba(0,0,0,.15)";
+        "rgba(0,0,0,0.15)";
 
     for (
         let x =
-            -((distance * .2) % 180);
+            -((distance * 0.2) % 160);
+
         x <
-            BASE_WIDTH + 180;
-        x += 180
+            canvas.width + 160;
+
+        x += 160
     ) {
 
         ctx.beginPath();
@@ -2649,61 +1931,28 @@ function drawBackground() {
         );
 
         ctx.lineTo(
-            x + 90,
-            groundY - 100
+            x + 80,
+            groundY - 80
         );
 
         ctx.lineTo(
-            x + 180,
+            x + 160,
             groundY
         );
 
         ctx.fill();
-    }
-
-    /*
-       Distant structures
-    */
-
-    ctx.fillStyle =
-        "rgba(255,255,255,.025)";
-
-    for (
-        let x =
-            -((distance * .45) % 120);
-        x <
-            BASE_WIDTH + 120;
-        x += 120
-    ) {
-
-        ctx.fillRect(
-            x,
-            groundY - 70,
-            45,
-            70
-        );
-
-        ctx.fillRect(
-            x + 15,
-            groundY - 100,
-            10,
-            30
-        );
     }
 }
 
 
 /* =========================================================
    GROUND
-========================================================= */
+   ========================================================= */
 
 function drawGround() {
 
     const world =
-        worlds[
-            save.selectedWorld
-        ] ||
-        worlds[0];
+        worlds[save.selectedWorld];
 
     ctx.fillStyle =
         world.ground;
@@ -2711,13 +1960,13 @@ function drawGround() {
     ctx.fillRect(
         0,
         groundY,
-        BASE_WIDTH,
-        BASE_HEIGHT -
-            groundY
+        canvas.width,
+        canvas.height -
+        groundY
     );
 
     ctx.strokeStyle =
-        "rgba(255,255,255,.2)";
+        "rgba(255,255,255,0.15)";
 
     ctx.lineWidth = 3;
 
@@ -2729,22 +1978,24 @@ function drawGround() {
     );
 
     ctx.lineTo(
-        BASE_WIDTH,
+        canvas.width,
         groundY + 2
     );
 
     ctx.stroke();
 
     ctx.strokeStyle =
-        "rgba(255,255,255,.06)";
+        "rgba(255,255,255,0.07)";
 
     ctx.lineWidth = 2;
 
     for (
         let x =
             -((distance * 2) % 50);
+
         x <
-            BASE_WIDTH + 50;
+            canvas.width + 50;
+
         x += 50
     ) {
 
@@ -2767,7 +2018,7 @@ function drawGround() {
 
 /* =========================================================
    PLAYER
-========================================================= */
+   ========================================================= */
 
 function drawPlayer() {
 
@@ -2780,64 +2031,42 @@ function drawPlayer() {
         ) % 2 === 0
     ) {
 
-        ctx.globalAlpha =
-            .45;
+        ctx.globalAlpha = 0.45;
     }
-
-    /*
-       DASH TRAIL
-    */
 
     if (
         dashTimer > 0
     ) {
 
+        ctx.fillStyle =
+            "rgba(255,211,77,0.2)";
+
         for (
             let i = 1;
-            i <= 6;
+            i <= 5;
             i++
         ) {
 
-            ctx.globalAlpha =
-                .12;
-
-            ctx.fillStyle =
-                player.color;
-
             ctx.fillRect(
                 player.x -
-                    i * 30,
+                    i * 35,
                 player.y + 20,
-                45,
-                20
+                40,
+                18
             );
         }
-
-        ctx.globalAlpha =
-            1;
     }
-
-    /*
-       SHIELD
-    */
 
     if (
         shieldTimer > 0
     ) {
-
-        const pulse =
-            Math.sin(
-                performance.now() *
-                    .01
-            ) * 4;
 
         ctx.strokeStyle =
             "#2ce1ff";
 
         ctx.lineWidth = 4;
 
-        ctx.shadowBlur = 30;
-
+        ctx.shadowBlur = 25;
         ctx.shadowColor =
             "#2ce1ff";
 
@@ -2848,8 +2077,7 @@ function drawPlayer() {
                 player.width / 2,
             player.y +
                 player.height / 2,
-            58 +
-                pulse,
+            58,
             0,
             Math.PI * 2
         );
@@ -2859,21 +2087,12 @@ function drawPlayer() {
         ctx.shadowBlur = 0;
     }
 
-    /*
-       GLOW
-    */
-
-    ctx.shadowBlur = 25;
-
+    ctx.shadowBlur = 20;
     ctx.shadowColor =
-        player.glow;
+        player.color;
 
     ctx.fillStyle =
         player.color;
-
-    /*
-       BODY
-    */
 
     roundRect(
         ctx,
@@ -2886,10 +2105,6 @@ function drawPlayer() {
 
     ctx.fill();
 
-    /*
-       HEAD
-    */
-
     ctx.beginPath();
 
     ctx.arc(
@@ -2901,10 +2116,6 @@ function drawPlayer() {
     );
 
     ctx.fill();
-
-    /*
-       TAIL
-    */
 
     ctx.beginPath();
 
@@ -2925,10 +2136,6 @@ function drawPlayer() {
 
     ctx.fill();
 
-    /*
-       EYE
-    */
-
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
@@ -2945,10 +2152,6 @@ function drawPlayer() {
     );
 
     ctx.fill();
-
-    /*
-       LEGS
-    */
 
     ctx.fillStyle =
         player.color;
@@ -2973,355 +2176,292 @@ function drawPlayer() {
 
 /* =========================================================
    OBSTACLE DRAWING
-========================================================= */
+   ========================================================= */
 
 function drawObstacles() {
 
-    obstacles.forEach(
-        obstacle => {
+    obstacles.forEach(obstacle => {
 
-            ctx.save();
+        ctx.save();
 
-            if (
-                obstacle.type ===
-                "cactus"
-            ) {
-
-                drawCactus(
-                    obstacle
-                );
-            }
-
-            if (
-                obstacle.type ===
-                "rock"
-            ) {
-
-                drawRock(
-                    obstacle
-                );
-            }
-
-            if (
-                obstacle.type ===
-                "bird"
-            ) {
-
-                drawBird(
-                    obstacle
-                );
-            }
-
-            if (
-                obstacle.type ===
-                "crystal"
-            ) {
-
-                drawCrystal(
-                    obstacle
-                );
-            }
-
-            if (
-                obstacle.type ===
-                "spike"
-            ) {
-
-                drawSpike(
-                    obstacle
-                );
-            }
-
-            ctx.restore();
-        }
-    );
-}
-
-function drawCactus(o) {
-
-    ctx.fillStyle =
-        "#3db56d";
-
-    roundRect(
-        ctx,
-        o.x,
-        o.y,
-        o.width,
-        o.height,
-        8
-    );
-
-    ctx.fill();
-
-    ctx.fillRect(
-        o.x - 13,
-        o.y + 22,
-        13,
-        9
-    );
-
-    ctx.fillRect(
-        o.x + o.width,
-        o.y + 32,
-        13,
-        9
-    );
-}
-
-function drawRock(o) {
-
-    ctx.fillStyle =
-        "#738296";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        o.x,
-        o.y + o.height
-    );
-
-    ctx.lineTo(
-        o.x + 12,
-        o.y + 8
-    );
-
-    ctx.lineTo(
-        o.x +
-            o.width -
-            10,
-        o.y + 4
-    );
-
-    ctx.lineTo(
-        o.x +
-            o.width,
-        o.y +
-            o.height
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-}
-
-function drawBird(o) {
-
-    ctx.fillStyle =
-        "#ff7c88";
-
-    ctx.beginPath();
-
-    ctx.arc(
-        o.x + 28,
-        o.y + 18,
-        18,
-        0,
-        Math.PI * 2
-    );
-
-    ctx.fill();
-
-    ctx.fillStyle =
-        "rgba(255,255,255,.7)";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        o.x + 15,
-        o.y + 20
-    );
-
-    ctx.lineTo(
-        o.x - 15,
-        o.y + 5
-    );
-
-    ctx.lineTo(
-        o.x + 5,
-        o.y + 34
-    );
-
-    ctx.fill();
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        o.x + 38,
-        o.y + 20
-    );
-
-    ctx.lineTo(
-        o.x + 70,
-        o.y + 5
-    );
-
-    ctx.lineTo(
-        o.x + 48,
-        o.y + 34
-    );
-
-    ctx.fill();
-}
-
-function drawCrystal(o) {
-
-    ctx.shadowBlur = 20;
-
-    ctx.shadowColor =
-        "#b994ff";
-
-    ctx.fillStyle =
-        "#b994ff";
-
-    ctx.beginPath();
-
-    ctx.moveTo(
-        o.x +
-            o.width / 2,
-        o.y
-    );
-
-    ctx.lineTo(
-        o.x +
-            o.width,
-        o.y +
-            o.height
-    );
-
-    ctx.lineTo(
-        o.x,
-        o.y +
-            o.height
-    );
-
-    ctx.closePath();
-
-    ctx.fill();
-}
-
-function drawSpike(o) {
-
-    ctx.fillStyle =
-        "#ff5571";
-
-    const count = 4;
-
-    const spikeWidth =
-        o.width /
-        count;
-
-    for (
-        let i = 0;
-        i < count;
-        i++
-    ) {
-
-        ctx.beginPath();
-
-        ctx.moveTo(
-            o.x +
-                i *
-                spikeWidth,
-            o.y +
-                o.height
-        );
-
-        ctx.lineTo(
-            o.x +
-                i *
-                spikeWidth +
-                spikeWidth / 2,
-            o.y
-        );
-
-        ctx.lineTo(
-            o.x +
-                (i + 1) *
-                spikeWidth,
-            o.y +
-                o.height
-        );
-
-        ctx.closePath();
-
-        ctx.fill();
-    }
-}
-
-
-/* =========================================================
-   GEMS DRAW
-========================================================= */
-
-function drawCollectibles() {
-
-    collectibles.forEach(
-        gem => {
-
-            ctx.save();
-
-            ctx.translate(
-                gem.x,
-                gem.y
-            );
-
-            ctx.rotate(
-                gem.angle
-            );
-
-            ctx.shadowBlur = 25;
-
-            ctx.shadowColor =
-                "#2ce1ff";
+        if (
+            obstacle.type ===
+            "cactus"
+        ) {
 
             ctx.fillStyle =
-                "#2ce1ff";
+                "#3db56d";
+
+            roundRect(
+                ctx,
+                obstacle.x,
+                obstacle.y,
+                obstacle.width,
+                obstacle.height,
+                8
+            );
+
+            ctx.fill();
+
+            ctx.fillRect(
+                obstacle.x - 13,
+                obstacle.y + 22,
+                13,
+                9
+            );
+
+            ctx.fillRect(
+                obstacle.x +
+                    obstacle.width,
+                obstacle.y + 32,
+                13,
+                9
+            );
+        }
+
+        if (
+            obstacle.type ===
+            "rock"
+        ) {
+
+            ctx.fillStyle =
+                "#738296";
 
             ctx.beginPath();
 
             ctx.moveTo(
+                obstacle.x,
+                obstacle.y +
+                    obstacle.height
+            );
+
+            ctx.lineTo(
+                obstacle.x + 12,
+                obstacle.y + 8
+            );
+
+            ctx.lineTo(
+                obstacle.x +
+                    obstacle.width -
+                    10,
+                obstacle.y + 4
+            );
+
+            ctx.lineTo(
+                obstacle.x +
+                    obstacle.width,
+                obstacle.y +
+                    obstacle.height
+            );
+
+            ctx.closePath();
+
+            ctx.fill();
+        }
+
+        if (
+            obstacle.type ===
+            "bird"
+        ) {
+
+            ctx.fillStyle =
+                "#ff7c88";
+
+            ctx.beginPath();
+
+            ctx.arc(
+                obstacle.x + 28,
+                obstacle.y + 18,
+                18,
                 0,
-                -gem.radius
+                Math.PI * 2
+            );
+
+            ctx.fill();
+
+            ctx.fillStyle =
+                "rgba(255,255,255,0.7)";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                obstacle.x + 15,
+                obstacle.y + 20
             );
 
             ctx.lineTo(
-                gem.radius,
-                0
+                obstacle.x - 15,
+                obstacle.y + 5
             );
 
             ctx.lineTo(
-                0,
-                gem.radius
+                obstacle.x + 5,
+                obstacle.y + 34
+            );
+
+            ctx.fill();
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                obstacle.x + 38,
+                obstacle.y + 20
             );
 
             ctx.lineTo(
-                -gem.radius,
-                0
+                obstacle.x + 70,
+                obstacle.y + 5
+            );
+
+            ctx.lineTo(
+                obstacle.x + 48,
+                obstacle.y + 34
+            );
+
+            ctx.fill();
+        }
+
+        if (
+            obstacle.type ===
+            "crystal"
+        ) {
+
+            ctx.shadowBlur = 20;
+            ctx.shadowColor =
+                "#b994ff";
+
+            ctx.fillStyle =
+                "#b994ff";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                obstacle.x +
+                    obstacle.width / 2,
+                obstacle.y
+            );
+
+            ctx.lineTo(
+                obstacle.x +
+                    obstacle.width,
+                obstacle.y +
+                    obstacle.height
+            );
+
+            ctx.lineTo(
+                obstacle.x,
+                obstacle.y +
+                    obstacle.height
             );
 
             ctx.closePath();
 
             ctx.fill();
 
-            ctx.fillStyle =
-                "rgba(255,255,255,.7)";
+            ctx.shadowBlur = 0;
+        }
 
-            ctx.fillRect(
-                -3,
-                -7,
-                6,
-                10
+        if (
+            obstacle.type ===
+            "laser"
+        ) {
+
+            ctx.shadowBlur = 20;
+            ctx.shadowColor =
+                "#ff335f";
+
+            ctx.fillStyle =
+                "#ff335f";
+
+            roundRect(
+                ctx,
+                obstacle.x,
+                obstacle.y,
+                obstacle.width,
+                obstacle.height,
+                9
             );
 
-            ctx.restore();
+            ctx.fill();
+
+            ctx.shadowBlur = 0;
         }
-    );
+
+        ctx.restore();
+    });
+}
+
+
+/* =========================================================
+   GEMS
+   ========================================================= */
+
+function drawCollectibles() {
+
+    collectibles.forEach(gem => {
+
+        ctx.save();
+
+        ctx.translate(
+            gem.x,
+            gem.y
+        );
+
+        ctx.rotate(
+            gem.angle
+        );
+
+        ctx.shadowBlur = 20;
+        ctx.shadowColor =
+            "#2ce1ff";
+
+        ctx.fillStyle =
+            "#2ce1ff";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            -gem.radius
+        );
+
+        ctx.lineTo(
+            gem.radius,
+            0
+        );
+
+        ctx.lineTo(
+            0,
+            gem.radius
+        );
+
+        ctx.lineTo(
+            -gem.radius,
+            0
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.6)";
+
+        ctx.fillRect(
+            -3,
+            -7,
+            6,
+            10
+        );
+
+        ctx.restore();
+    });
 }
 
 
 /* =========================================================
    PARTICLES
-========================================================= */
+   ========================================================= */
 
 function createParticles(
     x,
@@ -3342,16 +2482,12 @@ function createParticles(
             y,
 
             vx:
-                (
-                    Math.random() -
-                    .5
-                ) * 8,
+                (Math.random() - 0.5) *
+                8,
 
             vy:
-                (
-                    Math.random() -
-                    .5
-                ) * 8,
+                (Math.random() - 0.5) *
+                8,
 
             size:
                 2 +
@@ -3365,6 +2501,7 @@ function createParticles(
         });
     }
 }
+
 
 function updateParticles(delta) {
 
@@ -3387,7 +2524,7 @@ function updateParticles(delta) {
             delta;
 
         particle.vy +=
-            .08 *
+            0.08 *
             delta;
 
         particle.life -=
@@ -3405,6 +2542,7 @@ function updateParticles(delta) {
     }
 }
 
+
 function drawParticles() {
 
     particles.forEach(
@@ -3415,16 +2553,10 @@ function drawParticles() {
             ctx.globalAlpha =
                 Math.max(
                     0,
-                    particle.life /
-                        60
+                    particle.life / 60
                 );
 
             ctx.fillStyle =
-                particle.color;
-
-            ctx.shadowBlur = 10;
-
-            ctx.shadowColor =
                 particle.color;
 
             ctx.fillRect(
@@ -3441,137 +2573,8 @@ function drawParticles() {
 
 
 /* =========================================================
-   FLOATING TEXT
-========================================================= */
-
-const floatingTexts = [];
-
-function createFloatingText(
-    x,
-    y,
-    text,
-    color
-) {
-
-    floatingTexts.push({
-        x,
-        y,
-        text,
-        color,
-        life: 60
-    });
-}
-
-function updateFloatingTexts(delta) {
-
-    for (
-        let i =
-            floatingTexts.length - 1;
-        i >= 0;
-        i--
-    ) {
-
-        const item =
-            floatingTexts[i];
-
-        item.y -=
-            .5 *
-            delta;
-
-        item.life -=
-            delta;
-
-        if (
-            item.life <= 0
-        ) {
-
-            floatingTexts.splice(
-                i,
-                1
-            );
-        }
-    }
-}
-
-function drawFloatingTexts() {
-
-    floatingTexts.forEach(
-        item => {
-
-            ctx.save();
-
-            ctx.globalAlpha =
-                item.life / 60;
-
-            ctx.fillStyle =
-                item.color;
-
-            ctx.font =
-                "900 28px Orbitron";
-
-            ctx.textAlign =
-                "center";
-
-            ctx.shadowBlur = 20;
-
-            ctx.shadowColor =
-                item.color;
-
-            ctx.fillText(
-                item.text,
-                item.x,
-                item.y
-            );
-
-            ctx.restore();
-        }
-    );
-}
-
-
-/* =========================================================
-   VIGNETTE
-========================================================= */
-
-function drawVignette() {
-
-    const gradient =
-        ctx.createRadialGradient(
-            BASE_WIDTH / 2,
-            BASE_HEIGHT / 2,
-            100,
-            BASE_WIDTH / 2,
-            BASE_HEIGHT / 2,
-            700
-        );
-
-    gradient.addColorStop(
-        0,
-        "rgba(0,0,0,0)"
-    );
-
-    gradient.addColorStop(
-        1,
-        "rgba(0,0,0,.45)"
-    );
-
-    ctx.fillStyle =
-        gradient;
-
-    ctx.fillRect(
-        0,
-        0,
-        BASE_WIDTH,
-        BASE_HEIGHT
-    );
-
-    drawFloatingTexts();
-}
-
-
-/* =========================================================
    ROUND RECT
-========================================================= */
+   ========================================================= */
 
 function roundRect(
     context,
@@ -3633,9 +2636,13 @@ function roundRect(
 
 
 /* =========================================================
-   REDEEM SYSTEM
-   Codes are intentionally NOT displayed publicly.
-========================================================= */
+   REDEEM CODES
+   =========================================================
+   نکته:
+   این کدها فقط نمونه‌ی سمت کلاینت هستند.
+   برای فروش واقعی Redeem Code باید اعتبارسنجی
+   سمت سرور انجام شود.
+   ========================================================= */
 
 const giftCodes = {
 
@@ -3645,23 +2652,35 @@ const giftCodes = {
 
     DINO5000: 5000,
 
-    LEGENDARY500K: 500000,
+    STARTER1000000: 1000000,
 
-    ULTRA10M: 10000000,
+    MEGA5000000: 5000000,
 
-    MYTHIC100M: 100000000,
+    LEGENDARY10000000: 10000000,
 
-    OMEGA1B: 1000000000,
+    ULTRA50000000: 50000000,
 
-    SECRET5B: 5000000000,
+    MYTHIC100000000: 100000000,
 
-    // SPECIAL
-    LEGEND26B: 26000000000
+    COSMIC500000000: 500000000,
+
+    TITAN1000000000: 1000000000,
+
+    SUPREME5000000000: 5000000000,
+
+    ULTIMATE10000000000: 10000000000,
+
+    GOD100000000000: 100000000000,
+
+    ETERNAL500000000000: 500000000000,
+
+    SECRET1000000000000: 1000000000000,
+
+    LEGEND26000000000: 26000000000
 };
 
-function redeemCode() {
 
-    if (!codeInput) return;
+function redeemCode() {
 
     const code =
         codeInput.value
@@ -3679,8 +2698,8 @@ function redeemCode() {
     }
 
     if (
-        giftCodes[code] ===
-        undefined
+        !Object.prototype.hasOwnProperty
+            .call(giftCodes, code)
     ) {
 
         showMessage(
@@ -3692,12 +2711,11 @@ function redeemCode() {
     }
 
     if (
-        save.usedCodes
-            .includes(code)
+        save.usedCodes.includes(code)
     ) {
 
         showMessage(
-            "این کد قبلاً استفاده شده.",
+            "این کد قبلاً استفاده شده است.",
             "#ffd34d"
         );
 
@@ -3714,15 +2732,6 @@ function redeemCode() {
         code
     );
 
-    addXP(
-        Math.min(
-            10000,
-            Math.floor(
-                reward / 100000
-            )
-        )
-    );
-
     saveGame();
 
     updateUI();
@@ -3730,40 +2739,36 @@ function redeemCode() {
     codeInput.value = "";
 
     showMessage(
-        `🎉 ${formatNumber(reward)} GEM دریافت کردی!`,
+        "🎉 " +
+        reward.toLocaleString() +
+        " GEM دریافت کردی!",
         "#50f5a1"
     );
 }
 
-if (redeemButton) {
 
-    redeemButton.addEventListener(
-        "click",
-        redeemCode
-    );
-}
+redeemButton.addEventListener(
+    "click",
+    redeemCode
+);
 
-if (codeInput) {
+codeInput.addEventListener(
+    "keydown",
+    event => {
 
-    codeInput.addEventListener(
-        "keydown",
-        event => {
+        if (
+            event.key === "Enter"
+        ) {
 
-            if (
-                event.key ===
-                "Enter"
-            ) {
-
-                redeemCode();
-            }
+            redeemCode();
         }
-    );
-}
+    }
+);
 
 
 /* =========================================================
    MESSAGE
-========================================================= */
+   ========================================================= */
 
 let messageTimer = null;
 
@@ -3771,13 +2776,6 @@ function showMessage(
     text,
     color = "#50f5a1"
 ) {
-
-    if (!codeMessage) {
-
-        console.log(text);
-
-        return;
-    }
 
     codeMessage.textContent =
         text;
@@ -3797,145 +2795,69 @@ function showMessage(
                     "";
 
             },
-            3500
+            3000
         );
 }
 
 
 /* =========================================================
-   BACKGROUND INIT
-========================================================= */
-
-function createBackground() {
-
-    clouds = [];
-    stars = [];
-
-    for (
-        let i = 0;
-        i < 9;
-        i++
-    ) {
-
-        clouds.push({
-
-            x:
-                Math.random() *
-                BASE_WIDTH,
-
-            y:
-                40 +
-                Math.random() *
-                180,
-
-            size:
-                25 +
-                Math.random() *
-                45,
-
-            speed:
-                .25 +
-                Math.random() *
-                .5
-        });
-    }
-
-    for (
-        let i = 0;
-        i < 120;
-        i++
-    ) {
-
-        stars.push({
-
-            x:
-                Math.random() *
-                BASE_WIDTH,
-
-            y:
-                Math.random() *
-                330,
-
-            size:
-                1 +
-                Math.random() *
-                2,
-
-            alpha:
-                .2 +
-                Math.random() *
-                .8
-        });
-    }
-}
-
-
-/* =========================================================
-   RESPONSIVE CANVAS
-========================================================= */
+   RESIZE
+   ========================================================= */
 
 function resizeCanvas() {
 
-    if (!canvas || !ctx) {
-        return;
-    }
-
-    const rect =
-        canvas.getBoundingClientRect();
-
-    if (
-        rect.width <= 0 ||
-        rect.height <= 0
-    ) {
-        return;
-    }
-
-    /*
-       IMPORTANT:
-       Internal game coordinates remain
-       1200 x 500.
-       CSS handles visual scaling.
-    */
-
     const ratio =
-        Math.min(
-            window.devicePixelRatio || 1,
-            2
+        window.devicePixelRatio ||
+        1;
+
+    const displayWidth =
+        canvas.clientWidth;
+
+    const displayHeight =
+        canvas.clientHeight;
+
+    if (
+        !displayWidth ||
+        !displayHeight
+    ) {
+
+        return;
+    }
+
+    const targetWidth =
+        Math.floor(
+            displayWidth * ratio
         );
 
-    const width =
+    const targetHeight =
         Math.floor(
-            BASE_WIDTH *
-            ratio
-        );
-
-    const height =
-        Math.floor(
-            BASE_HEIGHT *
-            ratio
+            displayHeight * ratio
         );
 
     if (
-        canvas.width !== width ||
-        canvas.height !== height
+        canvas.width !==
+            targetWidth ||
+        canvas.height !==
+            targetHeight
     ) {
 
         canvas.width =
-            width;
+            targetWidth;
 
         canvas.height =
-            height;
-    }
+            targetHeight;
 
-    ctx.setTransform(
-        ratio,
-        0,
-        0,
-        ratio,
-        0,
-        0
-    );
+        ctx.setTransform(
+            canvas.width / 1200,
+            0,
+            0,
+            canvas.height / 500,
+            0,
+            0
+        );
+    }
 }
+
 
 window.addEventListener(
     "resize",
@@ -3944,134 +2866,68 @@ window.addEventListener(
 
 
 /* =========================================================
-   RESET SAVE
-   Console only:
-   resetDinoSave()
-========================================================= */
-
-window.resetDinoSave =
-    function () {
-
-        localStorage.removeItem(
-            SAVE_KEY
-        );
-
-        location.reload();
-    };
-
-
-/* =========================================================
-   DEBUG
-========================================================= */
-
-window.DinoLegends =
-    {
-
-        getSave() {
-            return save;
-        },
-
-        addGems(amount) {
-
-            if (
-                typeof amount !==
-                "number"
-            ) {
-                return;
-            }
-
-            save.gems +=
-                amount;
-
-            saveGame();
-
-            updateUI();
-        },
-
-        unlockAllSkins() {
-
-            save.unlockedCharacters =
-                characters.map(
-                    (_, i) => i
-                );
-
-            saveGame();
-
-            renderCharacters();
-
-            updateUI();
-        },
-
-        unlockAllWorlds() {
-
-            save.unlockedWorlds =
-                worlds.map(
-                    (_, i) => i
-                );
-
-            saveGame();
-
-            renderWorlds();
-        }
-    };
-
-
-/* =========================================================
    INITIALIZE
-========================================================= */
+   ========================================================= */
 
 function initialize() {
 
-    if (!canvas || !ctx) {
+    if (
+        !Array.isArray(
+            save.unlockedCharacters
+        )
+    ) {
 
-        console.error(
-            "DINO LEGENDS ERROR: #gameCanvas not found."
-        );
-
-        return;
+        save.unlockedCharacters =
+            [0];
     }
 
-    applyCharacter();
+    if (
+        !save.unlockedCharacters
+            .includes(0)
+    ) {
+
+        save.unlockedCharacters
+            .unshift(0);
+    }
+
+    if (
+        !Array.isArray(
+            save.unlockedWorlds
+        )
+    ) {
+
+        save.unlockedWorlds =
+            [0];
+    }
+
+    if (
+        !save.unlockedWorlds
+            .includes(0)
+    ) {
+
+        save.unlockedWorlds
+            .unshift(0);
+    }
+
+    const selectedCharacter =
+        characters[
+            save.selectedCharacter
+        ] || characters[0];
+
+    player.color =
+        selectedCharacter.color;
 
     createBackground();
 
     resizeCanvas();
 
     renderCharacters();
-
     renderUpgrades();
-
     renderWorlds();
-
-    renderMissionsIfPossible();
 
     updateUI();
 
-    /*
-       Initialize double jump
-    */
-
-    player.jumpCount = 0;
-
-    player.canDoubleJump = false;
-
-    /*
-       Initial scene
-    */
-
     draw();
-
-    console.log(
-        "🦖 DINO LEGENDS ENGINE LOADED"
-    );
-
-    console.log(
-        "100 skins loaded."
-    );
-
-    console.log(
-        "26 billion special redeem loaded."
-    );
 }
 
 initialize();
