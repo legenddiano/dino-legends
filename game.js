@@ -1,15 +1,15 @@
 "use strict";
 
 /* =========================================================
-   DINO LEGENDS — COMPLETE GAME ENGINE
-   ========================================================= */
+   DINO LEGENDS — COMPLETE GAME.JS
+========================================================= */
+
+/* =========================
+   UI ELEMENTS
+========================= */
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
-
-/* =========================
-   UI
-========================= */
 
 const gemsEl = document.getElementById("gems");
 const bestScoreEl = document.getElementById("bestScore");
@@ -45,14 +45,13 @@ const codeMessage = document.getElementById("codeMessage");
    SAVE SYSTEM
 ========================================================= */
 
-const SAVE_KEY = "dinoLegendsSaveV3";
+const SAVE_KEY = "dinoLegendsSaveV2";
 
 const defaultSave = {
     gems: 0,
     bestScore: 0,
 
     selectedCharacter: 0,
-
     unlockedCharacters: [0],
 
     upgrades: {
@@ -69,14 +68,6 @@ const defaultSave = {
 
 let save = loadGame();
 
-
-function cloneDefaultSave() {
-    return JSON.parse(
-        JSON.stringify(defaultSave)
-    );
-}
-
-
 function loadGame() {
 
     try {
@@ -87,19 +78,34 @@ function loadGame() {
             );
 
         if (!stored) {
-            return cloneDefaultSave();
+            return structuredClone(defaultSave);
         }
 
         return {
 
-            ...cloneDefaultSave(),
+            ...structuredClone(defaultSave),
 
             ...stored,
 
             upgrades: {
                 ...defaultSave.upgrades,
                 ...(stored.upgrades || {})
-            }
+            },
+
+            unlockedCharacters:
+                Array.isArray(stored.unlockedCharacters)
+                    ? stored.unlockedCharacters
+                    : [0],
+
+            unlockedWorlds:
+                Array.isArray(stored.unlockedWorlds)
+                    ? stored.unlockedWorlds
+                    : [0],
+
+            usedCodes:
+                Array.isArray(stored.usedCodes)
+                    ? stored.usedCodes
+                    : []
 
         };
 
@@ -110,32 +116,21 @@ function loadGame() {
             error
         );
 
-        return cloneDefaultSave();
+        return structuredClone(defaultSave);
     }
 }
 
-
 function saveGame() {
 
-    try {
-
-        localStorage.setItem(
-            SAVE_KEY,
-            JSON.stringify(save)
-        );
-
-    } catch (error) {
-
-        console.warn(
-            "Could not save game.",
-            error
-        );
-    }
+    localStorage.setItem(
+        SAVE_KEY,
+        JSON.stringify(save)
+    );
 }
 
 
 /* =========================================================
-   GAME DATA
+   CHARACTERS
 ========================================================= */
 
 const characters = [
@@ -192,6 +187,10 @@ const characters = [
 
 ];
 
+
+/* =========================================================
+   WORLDS
+========================================================= */
 
 const worlds = [
 
@@ -252,6 +251,10 @@ const worlds = [
 
 ];
 
+
+/* =========================================================
+   UPGRADES
+========================================================= */
 
 const upgrades = [
 
@@ -315,6 +318,10 @@ let stars = [];
 const groundY = 420;
 
 
+/* =========================================================
+   PLAYER
+========================================================= */
+
 const player = {
 
     x: 150,
@@ -322,7 +329,6 @@ const player = {
     y: groundY - 80,
 
     width: 62,
-
     height: 80,
 
     velocityY: 0,
@@ -334,6 +340,7 @@ const player = {
     grounded: true,
 
     color: "#50f5a1"
+
 };
 
 
@@ -350,28 +357,23 @@ function createBackground() {
 
         clouds.push({
 
-            x:
-                Math.random() *
-                canvas.width,
+            x: Math.random() * canvas.width,
 
             y:
                 40 +
-                Math.random() *
-                180,
+                Math.random() * 180,
 
             size:
                 25 +
-                Math.random() *
-                45,
+                Math.random() * 45,
 
             speed:
                 0.3 +
-                Math.random() *
-                0.5
+                Math.random() * 0.5
 
         });
-    }
 
+    }
 
     for (let i = 0; i < 80; i++) {
 
@@ -382,20 +384,18 @@ function createBackground() {
                 canvas.width,
 
             y:
-                Math.random() *
-                330,
+                Math.random() * 330,
 
             size:
                 1 +
-                Math.random() *
-                2,
+                Math.random() * 2,
 
             alpha:
                 0.2 +
-                Math.random() *
-                0.8
+                Math.random() * 0.8
 
         });
+
     }
 }
 
@@ -482,10 +482,13 @@ document
                     );
 
                 if (panel) {
+
                     panel.classList.add(
                         "active-panel"
                     );
+
                 }
+
             }
         );
 
@@ -508,8 +511,7 @@ function renderCharacters() {
                     .includes(index);
 
             const selected =
-                save.selectedCharacter ===
-                index;
+                save.selectedCharacter === index;
 
             const card =
                 document.createElement(
@@ -530,7 +532,6 @@ function renderCharacters() {
                     : unlocked
                         ? "SELECT"
                         : "UNLOCK";
-
 
             card.innerHTML = `
 
@@ -554,11 +555,9 @@ function renderCharacters() {
 
                 </div>
 
-
                 <p class="card-description">
                     ${character.description}
                 </p>
-
 
                 <div class="card-footer">
 
@@ -568,11 +567,10 @@ function renderCharacters() {
                             unlocked
                                 ? "✓ OWNED"
                                 : "💎 " +
-                                  character.cost.toLocaleString()
+                                  character.cost
                         }
 
                     </span>
-
 
                     <button
                         class="card-btn ${
@@ -581,24 +579,23 @@ function renderCharacters() {
                                 : "locked"
                         }"
                         data-character="${index}"
-                    >
+                        type="button">
 
                         ${buttonText}
 
                     </button>
 
                 </div>
+
             `;
 
             characterGrid.appendChild(card);
+
         }
     );
 
-
     document
-        .querySelectorAll(
-            "[data-character]"
-        )
+        .querySelectorAll("[data-character]")
         .forEach(button => {
 
             button.addEventListener(
@@ -616,7 +613,6 @@ function renderCharacters() {
 
         });
 }
-
 
 function selectOrUnlockCharacter(index) {
 
@@ -637,11 +633,11 @@ function selectOrUnlockCharacter(index) {
         saveGame();
 
         renderCharacters();
+
         updateUI();
 
         return;
     }
-
 
     if (
         save.gems <
@@ -656,12 +652,12 @@ function selectOrUnlockCharacter(index) {
         return;
     }
 
-
     save.gems -=
         character.cost;
 
-    save.unlockedCharacters
-        .push(index);
+    save.unlockedCharacters.push(
+        index
+    );
 
     save.selectedCharacter =
         index;
@@ -692,102 +688,92 @@ function getUpgradeCost(level) {
         level * 300;
 }
 
-
 function renderUpgrades() {
 
     upgradeGrid.innerHTML = "";
 
-    upgrades.forEach(
-        upgrade => {
+    upgrades.forEach(upgrade => {
 
-            const currentLevel =
-                save.upgrades[
-                    upgrade.key
-                ];
+        const currentLevel =
+            save.upgrades[
+                upgrade.key
+            ];
 
-            const cost =
-                getUpgradeCost(
-                    currentLevel
-                );
+        const cost =
+            getUpgradeCost(
+                currentLevel
+            );
 
-            const card =
-                document.createElement(
-                    "article"
-                );
+        const card =
+            document.createElement(
+                "article"
+            );
 
-            card.className =
-                "upgrade-card";
+        card.className =
+            "upgrade-card";
 
+        card.innerHTML = `
 
-            card.innerHTML = `
+            <div class="card-top">
 
-                <div class="card-top">
+                <div class="card-emoji">
+                    ${upgrade.emoji}
+                </div>
 
-                    <div class="card-emoji">
-                        ${upgrade.emoji}
-                    </div>
+                <div>
 
-                    <div>
+                    <h3 class="card-title">
+                        ${upgrade.name}
+                    </h3>
 
-                        <h3 class="card-title">
-                            ${upgrade.name}
-                        </h3>
-
-                        <p class="card-subtitle">
-                            LEVEL
-                            ${currentLevel}
-                            / 5
-                        </p>
-
-                    </div>
+                    <p class="card-subtitle">
+                        LEVEL
+                        ${currentLevel}
+                        / 5
+                    </p>
 
                 </div>
 
+            </div>
 
-                <p class="card-description">
-                    ${upgrade.description}
-                </p>
+            <p class="card-description">
+                ${upgrade.description}
+            </p>
 
+            <div class="card-footer">
 
-                <div class="card-footer">
+                <span class="card-cost">
 
-                    <span class="card-cost">
+                    ${
+                        currentLevel >= 5
+                            ? "MAX LEVEL"
+                            : "💎 " + cost
+                    }
 
-                        ${
-                            currentLevel >= 5
-                                ? "MAX LEVEL"
-                                : "💎 " +
-                                  cost.toLocaleString()
-                        }
+                </span>
 
-                    </span>
+                <button
+                    class="card-btn"
+                    data-upgrade="${upgrade.key}"
+                    type="button">
 
+                    ${
+                        currentLevel >= 5
+                            ? "MAX"
+                            : "UPGRADE"
+                    }
 
-                    <button
-                        class="card-btn"
-                        data-upgrade="${upgrade.key}"
-                    >
+                </button>
 
-                        ${
-                            currentLevel >= 5
-                                ? "MAX"
-                                : "UPGRADE"
-                        }
+            </div>
+        `;
 
-                    </button>
+        upgradeGrid.appendChild(card);
 
-                </div>
-            `;
-
-            upgradeGrid.appendChild(card);
-        }
-    );
-
+    });
 
     document
-        .querySelectorAll(
-            "[data-upgrade]"
-        )
+        .querySelectorAll("[data-upgrade]")
         .forEach(button => {
 
             button.addEventListener(
@@ -804,7 +790,6 @@ function renderUpgrades() {
         });
 }
 
-
 function upgradePlayer(key) {
 
     const current =
@@ -817,7 +802,6 @@ function upgradePlayer(key) {
     const cost =
         getUpgradeCost(current);
 
-
     if (save.gems < cost) {
 
         showMessage(
@@ -828,11 +812,9 @@ function upgradePlayer(key) {
         return;
     }
 
-
     save.gems -= cost;
 
     save.upgrades[key]++;
-
 
     saveGame();
 
@@ -862,9 +844,7 @@ function renderWorlds() {
                     .includes(index);
 
             const selected =
-                save.selectedWorld ===
-                index;
-
+                save.selectedWorld === index;
 
             const card =
                 document.createElement(
@@ -879,24 +859,20 @@ function renderWorlds() {
                         : ""
                 );
 
-
             card.innerHTML = `
 
                 <div
                     class="world-preview
-                    ${world.className}"
-                ></div>
-
+                    ${world.className}">
+                </div>
 
                 <h3 class="card-title">
                     ${world.name}
                 </h3>
 
-
                 <p class="card-description">
                     ${world.description}
                 </p>
-
 
                 <div class="card-footer">
 
@@ -910,11 +886,10 @@ function renderWorlds() {
                                         : "✓ UNLOCKED"
                                 )
                                 : "💎 " +
-                                  world.cost.toLocaleString()
+                                  world.cost
                         }
 
                     </span>
-
 
                     <button
                         class="card-btn ${
@@ -923,7 +898,7 @@ function renderWorlds() {
                                 : "locked"
                         }"
                         data-world="${index}"
-                    >
+                        type="button">
 
                         ${
                             selected
@@ -939,14 +914,12 @@ function renderWorlds() {
             `;
 
             worldGrid.appendChild(card);
+
         }
     );
 
-
     document
-        .querySelectorAll(
-            "[data-world]"
-        )
+        .querySelectorAll("[data-world]")
         .forEach(button => {
 
             button.addEventListener(
@@ -965,12 +938,10 @@ function renderWorlds() {
         });
 }
 
-
 function selectOrUnlockWorld(index) {
 
     const world =
         worlds[index];
-
 
     if (
         save.unlockedWorlds
@@ -993,7 +964,6 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
-
     if (
         save.gems <
         world.cost
@@ -1007,12 +977,12 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
-
     save.gems -=
         world.cost;
 
-    save.unlockedWorlds
-        .push(index);
+    save.unlockedWorlds.push(
+        index
+    );
 
     save.selectedWorld =
         index;
@@ -1044,7 +1014,6 @@ function startGame() {
 
     }
 
-
     score = 0;
     combo = 1;
     health = 3;
@@ -1063,31 +1032,25 @@ function startGame() {
     obstacles = [];
     collectibles = [];
 
-
     const selectedCharacter =
         characters[
             save.selectedCharacter
         ];
 
-
     player.color =
         selectedCharacter.color;
-
 
     player.y =
         groundY -
         player.height;
 
     player.velocityY = 0;
-
     player.grounded = true;
-
 
     gameRunning = true;
 
     lastTime =
         performance.now();
-
 
     startScreen.classList.add(
         "hidden"
@@ -1097,9 +1060,7 @@ function startGame() {
         "hidden"
     );
 
-
     updateUI();
-
 
     animationId =
         requestAnimationFrame(
@@ -1108,10 +1069,13 @@ function startGame() {
 }
 
 
+/* =========================================================
+   END GAME
+========================================================= */
+
 function endGame() {
 
     gameRunning = false;
-
 
     if (animationId) {
 
@@ -1121,10 +1085,8 @@ function endGame() {
 
     }
 
-
     const finalScore =
         Math.floor(score);
-
 
     if (
         finalScore >
@@ -1136,16 +1098,12 @@ function endGame() {
 
     }
 
-
     saveGame();
-
 
     finalScoreEl.textContent =
         finalScore.toLocaleString();
 
-
     updateUI();
-
 
     gameOverScreen.classList.remove(
         "hidden"
@@ -1163,7 +1121,6 @@ function gameLoop(timestamp) {
         return;
     }
 
-
     const delta =
         Math.min(
             (timestamp - lastTime) /
@@ -1171,14 +1128,11 @@ function gameLoop(timestamp) {
             2
         );
 
-
     lastTime =
         timestamp;
 
-
     update(delta);
     draw();
-
 
     animationId =
         requestAnimationFrame(
@@ -1194,9 +1148,7 @@ function gameLoop(timestamp) {
 function update(delta) {
 
     distance +=
-        gameSpeed *
-        delta;
-
+        gameSpeed * delta;
 
     score +=
         0.18 *
@@ -1208,40 +1160,34 @@ function update(delta) {
                 : 1
         );
 
-
     gameSpeed =
         Math.min(
             18,
             8 + score / 1000
         );
 
-
     updatePlayer(delta);
-
     updateTimers(delta);
-
     spawnObjects(delta);
-
     updateObstacles(delta);
-
     updateCollectibles(delta);
-
     updateParticles(delta);
 
     updateUI();
 }
 
 
+/* =========================================================
+   PLAYER UPDATE
+========================================================= */
+
 function updatePlayer(delta) {
 
     player.velocityY +=
-        player.gravity *
-        delta;
+        player.gravity * delta;
 
     player.y +=
-        player.velocityY *
-        delta;
-
+        player.velocityY * delta;
 
     if (
         player.y >=
@@ -1260,6 +1206,10 @@ function updatePlayer(delta) {
 }
 
 
+/* =========================================================
+   TIMERS
+========================================================= */
+
 function updateTimers(delta) {
 
     if (dashTimer > 0) {
@@ -1276,19 +1226,21 @@ function updateTimers(delta) {
 }
 
 
+/* =========================================================
+   SPAWN
+========================================================= */
+
 function spawnObjects(delta) {
 
     obstacleTimer += delta;
     gemTimer += delta;
 
-
     const obstacleInterval =
         Math.max(
             65,
             125 -
-            gameSpeed * 3
+                gameSpeed * 3
         );
-
 
     if (
         obstacleTimer >
@@ -1299,7 +1251,6 @@ function spawnObjects(delta) {
 
         obstacleTimer = 0;
     }
-
 
     if (gemTimer > 48) {
 
@@ -1322,7 +1273,6 @@ function spawnObstacle() {
         "bird"
     ];
 
-
     const type =
         types[
             Math.floor(
@@ -1331,14 +1281,12 @@ function spawnObstacle() {
             )
         ];
 
-
     let width = 40;
     let height = 60;
 
     let y =
         groundY -
         height;
-
 
     if (type === "rock") {
 
@@ -1350,7 +1298,6 @@ function spawnObstacle() {
             height;
     }
 
-
     if (type === "bird") {
 
         width = 55;
@@ -1359,23 +1306,19 @@ function spawnObstacle() {
         y =
             groundY -
             150 -
-            Math.random() *
-            70;
+            Math.random() * 70;
     }
-
 
     obstacles.push({
 
         type,
 
         x:
-            canvas.width +
-            40,
+            canvas.width + 40,
 
         y,
 
         width,
-
         height,
 
         counted: false
@@ -1383,14 +1326,12 @@ function spawnObstacle() {
     });
 }
 
-
 function updateObstacles(delta) {
 
     const speedMultiplier =
         dashTimer > 0
             ? 1.5
             : 1;
-
 
     for (
         let i =
@@ -1402,12 +1343,10 @@ function updateObstacles(delta) {
         const obstacle =
             obstacles[i];
 
-
         obstacle.x -=
             gameSpeed *
             speedMultiplier *
             delta;
-
 
         if (
             checkCollision(
@@ -1423,12 +1362,11 @@ function updateObstacles(delta) {
             continue;
         }
 
-
         if (
             !obstacle.counted &&
             obstacle.x +
-            obstacle.width <
-            player.x
+                obstacle.width <
+                player.x
         ) {
 
             obstacle.counted = true;
@@ -1440,15 +1378,13 @@ function updateObstacles(delta) {
                 );
 
             score +=
-                25 *
-                combo;
+                25 * combo;
         }
-
 
         if (
             obstacle.x +
-            obstacle.width <
-            -50
+                obstacle.width <
+                -50
         ) {
 
             obstacles.splice(i, 1);
@@ -1466,14 +1402,12 @@ function spawnGem() {
     collectibles.push({
 
         x:
-            canvas.width +
-            30,
+            canvas.width + 30,
 
         y:
             groundY -
             80 -
-            Math.random() *
-            170,
+            Math.random() * 170,
 
         radius: 13,
 
@@ -1481,7 +1415,6 @@ function spawnGem() {
 
     });
 }
-
 
 function updateCollectibles(delta) {
 
@@ -1495,16 +1428,11 @@ function updateCollectibles(delta) {
         const gem =
             collectibles[i];
 
-
         gem.x -=
-            gameSpeed *
-            delta;
-
+            gameSpeed * delta;
 
         gem.angle +=
-            0.12 *
-            delta;
-
+            0.12 * delta;
 
         if (
             circleRectCollision(
@@ -1516,16 +1444,13 @@ function updateCollectibles(delta) {
             save.gems++;
 
             score +=
-                50 *
-                combo;
-
+                50 * combo;
 
             combo =
                 Math.min(
                     10,
                     combo + 1
                 );
-
 
             createParticles(
                 gem.x,
@@ -1534,18 +1459,22 @@ function updateCollectibles(delta) {
                 "#2ce1ff"
             );
 
-
-            collectibles.splice(i, 1);
+            collectibles.splice(
+                i,
+                1
+            );
 
             saveGame();
 
             continue;
         }
 
-
         if (gem.x < -50) {
 
-            collectibles.splice(i, 1);
+            collectibles.splice(
+                i,
+                1
+            );
         }
     }
 }
@@ -1559,34 +1488,32 @@ function checkCollision(a, b) {
 
     const padding = 10;
 
-
     return (
 
         a.x + padding <
-        b.x +
-        b.width -
-        padding &&
+            b.x +
+            b.width -
+            padding &&
 
         a.x +
-        a.width -
-        padding >
-        b.x +
-        padding &&
+            a.width -
+            padding >
+            b.x +
+            padding &&
 
         a.y + padding <
-        b.y +
-        b.height -
-        padding &&
+            b.y +
+            b.height -
+            padding &&
 
         a.y +
-        a.height -
-        padding >
-        b.y +
-        padding
+            a.height -
+            padding >
+            b.y +
+            padding
 
     );
 }
-
 
 function circleRectCollision(
     circle,
@@ -1599,10 +1526,9 @@ function circleRectCollision(
             Math.min(
                 circle.x,
                 rect.x +
-                rect.width
+                    rect.width
             )
         );
-
 
     const closestY =
         Math.max(
@@ -1610,10 +1536,9 @@ function circleRectCollision(
             Math.min(
                 circle.y,
                 rect.y +
-                rect.height
+                    rect.height
             )
         );
-
 
     const dx =
         circle.x -
@@ -1623,7 +1548,6 @@ function circleRectCollision(
         circle.y -
         closestY;
 
-
     return (
         dx * dx +
         dy * dy <
@@ -1632,6 +1556,10 @@ function circleRectCollision(
     );
 }
 
+
+/* =========================================================
+   DAMAGE
+========================================================= */
 
 function hitPlayer() {
 
@@ -1653,13 +1581,11 @@ function hitPlayer() {
         return;
     }
 
-
     health--;
 
     combo = 1;
 
     invincibleTimer = 75;
-
 
     createParticles(
         player.x + 30,
@@ -1667,7 +1593,6 @@ function hitPlayer() {
         25,
         "#ff5571"
     );
-
 
     if (health <= 0) {
 
@@ -1686,23 +1611,18 @@ function jump() {
         return;
     }
 
-
     if (!player.grounded) {
         return;
     }
 
-
     const jumpLevel =
         save.upgrades.jump;
-
 
     player.velocityY =
         player.jumpPower -
         jumpLevel * 1.1;
 
-
     player.grounded = false;
-
 
     createParticles(
         player.x + 20,
@@ -1712,27 +1632,22 @@ function jump() {
     );
 }
 
-
 function dash() {
 
     if (!gameRunning) {
         return;
     }
 
-
     if (dashTimer > 0) {
         return;
     }
 
-
     const dashLevel =
         save.upgrades.dash;
-
 
     dashTimer =
         35 +
         dashLevel * 8;
-
 
     createParticles(
         player.x,
@@ -1742,27 +1657,22 @@ function dash() {
     );
 }
 
-
 function activateShield() {
 
     if (!gameRunning) {
         return;
     }
 
-
     if (shieldTimer > 0) {
         return;
     }
 
-
     const shieldLevel =
         save.upgrades.shield;
-
 
     shieldTimer =
         90 +
         shieldLevel * 20;
-
 
     createParticles(
         player.x + 30,
@@ -1773,7 +1683,9 @@ function activateShield() {
 }
 
 
-/* Keyboard */
+/* =========================================================
+   KEYBOARD
+========================================================= */
 
 document.addEventListener(
     "keydown",
@@ -1789,14 +1701,12 @@ document.addEventListener(
             jump();
         }
 
-
         if (
             event.code === "KeyD"
         ) {
 
             dash();
         }
-
 
         if (
             event.code === "KeyS"
@@ -1809,7 +1719,9 @@ document.addEventListener(
 );
 
 
-/* Buttons */
+/* =========================================================
+   BUTTON EVENTS
+========================================================= */
 
 startButton.addEventListener(
     "click",
@@ -1850,19 +1762,12 @@ function draw() {
         canvas.height
     );
 
-
     drawSky();
-
     drawBackground();
-
     drawGround();
-
     drawCollectibles();
-
     drawObstacles();
-
     drawPlayer();
-
     drawParticles();
 }
 
@@ -1878,7 +1783,6 @@ function drawSky() {
             save.selectedWorld
         ];
 
-
     const gradient =
         ctx.createLinearGradient(
             0,
@@ -1886,7 +1790,6 @@ function drawSky() {
             0,
             groundY
         );
-
 
     gradient.addColorStop(
         0,
@@ -1898,10 +1801,8 @@ function drawSky() {
         world.skyBottom
     );
 
-
     ctx.fillStyle =
         gradient;
-
 
     ctx.fillRect(
         0,
@@ -1909,7 +1810,6 @@ function drawSky() {
         canvas.width,
         groundY
     );
-
 
     if (
         save.selectedWorld === 4
@@ -1924,7 +1824,6 @@ function drawSky() {
                 ctx.fillStyle =
                     "#ffffff";
 
-
                 ctx.fillRect(
                     star.x,
                     star.y,
@@ -1935,26 +1834,28 @@ function drawSky() {
             }
         );
 
-
         ctx.globalAlpha = 1;
 
     } else {
 
         drawSun();
         drawClouds();
+
     }
 }
 
+
+/* =========================================================
+   SUN
+========================================================= */
 
 function drawSun() {
 
     const world =
         save.selectedWorld;
 
-
     let color =
         "rgba(255,255,255,0.3)";
-
 
     if (world === 1) {
 
@@ -1962,13 +1863,11 @@ function drawSun() {
             "rgba(255,211,77,0.7)";
     }
 
-
     if (world === 2) {
 
         color =
             "rgba(180,240,255,0.5)";
     }
-
 
     if (world === 3) {
 
@@ -1976,12 +1875,10 @@ function drawSun() {
             "rgba(255,85,113,0.55)";
     }
 
-
     ctx.beginPath();
 
     ctx.fillStyle =
         color;
-
 
     ctx.arc(
         canvas.width - 150,
@@ -1991,10 +1888,13 @@ function drawSun() {
         Math.PI * 2
     );
 
-
     ctx.fill();
 }
 
+
+/* =========================================================
+   CLOUDS
+========================================================= */
 
 function drawClouds() {
 
@@ -2004,21 +1904,18 @@ function drawClouds() {
             cloud.x -=
                 cloud.speed;
 
-
-            if (cloud.x < -150) {
+            if (
+                cloud.x < -150
+            ) {
 
                 cloud.x =
-                    canvas.width +
-                    100;
+                    canvas.width + 100;
             }
-
 
             ctx.fillStyle =
                 "rgba(255,255,255,0.08)";
 
-
             ctx.beginPath();
-
 
             ctx.arc(
                 cloud.x,
@@ -2028,28 +1925,26 @@ function drawClouds() {
                 Math.PI * 2
             );
 
-
             ctx.arc(
                 cloud.x +
-                cloud.size * 0.6,
+                    cloud.size * 0.6,
                 cloud.y - 10,
                 cloud.size * 0.65,
                 0,
                 Math.PI * 2
             );
 
-
             ctx.arc(
                 cloud.x +
-                cloud.size * 1.2,
+                    cloud.size * 1.2,
                 cloud.y,
                 cloud.size * 0.45,
                 0,
                 Math.PI * 2
             );
 
-
             ctx.fill();
+
         }
     );
 }
@@ -2064,7 +1959,6 @@ function drawBackground() {
     ctx.fillStyle =
         "rgba(0,0,0,0.12)";
 
-
     for (
         let x =
             -(
@@ -2072,31 +1966,27 @@ function drawBackground() {
             ) % 160;
 
         x <
-        canvas.width + 160;
+            canvas.width + 160;
 
         x += 160
     ) {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x,
             groundY
         );
-
 
         ctx.lineTo(
             x + 80,
             groundY - 80
         );
 
-
         ctx.lineTo(
             x + 160,
             groundY
         );
-
 
         ctx.fill();
     }
@@ -2114,51 +2004,40 @@ function drawGround() {
             save.selectedWorld
         ];
 
-
     ctx.fillStyle =
         world.ground;
-
 
     ctx.fillRect(
         0,
         groundY,
         canvas.width,
         canvas.height -
-        groundY
+            groundY
     );
-
 
     ctx.strokeStyle =
         "rgba(255,255,255,0.15)";
 
-
     ctx.lineWidth = 3;
 
-
     ctx.beginPath();
-
 
     ctx.moveTo(
         0,
         groundY + 2
     );
 
-
     ctx.lineTo(
         canvas.width,
         groundY + 2
     );
 
-
     ctx.stroke();
-
 
     ctx.strokeStyle =
         "rgba(255,255,255,0.07)";
 
-
     ctx.lineWidth = 2;
-
 
     for (
         let x =
@@ -2167,25 +2046,22 @@ function drawGround() {
             ) % 50;
 
         x <
-        canvas.width + 50;
+            canvas.width + 50;
 
         x += 50
     ) {
 
         ctx.beginPath();
 
-
         ctx.moveTo(
             x,
             groundY + 35
         );
 
-
         ctx.lineTo(
             x + 20,
             groundY + 35
         );
-
 
         ctx.stroke();
     }
@@ -2193,13 +2069,12 @@ function drawGround() {
 
 
 /* =========================================================
-   PLAYER
+   PLAYER DRAW
 ========================================================= */
 
 function drawPlayer() {
 
     ctx.save();
-
 
     if (
         invincibleTimer > 0 &&
@@ -2212,12 +2087,12 @@ function drawPlayer() {
             0.45;
     }
 
-
-    if (dashTimer > 0) {
+    if (
+        dashTimer > 0
+    ) {
 
         ctx.fillStyle =
             "rgba(255,211,77,0.2)";
-
 
         for (
             let i = 1;
@@ -2227,7 +2102,7 @@ function drawPlayer() {
 
             ctx.fillRect(
                 player.x -
-                i * 35,
+                    i * 35,
                 player.y + 20,
                 40,
                 18
@@ -2235,8 +2110,9 @@ function drawPlayer() {
         }
     }
 
-
-    if (shieldTimer > 0) {
+    if (
+        shieldTimer > 0
+    ) {
 
         ctx.strokeStyle =
             "#2ce1ff";
@@ -2244,31 +2120,25 @@ function drawPlayer() {
         ctx.lineWidth = 4;
 
         ctx.shadowBlur = 25;
-
         ctx.shadowColor =
             "#2ce1ff";
 
-
         ctx.beginPath();
-
 
         ctx.arc(
             player.x +
-            player.width / 2,
+                player.width / 2,
             player.y +
-            player.height / 2,
+                player.height / 2,
             58,
             0,
             Math.PI * 2
         );
 
-
         ctx.stroke();
-
 
         ctx.shadowBlur = 0;
     }
-
 
     ctx.shadowBlur = 20;
 
@@ -2278,8 +2148,7 @@ function drawPlayer() {
     ctx.fillStyle =
         player.color;
 
-
-    /* Body */
+    /* BODY */
 
     roundRect(
         ctx,
@@ -2290,14 +2159,11 @@ function drawPlayer() {
         13
     );
 
-
     ctx.fill();
 
-
-    /* Head */
+    /* HEAD */
 
     ctx.beginPath();
-
 
     ctx.arc(
         player.x + 48,
@@ -2307,46 +2173,37 @@ function drawPlayer() {
         Math.PI * 2
     );
 
-
     ctx.fill();
 
-
-    /* Tail */
+    /* TAIL */
 
     ctx.beginPath();
-
 
     ctx.moveTo(
         player.x + 14,
         player.y + 43
     );
 
-
     ctx.lineTo(
         player.x - 30,
         player.y + 62
     );
-
 
     ctx.lineTo(
         player.x + 15,
         player.y + 66
     );
 
-
     ctx.fill();
 
-
-    /* Eye */
+    /* EYE */
 
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
         "#06101d";
 
-
     ctx.beginPath();
-
 
     ctx.arc(
         player.x + 56,
@@ -2356,15 +2213,12 @@ function drawPlayer() {
         Math.PI * 2
     );
 
-
     ctx.fill();
 
-
-    /* Legs */
+    /* LEGS */
 
     ctx.fillStyle =
         player.color;
-
 
     ctx.fillRect(
         player.x + 18,
@@ -2373,7 +2227,6 @@ function drawPlayer() {
         22
     );
 
-
     ctx.fillRect(
         player.x + 39,
         player.y + 60,
@@ -2381,13 +2234,12 @@ function drawPlayer() {
         22
     );
 
-
     ctx.restore();
 }
 
 
 /* =========================================================
-   OBSTACLE DRAWING
+   OBSTACLE DRAW
 ========================================================= */
 
 function drawObstacles() {
@@ -2397,7 +2249,6 @@ function drawObstacles() {
 
             ctx.save();
 
-
             if (
                 obstacle.type ===
                 "cactus"
@@ -2405,7 +2256,6 @@ function drawObstacles() {
 
                 ctx.fillStyle =
                     "#3db56d";
-
 
                 roundRect(
                     ctx,
@@ -2416,9 +2266,7 @@ function drawObstacles() {
                     8
                 );
 
-
                 ctx.fill();
-
 
                 ctx.fillRect(
                     obstacle.x - 13,
@@ -2427,16 +2275,14 @@ function drawObstacles() {
                     9
                 );
 
-
                 ctx.fillRect(
                     obstacle.x +
-                    obstacle.width,
+                        obstacle.width,
                     obstacle.y + 32,
                     13,
                     9
                 );
             }
-
 
             if (
                 obstacle.type ===
@@ -2446,44 +2292,37 @@ function drawObstacles() {
                 ctx.fillStyle =
                     "#738296";
 
-
                 ctx.beginPath();
-
 
                 ctx.moveTo(
                     obstacle.x,
                     obstacle.y +
-                    obstacle.height
+                        obstacle.height
                 );
-
 
                 ctx.lineTo(
                     obstacle.x + 12,
                     obstacle.y + 8
                 );
 
-
                 ctx.lineTo(
                     obstacle.x +
-                    obstacle.width -
-                    10,
+                        obstacle.width -
+                        10,
                     obstacle.y + 4
                 );
 
-
                 ctx.lineTo(
                     obstacle.x +
-                    obstacle.width,
+                        obstacle.width,
                     obstacle.y +
-                    obstacle.height
+                        obstacle.height
                 );
-
 
                 ctx.closePath();
 
                 ctx.fill();
             }
-
 
             if (
                 obstacle.type ===
@@ -2493,9 +2332,7 @@ function drawObstacles() {
                 ctx.fillStyle =
                     "#ff7c88";
 
-
                 ctx.beginPath();
-
 
                 ctx.arc(
                     obstacle.x + 28,
@@ -2505,71 +2342,59 @@ function drawObstacles() {
                     Math.PI * 2
                 );
 
-
                 ctx.fill();
-
 
                 ctx.fillStyle =
                     "rgba(255,255,255,0.7)";
 
-
                 ctx.beginPath();
-
 
                 ctx.moveTo(
                     obstacle.x + 15,
                     obstacle.y + 20
                 );
 
-
                 ctx.lineTo(
                     obstacle.x - 15,
                     obstacle.y + 5
                 );
-
 
                 ctx.lineTo(
                     obstacle.x + 5,
                     obstacle.y + 34
                 );
 
-
                 ctx.fill();
 
-
                 ctx.beginPath();
-
 
                 ctx.moveTo(
                     obstacle.x + 38,
                     obstacle.y + 20
                 );
 
-
                 ctx.lineTo(
                     obstacle.x + 70,
                     obstacle.y + 5
                 );
-
 
                 ctx.lineTo(
                     obstacle.x + 48,
                     obstacle.y + 34
                 );
 
-
                 ctx.fill();
             }
 
-
             ctx.restore();
+
         }
     );
 }
 
 
 /* =========================================================
-   GEMS
+   GEM DRAW
 ========================================================= */
 
 function drawCollectibles() {
@@ -2579,63 +2404,51 @@ function drawCollectibles() {
 
             ctx.save();
 
-
             ctx.translate(
                 gem.x,
                 gem.y
             );
 
-
             ctx.rotate(
                 gem.angle
             );
-
 
             ctx.shadowBlur = 20;
 
             ctx.shadowColor =
                 "#2ce1ff";
 
-
             ctx.fillStyle =
                 "#2ce1ff";
 
-
             ctx.beginPath();
-
 
             ctx.moveTo(
                 0,
                 -gem.radius
             );
 
-
             ctx.lineTo(
                 gem.radius,
                 0
             );
-
 
             ctx.lineTo(
                 0,
                 gem.radius
             );
 
-
             ctx.lineTo(
                 -gem.radius,
                 0
             );
 
-
             ctx.closePath();
 
             ctx.fill();
 
-
             ctx.fillStyle =
                 "rgba(255,255,255,0.6)";
-
 
             ctx.fillRect(
                 -3,
@@ -2644,8 +2457,8 @@ function drawCollectibles() {
                 10
             );
 
-
             ctx.restore();
+
         }
     );
 }
@@ -2671,7 +2484,6 @@ function createParticles(
         particles.push({
 
             x,
-
             y,
 
             vx:
@@ -2700,7 +2512,6 @@ function createParticles(
     }
 }
 
-
 function updateParticles(delta) {
 
     for (
@@ -2713,25 +2524,19 @@ function updateParticles(delta) {
         const particle =
             particles[i];
 
-
         particle.x +=
             particle.vx *
             delta;
-
 
         particle.y +=
             particle.vy *
             delta;
 
-
         particle.vy +=
-            0.08 *
-            delta;
-
+            0.08 * delta;
 
         particle.life -=
             delta;
-
 
         if (
             particle.life <= 0
@@ -2745,7 +2550,6 @@ function updateParticles(delta) {
     }
 }
 
-
 function drawParticles() {
 
     particles.forEach(
@@ -2753,17 +2557,14 @@ function drawParticles() {
 
             ctx.save();
 
-
             ctx.globalAlpha =
                 Math.max(
                     0,
                     particle.life / 60
                 );
 
-
             ctx.fillStyle =
                 particle.color;
-
 
             ctx.fillRect(
                 particle.x,
@@ -2772,8 +2573,8 @@ function drawParticles() {
                 particle.size
             );
 
-
             ctx.restore();
+
         }
     );
 }
@@ -2799,16 +2600,13 @@ function roundRect(
             height / 2
         );
 
-
     context.beginPath();
-
 
     context.moveTo(
         x + r,
         y
     );
 
-
     context.arcTo(
         x + width,
         y,
@@ -2816,7 +2614,6 @@ function roundRect(
         y + height,
         r
     );
-
 
     context.arcTo(
         x + width,
@@ -2826,7 +2623,6 @@ function roundRect(
         r
     );
 
-
     context.arcTo(
         x,
         y + height,
@@ -2835,7 +2631,6 @@ function roundRect(
         r
     );
 
-
     context.arcTo(
         x,
         y,
@@ -2843,30 +2638,22 @@ function roundRect(
         y,
         r
     );
-
 
     context.closePath();
 }
 
 
 /* =========================================================
-   REDEEM CODES
+   GIFT / REDEEM SYSTEM
 ========================================================= */
 
 /*
-   معمولی:
-   RUN100       = 100
-   LEGEND1000   = 1,000
-   DINO5000     = 5,000
-   LEGEND26B    = 26,000,000,000
+   کدهای عادی:
+   هر کدام فقط یک بار قابل استفاده هستند.
 
-   ویژه:
-   DINO_INFINITE = MAX SAFE INTEGER
-
-   DINO_INFINITE در usedCodes ذخیره نمی‌شود،
-   بنابراین هر بار قابل استفاده است.
+   کد INFINITY:
+   نامحدود است و هر بار 26,000,000,000 جم می‌دهد.
 */
-
 
 const giftCodes = {
 
@@ -2876,14 +2663,20 @@ const giftCodes = {
 
     DINO5000: 5000,
 
-    LEGEND26B: 26000000000
+    LEGENDARY: 1000000,
+
+    ULTRA: 100000000,
+
+    COSMIC: 500000000,
+
+    MEGA: 1000000000
 
 };
 
 
-const INFINITE_CODE =
-    "DINO_INFINITE";
-
+/* =========================================================
+   REDEEM
+========================================================= */
 
 function redeemCode() {
 
@@ -2892,6 +2685,7 @@ function redeemCode() {
             .trim()
             .toUpperCase();
 
+    /* EMPTY */
 
     if (!code) {
 
@@ -2904,23 +2698,21 @@ function redeemCode() {
     }
 
 
-    /* =====================================
-       SECRET INFINITE CODE
-    ===================================== */
+    /* =====================================================
+       INFINITY SECRET CODE
+       نامحدود
+       26 BILLION GEMS
+    ===================================================== */
 
     if (
-        code ===
-        INFINITE_CODE
+        code === "INFINITY"
     ) {
 
-        /*
-          JavaScript maximum safe integer.
-          This can be redeemed repeatedly.
-        */
+        const reward =
+            26000000000;
 
-        save.gems =
-            Number.MAX_SAFE_INTEGER;
-
+        save.gems +=
+            reward;
 
         saveGame();
 
@@ -2928,32 +2720,33 @@ function redeemCode() {
 
         codeInput.value = "";
 
-
         showMessage(
-            "♾️ INFINITE GEMS ACTIVATED!",
+            "♾️ " +
+            reward.toLocaleString() +
+            " جم دریافت کردی!",
             "#50f5a1"
         );
 
-
         createParticles(
-            player.x + 30,
-            player.y + 40,
-            40,
+            canvas.width / 2,
+            canvas.height / 2,
+            50,
             "#ffd34d"
         );
-
 
         return;
     }
 
 
-    /* =====================================
-       NORMAL CODES
-    ===================================== */
+    /* =====================================================
+       NORMAL CODE VALIDATION
+    ===================================================== */
 
     if (
-        !Object.prototype.hasOwnProperty
-            .call(giftCodes, code)
+        !Object.prototype.hasOwnProperty.call(
+            giftCodes,
+            code
+        )
     ) {
 
         showMessage(
@@ -2965,10 +2758,12 @@ function redeemCode() {
     }
 
 
-    /* جلوگیری از استفاده دوباره */
+    /* =====================================================
+       CHECK USED CODE
+    ===================================================== */
+
     if (
-        save.usedCodes
-            .includes(code)
+        save.usedCodes.includes(code)
     ) {
 
         showMessage(
@@ -2980,58 +2775,63 @@ function redeemCode() {
     }
 
 
+    /* =====================================================
+       GIVE REWARD
+    ===================================================== */
+
     const reward =
         giftCodes[code];
 
-
     save.gems +=
         reward;
-
 
     save.usedCodes.push(
         code
     );
 
-
     saveGame();
 
     updateUI();
 
-
     codeInput.value = "";
 
-
     showMessage(
-        `🎉 ${reward.toLocaleString()} الماس گرفتی!`,
+        "🎉 " +
+        reward.toLocaleString() +
+        " جم گرفتی!",
         "#50f5a1"
     );
 }
 
 
-/* Redeem button */
+/* =========================================================
+   REDEEM EVENTS
+========================================================= */
 
-redeemButton.addEventListener(
-    "click",
-    redeemCode
-);
+if (redeemButton) {
 
+    redeemButton.addEventListener(
+        "click",
+        redeemCode
+    );
+}
 
-/* Enter */
+if (codeInput) {
 
-codeInput.addEventListener(
-    "keydown",
-    event => {
+    codeInput.addEventListener(
+        "keydown",
+        event => {
 
-        if (
-            event.key ===
-            "Enter"
-        ) {
+            if (
+                event.key === "Enter"
+            ) {
 
-            redeemCode();
+                redeemCode();
+            }
+
         }
-
-    }
-);
+    );
+}
 
 
 /* =========================================================
@@ -3040,11 +2840,14 @@ codeInput.addEventListener(
 
 let messageTimer = null;
 
-
 function showMessage(
     text,
     color = "#50f5a1"
 ) {
+
+    if (!codeMessage) {
+        return;
+    }
 
     codeMessage.textContent =
         text;
@@ -3052,11 +2855,9 @@ function showMessage(
     codeMessage.style.color =
         color;
 
-
     clearTimeout(
         messageTimer
     );
-
 
     messageTimer =
         setTimeout(
@@ -3072,7 +2873,7 @@ function showMessage(
 
 
 /* =========================================================
-   RESIZE
+   RESIZE CANVAS
 ========================================================= */
 
 function resizeCanvas() {
@@ -3081,36 +2882,28 @@ function resizeCanvas() {
         window.devicePixelRatio ||
         1;
 
-
     const displayWidth =
         canvas.clientWidth;
-
 
     const displayHeight =
         canvas.clientHeight;
 
-
     if (
-        !displayWidth ||
-        !displayHeight
+        displayWidth <= 0 ||
+        displayHeight <= 0
     ) {
         return;
     }
 
-
     const targetWidth =
         Math.floor(
-            displayWidth *
-            ratio
+            displayWidth * ratio
         );
-
 
     const targetHeight =
         Math.floor(
-            displayHeight *
-            ratio
+            displayHeight * ratio
         );
-
 
     if (
         canvas.width !==
@@ -3125,12 +2918,6 @@ function resizeCanvas() {
         canvas.height =
             targetHeight;
 
-
-        /*
-          Keep the game world at
-          1200 x 500 coordinates.
-        */
-
         ctx.setTransform(
             canvas.width / 1200,
             0,
@@ -3141,7 +2928,6 @@ function resizeCanvas() {
         );
     }
 }
-
 
 window.addEventListener(
     "resize",
@@ -3155,18 +2941,44 @@ window.addEventListener(
 
 function initialize() {
 
+    /* Character */
+
     const selectedCharacter =
         characters[
             save.selectedCharacter
         ];
 
+    if (!selectedCharacter) {
+
+        save.selectedCharacter = 0;
+
+    }
 
     player.color =
-        selectedCharacter.color;
+        characters[
+            save.selectedCharacter
+        ].color;
 
+
+    /* World */
+
+    if (
+        !worlds[
+            save.selectedWorld
+        ]
+    ) {
+
+        save.selectedWorld = 0;
+
+    }
+
+
+    /* Background */
 
     createBackground();
 
+
+    /* UI */
 
     renderCharacters();
 
@@ -3174,14 +2986,14 @@ function initialize() {
 
     renderWorlds();
 
-
     updateUI();
 
+
+    /* Canvas */
 
     resizeCanvas();
 
     draw();
 }
-
 
 initialize();
