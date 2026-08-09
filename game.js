@@ -7,6 +7,10 @@
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+/* =========================
+   UI
+========================= */
+
 const gemsEl = document.getElementById("gems");
 const bestScoreEl = document.getElementById("bestScore");
 const levelEl = document.getElementById("level");
@@ -39,19 +43,17 @@ const codeMessage = document.getElementById("codeMessage");
 
 /* =========================================================
    SAVE SYSTEM
-   ========================================================= */
+========================================================= */
 
-const SAVE_KEY = "DINO_LEGENDS_FINAL_V10";
+const SAVE_KEY = "dinoLegendsSaveV3";
 
 const defaultSave = {
     gems: 0,
     bestScore: 0,
 
     selectedCharacter: 0,
-    unlockedCharacters: [0],
 
-    selectedWorld: 0,
-    unlockedWorlds: [0],
+    unlockedCharacters: [0],
 
     upgrades: {
         jump: 0,
@@ -59,352 +61,230 @@ const defaultSave = {
         dash: 0
     },
 
-    usedCodes: [],
+    unlockedWorlds: [0],
+    selectedWorld: 0,
 
-    playerXP: 0
+    usedCodes: []
 };
 
+let save = loadGame();
+
+
 function cloneDefaultSave() {
-    return JSON.parse(JSON.stringify(defaultSave));
+    return JSON.parse(
+        JSON.stringify(defaultSave)
+    );
 }
 
-function loadGame() {
-    try {
-        const raw = localStorage.getItem(SAVE_KEY);
 
-        if (!raw) {
+function loadGame() {
+
+    try {
+
+        const stored =
+            JSON.parse(
+                localStorage.getItem(SAVE_KEY)
+            );
+
+        if (!stored) {
             return cloneDefaultSave();
         }
 
-        const data = JSON.parse(raw);
-        const fresh = cloneDefaultSave();
-
         return {
-            ...fresh,
-            ...data,
+
+            ...cloneDefaultSave(),
+
+            ...stored,
+
             upgrades: {
-                ...fresh.upgrades,
-                ...(data.upgrades || {})
-            },
-            unlockedCharacters:
-                Array.isArray(data.unlockedCharacters)
-                    ? data.unlockedCharacters
-                    : [0],
+                ...defaultSave.upgrades,
+                ...(stored.upgrades || {})
+            }
 
-            unlockedWorlds:
-                Array.isArray(data.unlockedWorlds)
-                    ? data.unlockedWorlds
-                    : [0],
-
-            usedCodes:
-                Array.isArray(data.usedCodes)
-                    ? data.usedCodes
-                    : []
         };
 
-    } catch {
+    } catch (error) {
+
+        console.warn(
+            "Save data could not be loaded.",
+            error
+        );
+
         return cloneDefaultSave();
     }
 }
 
-let save = loadGame();
 
 function saveGame() {
+
     try {
+
         localStorage.setItem(
             SAVE_KEY,
             JSON.stringify(save)
         );
-    } catch {}
-}
 
+    } catch (error) {
 
-/* =========================================================
-   100 CHARACTERS
-   ========================================================= */
-
-const characterNames = [
-    "Rex",
-    "Blaze",
-    "Frost",
-    "Volt",
-    "Shadow",
-    "Inferno",
-    "Phantom",
-    "Titan",
-    "Storm",
-    "Cyber Rex",
-
-    "Neon",
-    "Galaxy",
-    "Venom",
-    "Crystal",
-    "Dark Lord",
-    "Solar",
-    "Lunar",
-    "Thunder",
-    "Omega",
-    "Dragon",
-
-    "Void",
-    "Golden Rex",
-    "Royal",
-    "Blood Moon",
-    "Ancient",
-    "Cosmic",
-    "Plasma",
-    "Glacier",
-    "Meteor",
-    "Eclipse",
-
-    "Doom",
-    "Ghost",
-    "Hunter",
-    "Samurai",
-    "Ninja",
-    "Knight",
-    "Warlord",
-    "Emperor",
-    "Legend",
-    "Mythic",
-
-    "Astral",
-    "Cyber",
-    "Quantum",
-    "Radiant",
-    "Darkstar",
-    "Fireborn",
-    "Iceborn",
-    "Stormborn",
-    "Starborn",
-    "Dragonborn",
-
-    "Shadowfang",
-    "Ironclaw",
-    "Goldfang",
-    "Nightmare",
-    "Sky King",
-    "Earth King",
-    "Ocean King",
-    "Volcano King",
-    "Ice King",
-    "Space King",
-
-    "Dino X",
-    "Dino Z",
-    "Dino Prime",
-    "Dino Ultra",
-    "Dino Max",
-    "Dino Apex",
-    "Dino God",
-    "Dino King",
-    "Dino Emperor",
-    "Dino Legend",
-
-    "Mystic",
-    "Specter",
-    "Ragnar",
-    "Titan X",
-    "Omega X",
-    "Infinity",
-    "Eternal",
-    "Supreme",
-    "Overlord",
-    "Destroyer",
-
-    "Phoenix",
-    "Leviathan",
-    "Kraken",
-    "Colossus",
-    "Behemoth",
-    "Cerberus",
-    "Draco",
-    "Hydra",
-    "Atlas",
-    "Zeus",
-
-    "ARES",
-    "HADES",
-    "POSEIDON",
-    "APOLLO",
-    "ARES X",
-    "GOD MODE",
-    "ETERNAL X",
-    "ULTIMATE",
-    "LEGENDARY",
-    "THE ONE"
-];
-
-const characterEmojis = [
-    "🦖","🔥","❄️","⚡","🌌",
-    "🔥","👻","🗿","🌩️","🤖",
-    "💠","🌠","☠️","💎","👑",
-    "☀️","🌙","⚡","Ω","🐉",
-    "🕳️","🟡","👑","🌑","🏺",
-    "🌌","🔮","🧊","☄️","🌘",
-    "💀","👻","🏹","🥷","⚔️",
-    "🛡️","⚔️","👑","⭐","✨",
-    "🌌","🤖","⚛️","🌟","🌑",
-    "🔥","❄️","🌪️","⭐","🐲",
-    "🦷","🦾","🟨","😈","☁️",
-    "🌍","🌊","🌋","🧊","🚀",
-    "❌","🆉","💎","⚡","💥",
-    "👑","☠️","🔥","🌟","🏆",
-    "🔮","👻","🪓","🤖","Ω",
-    "♾️","🌌","👑","☠️","💀",
-    "🔥","🐉","🐙","🗿","🐲",
-    "🐺","🐉","🐍","🏛️","⚡",
-    "⚔️","☠️","🌊","☀️","⚔️",
-    "💀","♾️","🌟","👑","👑"
-];
-
-const characterColors = [
-    "#50f5a1","#ff7139","#7de8ff","#ffe05d","#b994ff",
-    "#ff4b35","#c9d1ff","#b0b8c8","#5ce1ff","#45ffcb",
-    "#00ffff","#a86cff","#72ff72","#a9ffff","#ff4d75",
-    "#ffe66d","#b18cff","#4deaff","#ffca3a","#ff5b35",
-    "#8f6cff","#ffd700","#fff1a8","#7b3f9e","#d4b36a",
-    "#9d6cff","#ff67e7","#9defff","#ffb347","#c78aff",
-    "#ff3158","#c8d0d8","#7eff9d","#a5a5ff","#f5f5f5",
-    "#7e9fff","#ffbb66","#fff1b0","#69faff","#ffd34d",
-    "#9d7cff","#4df0ff","#ff8cf4","#ffff78","#7777ff",
-    "#ff7744","#b4ffff","#64dfff","#fff04d","#ff9cff",
-    "#b8ffcf","#d5d5d5","#ffdf55","#8b78ff","#d0eaff",
-    "#70eaff","#64ffb4","#44d9ff","#bcefff","#b5b5ff",
-    "#ffcf55","#70ffff","#ff8dff","#72ff72","#ff6d6d",
-    "#ffe066","#b4a0ff","#ff5757","#ffccff","#fff",
-    "#bda5ff","#b7b7ff","#ffaf5e","#72c9ff","#ffcc55",
-    "#b38cff","#ffffff","#d1a4ff","#ff536f","#8b5cff",
-    "#ff754d","#ff477e","#4d9cff","#ffdc65","#ff8b4d",
-    "#8eeeff","#ff78e8","#b9ff71","#6ddcff","#ffe17a",
-    "#ff4444","#7b68ee","#00bfff","#ffd700","#ff4444",
-    "#ff2e63","#b300ff","#00ffcc","#ffffff","#00ffff"
-];
-
-const characterCosts = [];
-
-for (let i = 0; i < 100; i++) {
-    /*
-       قیمت‌ها از 1,000,000 شروع می‌شوند
-       و اسکین آخر 26,000,000,000 است.
-    */
-
-    const progress = i / 99;
-
-    const cost =
-        Math.round(
-            1000000 +
-            progress *
-            (26000000000 - 1000000)
+        console.warn(
+            "Could not save game.",
+            error
         );
-
-    characterCosts.push(cost);
+    }
 }
-
-const characters = characterNames.map((name, i) => ({
-    name,
-    emoji: characterEmojis[i],
-    color: characterColors[i],
-    cost: characterCosts[i],
-    subtitle:
-        i === 0
-            ? "THE ORIGINAL LEGEND"
-            : i === 99
-                ? "THE ULTIMATE LEGEND"
-                : "LEGENDARY SKIN",
-    description:
-        i === 0
-            ? "The original DINO LEGENDS hero."
-            : "A legendary character with unique energy and style."
-}));
 
 
 /* =========================================================
-   WORLDS
-   ========================================================= */
+   GAME DATA
+========================================================= */
+
+const characters = [
+
+    {
+        name: "Rex",
+        emoji: "🦖",
+        subtitle: "THE ORIGINAL LEGEND",
+        description:
+            "Balanced speed, jump and survival power.",
+        cost: 0,
+        color: "#50f5a1"
+    },
+
+    {
+        name: "Blaze",
+        emoji: "🔥",
+        subtitle: "SPEED HUNTER",
+        description:
+            "Faster dash and better movement speed.",
+        cost: 250,
+        color: "#ff9a4d"
+    },
+
+    {
+        name: "Frost",
+        emoji: "❄️",
+        subtitle: "ICE GUARDIAN",
+        description:
+            "A stronger shield protects you for longer.",
+        cost: 700,
+        color: "#7de8ff"
+    },
+
+    {
+        name: "Volt",
+        emoji: "⚡",
+        subtitle: "LIGHTNING BEAST",
+        description:
+            "Dash faster and earn a higher score.",
+        cost: 1500,
+        color: "#ffe05d"
+    },
+
+    {
+        name: "Shadow",
+        emoji: "🌌",
+        subtitle: "ULTIMATE LEGEND",
+        description:
+            "Rare power with powerful survival bonuses.",
+        cost: 4000,
+        color: "#b994ff"
+    }
+
+];
+
 
 const worlds = [
+
     {
-        name: "NEON JUNGLE",
+        name: "JURASSIC JUNGLE",
         className: "jungle",
-        description: "A dangerous neon jungle filled with ancient energy.",
+        description:
+            "The classic dinosaur world.",
         cost: 0,
-        skyTop: "#071d2a",
-        skyBottom: "#061019",
-        ground: "#102f26"
+        skyTop: "#12394a",
+        skyBottom: "#0b1f27",
+        ground: "#173e2b"
     },
+
     {
         name: "GOLDEN DESERT",
         className: "desert",
-        description: "Infinite golden dunes under a burning sky.",
-        cost: 500000,
-        skyTop: "#613b0b",
-        skyBottom: "#170b02",
-        ground: "#573713"
+        description:
+            "Survive the endless burning dunes.",
+        cost: 500,
+        skyTop: "#704715",
+        skyBottom: "#1c1006",
+        ground: "#654116"
     },
+
     {
         name: "FROZEN ERA",
         className: "ice",
-        description: "A frozen dimension of storms and ancient beasts.",
-        cost: 2000000,
-        skyTop: "#14516d",
-        skyBottom: "#061520",
-        ground: "#164b61"
+        description:
+            "A dangerous world of ice and snow.",
+        cost: 1200,
+        skyTop: "#1d5876",
+        skyBottom: "#071827",
+        ground: "#164256"
     },
+
     {
         name: "VOLCANO CORE",
         className: "volcano",
-        description: "A world where lava flows beneath your feet.",
-        cost: 10000000,
-        skyTop: "#551019",
-        skyBottom: "#110205",
-        ground: "#421015"
+        description:
+            "The ground itself is dangerous.",
+        cost: 2500,
+        skyTop: "#56111a",
+        skyBottom: "#180408",
+        ground: "#4b1517"
     },
+
     {
         name: "COSMIC VOID",
         className: "space",
-        description: "The final dimension beyond reality.",
-        cost: 50000000,
-        skyTop: "#130936",
-        skyBottom: "#03020a",
+        description:
+            "The final legendary dimension.",
+        cost: 5000,
+        skyTop: "#130d35",
+        skyBottom: "#05040e",
         ground: "#171238"
     }
+
 ];
 
 
-/* =========================================================
-   UPGRADES
-   ========================================================= */
-
 const upgrades = [
+
     {
         key: "jump",
-        emoji: "🌀",
+        emoji: "⬆️",
         name: "SUPER JUMP",
-        description: "Increase jump power.",
+        description:
+            "Jump higher and escape taller obstacles."
     },
+
     {
         key: "shield",
         emoji: "🛡️",
         name: "SHIELD CORE",
-        description: "Increase shield duration.",
+        description:
+            "Increase shield duration."
     },
+
     {
         key: "dash",
         emoji: "⚡",
         name: "DASH ENGINE",
-        description: "Increase dash duration.",
+        description:
+            "Make dash faster and longer."
     }
-];
 
-function getUpgradeCost(level) {
-    return 200000 + level * 300000;
-}
+];
 
 
 /* =========================================================
    GAME STATE
-   ========================================================= */
+========================================================= */
 
 let gameRunning = false;
 let animationId = null;
@@ -417,6 +297,7 @@ let gameSpeed = 8;
 let distance = 0;
 
 let lastTime = 0;
+
 let obstacleTimer = 0;
 let gemTimer = 0;
 
@@ -433,45 +314,87 @@ let stars = [];
 
 const groundY = 420;
 
+
 const player = {
+
     x: 150,
+
     y: groundY - 80,
+
     width: 62,
+
     height: 80,
+
     velocityY: 0,
+
     gravity: 0.75,
+
     jumpPower: -15,
+
     grounded: true,
+
     color: "#50f5a1"
 };
 
 
 /* =========================================================
    BACKGROUND
-   ========================================================= */
+========================================================= */
 
 function createBackground() {
 
     clouds = [];
     stars = [];
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 7; i++) {
 
         clouds.push({
-            x: Math.random() * 1200,
-            y: 30 + Math.random() * 180,
-            size: 25 + Math.random() * 55,
-            speed: 0.2 + Math.random() * 0.5
+
+            x:
+                Math.random() *
+                canvas.width,
+
+            y:
+                40 +
+                Math.random() *
+                180,
+
+            size:
+                25 +
+                Math.random() *
+                45,
+
+            speed:
+                0.3 +
+                Math.random() *
+                0.5
+
         });
     }
 
-    for (let i = 0; i < 120; i++) {
+
+    for (let i = 0; i < 80; i++) {
 
         stars.push({
-            x: Math.random() * 1200,
-            y: Math.random() * 330,
-            size: 1 + Math.random() * 2,
-            alpha: 0.2 + Math.random() * 0.8
+
+            x:
+                Math.random() *
+                canvas.width,
+
+            y:
+                Math.random() *
+                330,
+
+            size:
+                1 +
+                Math.random() *
+                2,
+
+            alpha:
+                0.2 +
+                Math.random() *
+                0.8
+
         });
     }
 }
@@ -479,7 +402,7 @@ function createBackground() {
 
 /* =========================================================
    UI
-   ========================================================= */
+========================================================= */
 
 function updateUI() {
 
@@ -489,13 +412,11 @@ function updateUI() {
     bestScoreEl.textContent =
         Math.floor(save.bestScore).toLocaleString();
 
-    const level =
+    levelEl.textContent =
         Math.max(
             1,
             Math.floor(save.bestScore / 1000) + 1
         );
-
-    levelEl.textContent = level;
 
     scoreEl.textContent =
         Math.floor(score).toLocaleString();
@@ -504,8 +425,12 @@ function updateUI() {
         "x" + combo;
 
     healthEl.textContent =
-        "❤️".repeat(Math.max(0, health)) +
-        "🖤".repeat(Math.max(0, 3 - health));
+        "❤️".repeat(
+            Math.max(0, health)
+        ) +
+        "🖤".repeat(
+            Math.max(0, 3 - health)
+        );
 
     characterCountEl.textContent =
         save.unlockedCharacters.length +
@@ -516,124 +441,164 @@ function updateUI() {
 
 /* =========================================================
    TABS
-   ========================================================= */
+========================================================= */
 
-document.querySelectorAll(".tab").forEach(tab => {
+document
+    .querySelectorAll(".tab")
+    .forEach(tab => {
 
-    tab.addEventListener("click", () => {
+        tab.addEventListener(
+            "click",
+            () => {
 
-        const target =
-            tab.dataset.panel;
+                const target =
+                    tab.dataset.panel;
 
-        document.querySelectorAll(".tab")
-            .forEach(button => {
-                button.classList.remove("active");
-            });
+                document
+                    .querySelectorAll(".tab")
+                    .forEach(button => {
 
-        document.querySelectorAll(".panel")
-            .forEach(panel => {
-                panel.classList.remove("active-panel");
-            });
+                        button.classList.remove(
+                            "active"
+                        );
 
-        tab.classList.add("active");
+                    });
 
-        const panel =
-            document.getElementById(target);
+                document
+                    .querySelectorAll(".panel")
+                    .forEach(panel => {
 
-        if (panel) {
-            panel.classList.add("active-panel");
-        }
+                        panel.classList.remove(
+                            "active-panel"
+                        );
+
+                    });
+
+                tab.classList.add("active");
+
+                const panel =
+                    document.getElementById(
+                        target
+                    );
+
+                if (panel) {
+                    panel.classList.add(
+                        "active-panel"
+                    );
+                }
+            }
+        );
+
     });
-});
 
 
 /* =========================================================
-   CHARACTER SHOP
-   ========================================================= */
+   CHARACTERS
+========================================================= */
 
 function renderCharacters() {
 
     characterGrid.innerHTML = "";
 
-    characters.forEach((character, index) => {
+    characters.forEach(
+        (character, index) => {
 
-        const unlocked =
-            save.unlockedCharacters.includes(index);
+            const unlocked =
+                save.unlockedCharacters
+                    .includes(index);
 
-        const selected =
-            save.selectedCharacter === index;
+            const selected =
+                save.selectedCharacter ===
+                index;
 
-        const card =
-            document.createElement("article");
+            const card =
+                document.createElement(
+                    "article"
+                );
 
-        card.className =
-            "character-card" +
-            (selected ? " selected" : "");
+            card.className =
+                "character-card" +
+                (
+                    selected
+                        ? " selected"
+                        : ""
+                );
 
-        const costText =
-            unlocked
-                ? "✓ OWNED"
-                : "💎 " +
-                  character.cost.toLocaleString();
+            const buttonText =
+                selected
+                    ? "SELECTED"
+                    : unlocked
+                        ? "SELECT"
+                        : "UNLOCK";
 
-        const buttonText =
-            selected
-                ? "SELECTED"
-                : unlocked
-                    ? "SELECT"
-                    : "UNLOCK";
 
-        card.innerHTML = `
-            <div class="card-top">
+            card.innerHTML = `
 
-                <div
-                    class="card-emoji"
-                    style="
-                        color:${character.color};
-                        text-shadow:
-                        0 0 20px ${character.color};
-                    ">
-                    ${character.emoji}
+                <div class="card-top">
+
+                    <div class="card-emoji">
+                        ${character.emoji}
+                    </div>
+
+                    <div>
+
+                        <h3 class="card-title">
+                            ${character.name}
+                        </h3>
+
+                        <p class="card-subtitle">
+                            ${character.subtitle}
+                        </p>
+
+                    </div>
+
                 </div>
 
-                <div>
 
-                    <h3 class="card-title">
-                        ${character.name}
-                    </h3>
+                <p class="card-description">
+                    ${character.description}
+                </p>
 
-                    <p class="card-subtitle">
-                        ${character.subtitle}
-                    </p>
+
+                <div class="card-footer">
+
+                    <span class="card-cost">
+
+                        ${
+                            unlocked
+                                ? "✓ OWNED"
+                                : "💎 " +
+                                  character.cost.toLocaleString()
+                        }
+
+                    </span>
+
+
+                    <button
+                        class="card-btn ${
+                            unlocked
+                                ? ""
+                                : "locked"
+                        }"
+                        data-character="${index}"
+                    >
+
+                        ${buttonText}
+
+                    </button>
 
                 </div>
+            `;
 
-            </div>
+            characterGrid.appendChild(card);
+        }
+    );
 
-            <p class="card-description">
-                ${character.description}
-            </p>
-
-            <div class="card-footer">
-
-                <span class="card-cost">
-                    ${costText}
-                </span>
-
-                <button
-                    class="card-btn ${unlocked ? "" : "locked"}"
-                    data-character="${index}">
-                    ${buttonText}
-                </button>
-
-            </div>
-        `;
-
-        characterGrid.appendChild(card);
-    });
 
     document
-        .querySelectorAll("[data-character]")
+        .querySelectorAll(
+            "[data-character]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -641,11 +606,14 @@ function renderCharacters() {
                 () => {
 
                     selectOrUnlockCharacter(
-                        Number(button.dataset.character)
+                        Number(
+                            button.dataset.character
+                        )
                     );
 
                 }
             );
+
         });
 }
 
@@ -656,26 +624,24 @@ function selectOrUnlockCharacter(index) {
         characters[index];
 
     if (
-        save.unlockedCharacters.includes(index)
+        save.unlockedCharacters
+            .includes(index)
     ) {
 
-        save.selectedCharacter = index;
+        save.selectedCharacter =
+            index;
 
         player.color =
             character.color;
 
         saveGame();
+
         renderCharacters();
         updateUI();
 
-        showMessage(
-            character.name +
-            " selected!",
-            "#50f5a1"
-        );
-
         return;
     }
+
 
     if (
         save.gems <
@@ -690,12 +656,15 @@ function selectOrUnlockCharacter(index) {
         return;
     }
 
+
     save.gems -=
         character.cost;
 
-    save.unlockedCharacters.push(index);
+    save.unlockedCharacters
+        .push(index);
 
-    save.selectedCharacter = index;
+    save.selectedCharacter =
+        index;
 
     player.color =
         character.color;
@@ -715,90 +684,123 @@ function selectOrUnlockCharacter(index) {
 
 /* =========================================================
    UPGRADES
-   ========================================================= */
+========================================================= */
+
+function getUpgradeCost(level) {
+
+    return 200 +
+        level * 300;
+}
+
 
 function renderUpgrades() {
 
     upgradeGrid.innerHTML = "";
 
-    upgrades.forEach(upgrade => {
+    upgrades.forEach(
+        upgrade => {
 
-        const currentLevel =
-            save.upgrades[upgrade.key];
+            const currentLevel =
+                save.upgrades[
+                    upgrade.key
+                ];
 
-        const maxed =
-            currentLevel >= 5;
+            const cost =
+                getUpgradeCost(
+                    currentLevel
+                );
 
-        const cost =
-            getUpgradeCost(currentLevel);
+            const card =
+                document.createElement(
+                    "article"
+                );
 
-        const card =
-            document.createElement("article");
+            card.className =
+                "upgrade-card";
 
-        card.className =
-            "upgrade-card";
 
-        card.innerHTML = `
-            <div class="card-top">
+            card.innerHTML = `
 
-                <div class="card-emoji">
-                    ${upgrade.emoji}
+                <div class="card-top">
+
+                    <div class="card-emoji">
+                        ${upgrade.emoji}
+                    </div>
+
+                    <div>
+
+                        <h3 class="card-title">
+                            ${upgrade.name}
+                        </h3>
+
+                        <p class="card-subtitle">
+                            LEVEL
+                            ${currentLevel}
+                            / 5
+                        </p>
+
+                    </div>
+
                 </div>
 
-                <div>
 
-                    <h3 class="card-title">
-                        ${upgrade.name}
-                    </h3>
+                <p class="card-description">
+                    ${upgrade.description}
+                </p>
 
-                    <p class="card-subtitle">
-                        LEVEL ${currentLevel} / 5
-                    </p>
+
+                <div class="card-footer">
+
+                    <span class="card-cost">
+
+                        ${
+                            currentLevel >= 5
+                                ? "MAX LEVEL"
+                                : "💎 " +
+                                  cost.toLocaleString()
+                        }
+
+                    </span>
+
+
+                    <button
+                        class="card-btn"
+                        data-upgrade="${upgrade.key}"
+                    >
+
+                        ${
+                            currentLevel >= 5
+                                ? "MAX"
+                                : "UPGRADE"
+                        }
+
+                    </button>
 
                 </div>
+            `;
 
-            </div>
+            upgradeGrid.appendChild(card);
+        }
+    );
 
-            <p class="card-description">
-                ${upgrade.description}
-            </p>
-
-            <div class="card-footer">
-
-                <span class="card-cost">
-                    ${
-                        maxed
-                            ? "MAX LEVEL"
-                            : "💎 " +
-                              cost.toLocaleString()
-                    }
-                </span>
-
-                <button
-                    class="card-btn"
-                    data-upgrade="${upgrade.key}"
-                    ${maxed ? "disabled" : ""}>
-                    ${maxed ? "MAX" : "UPGRADE"}
-                </button>
-
-            </div>
-        `;
-
-        upgradeGrid.appendChild(card);
-    });
 
     document
-        .querySelectorAll("[data-upgrade]")
+        .querySelectorAll(
+            "[data-upgrade]"
+        )
         .forEach(button => {
 
             button.addEventListener(
                 "click",
                 () => {
+
                     upgradePlayer(
                         button.dataset.upgrade
                     );
+
                 }
             );
+
         });
 }
 
@@ -815,6 +817,7 @@ function upgradePlayer(key) {
     const cost =
         getUpgradeCost(current);
 
+
     if (save.gems < cost) {
 
         showMessage(
@@ -825,13 +828,16 @@ function upgradePlayer(key) {
         return;
     }
 
+
     save.gems -= cost;
+
     save.upgrades[key]++;
+
 
     saveGame();
 
-    renderUpgrades();
     updateUI();
+    renderUpgrades();
 
     showMessage(
         "Upgrade complete!",
@@ -842,79 +848,105 @@ function upgradePlayer(key) {
 
 /* =========================================================
    WORLDS
-   ========================================================= */
+========================================================= */
 
 function renderWorlds() {
 
     worldGrid.innerHTML = "";
 
-    worlds.forEach((world, index) => {
+    worlds.forEach(
+        (world, index) => {
 
-        const unlocked =
-            save.unlockedWorlds.includes(index);
+            const unlocked =
+                save.unlockedWorlds
+                    .includes(index);
 
-        const selected =
-            save.selectedWorld === index;
+            const selected =
+                save.selectedWorld ===
+                index;
 
-        const card =
-            document.createElement("article");
 
-        card.className =
-            "world-card" +
-            (selected ? " selected" : "");
+            const card =
+                document.createElement(
+                    "article"
+                );
 
-        card.innerHTML = `
-            <div
-                class="world-preview ${world.className}">
-            </div>
+            card.className =
+                "world-card" +
+                (
+                    selected
+                        ? " selected"
+                        : ""
+                );
 
-            <h3 class="card-title">
-                ${world.name}
-            </h3>
 
-            <p class="card-description">
-                ${world.description}
-            </p>
+            card.innerHTML = `
 
-            <div class="card-footer">
+                <div
+                    class="world-preview
+                    ${world.className}"
+                ></div>
 
-                <span class="card-cost">
 
-                    ${
-                        unlocked
-                            ? (
-                                selected
-                                    ? "✓ ACTIVE"
-                                    : "✓ UNLOCKED"
-                              )
-                            : "💎 " +
-                              world.cost.toLocaleString()
-                    }
+                <h3 class="card-title">
+                    ${world.name}
+                </h3>
 
-                </span>
 
-                <button
-                    class="card-btn ${unlocked ? "" : "locked"}"
-                    data-world="${index}">
+                <p class="card-description">
+                    ${world.description}
+                </p>
 
-                    ${
-                        selected
-                            ? "ACTIVE"
-                            : unlocked
-                                ? "SELECT"
-                                : "UNLOCK"
-                    }
 
-                </button>
+                <div class="card-footer">
 
-            </div>
-        `;
+                    <span class="card-cost">
 
-        worldGrid.appendChild(card);
-    });
+                        ${
+                            unlocked
+                                ? (
+                                    selected
+                                        ? "✓ ACTIVE"
+                                        : "✓ UNLOCKED"
+                                )
+                                : "💎 " +
+                                  world.cost.toLocaleString()
+                        }
+
+                    </span>
+
+
+                    <button
+                        class="card-btn ${
+                            unlocked
+                                ? ""
+                                : "locked"
+                        }"
+                        data-world="${index}"
+                    >
+
+                        ${
+                            selected
+                                ? "ACTIVE"
+                                : unlocked
+                                    ? "SELECT"
+                                    : "UNLOCK"
+                        }
+
+                    </button>
+
+                </div>
+            `;
+
+            worldGrid.appendChild(card);
+        }
+    );
+
 
     document
-        .querySelectorAll("[data-world]")
+        .querySelectorAll(
+            "[data-world]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -922,11 +954,14 @@ function renderWorlds() {
                 () => {
 
                     selectOrUnlockWorld(
-                        Number(button.dataset.world)
+                        Number(
+                            button.dataset.world
+                        )
                     );
 
                 }
             );
+
         });
 }
 
@@ -936,11 +971,14 @@ function selectOrUnlockWorld(index) {
     const world =
         worlds[index];
 
+
     if (
-        save.unlockedWorlds.includes(index)
+        save.unlockedWorlds
+            .includes(index)
     ) {
 
-        save.selectedWorld = index;
+        save.selectedWorld =
+            index;
 
         saveGame();
 
@@ -955,6 +993,7 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
+
     if (
         save.gems <
         world.cost
@@ -968,11 +1007,15 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
+
     save.gems -=
         world.cost;
 
-    save.unlockedWorlds.push(index);
-    save.selectedWorld = index;
+    save.unlockedWorlds
+        .push(index);
+
+    save.selectedWorld =
+        index;
 
     saveGame();
 
@@ -988,14 +1031,19 @@ function selectOrUnlockWorld(index) {
 
 
 /* =========================================================
-   GAME START
-   ========================================================= */
+   START GAME
+========================================================= */
 
 function startGame() {
 
     if (animationId) {
-        cancelAnimationFrame(animationId);
+
+        cancelAnimationFrame(
+            animationId
+        );
+
     }
+
 
     score = 0;
     combo = 1;
@@ -1015,33 +1063,48 @@ function startGame() {
     obstacles = [];
     collectibles = [];
 
-    const character =
+
+    const selectedCharacter =
         characters[
             save.selectedCharacter
         ];
 
+
     player.color =
-        character.color;
+        selectedCharacter.color;
+
 
     player.y =
         groundY -
         player.height;
 
     player.velocityY = 0;
+
     player.grounded = true;
+
 
     gameRunning = true;
 
     lastTime =
         performance.now();
 
-    startScreen.classList.add("hidden");
-    gameOverScreen.classList.add("hidden");
+
+    startScreen.classList.add(
+        "hidden"
+    );
+
+    gameOverScreen.classList.add(
+        "hidden"
+    );
+
 
     updateUI();
 
+
     animationId =
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(
+            gameLoop
+        );
 }
 
 
@@ -1049,12 +1112,19 @@ function endGame() {
 
     gameRunning = false;
 
+
     if (animationId) {
-        cancelAnimationFrame(animationId);
+
+        cancelAnimationFrame(
+            animationId
+        );
+
     }
+
 
     const finalScore =
         Math.floor(score);
+
 
     if (
         finalScore >
@@ -1063,25 +1133,29 @@ function endGame() {
 
         save.bestScore =
             finalScore;
+
     }
 
-    save.playerXP +=
-        Math.floor(finalScore / 10);
 
     saveGame();
+
 
     finalScoreEl.textContent =
         finalScore.toLocaleString();
 
+
     updateUI();
 
-    gameOverScreen.classList.remove("hidden");
+
+    gameOverScreen.classList.remove(
+        "hidden"
+    );
 }
 
 
 /* =========================================================
    GAME LOOP
-   ========================================================= */
+========================================================= */
 
 function gameLoop(timestamp) {
 
@@ -1089,49 +1163,69 @@ function gameLoop(timestamp) {
         return;
     }
 
+
     const delta =
         Math.min(
-            (timestamp - lastTime) / 16.67,
+            (timestamp - lastTime) /
+                16.67,
             2
         );
+
 
     lastTime =
         timestamp;
 
+
     update(delta);
     draw();
 
+
     animationId =
-        requestAnimationFrame(gameLoop);
+        requestAnimationFrame(
+            gameLoop
+        );
 }
 
 
 /* =========================================================
    UPDATE
-   ========================================================= */
+========================================================= */
 
 function update(delta) {
 
     distance +=
-        gameSpeed * delta;
+        gameSpeed *
+        delta;
+
 
     score +=
         0.18 *
         combo *
         delta *
-        (dashTimer > 0 ? 1.7 : 1);
+        (
+            dashTimer > 0
+                ? 1.7
+                : 1
+        );
+
 
     gameSpeed =
         Math.min(
-            20,
+            18,
             8 + score / 1000
         );
 
+
     updatePlayer(delta);
+
     updateTimers(delta);
+
     spawnObjects(delta);
+
     updateObstacles(delta);
+
     updateCollectibles(delta);
+
     updateParticles(delta);
 
     updateUI();
@@ -1141,10 +1235,13 @@ function update(delta) {
 function updatePlayer(delta) {
 
     player.velocityY +=
-        player.gravity * delta;
+        player.gravity *
+        delta;
 
     player.y +=
-        player.velocityY * delta;
+        player.velocityY *
+        delta;
+
 
     if (
         player.y >=
@@ -1157,6 +1254,7 @@ function updatePlayer(delta) {
             player.height;
 
         player.velocityY = 0;
+
         player.grounded = true;
     }
 }
@@ -1183,12 +1281,14 @@ function spawnObjects(delta) {
     obstacleTimer += delta;
     gemTimer += delta;
 
+
     const obstacleInterval =
         Math.max(
-            60,
+            65,
             125 -
             gameSpeed * 3
         );
+
 
     if (
         obstacleTimer >
@@ -1200,9 +1300,8 @@ function spawnObjects(delta) {
         obstacleTimer = 0;
     }
 
-    if (
-        gemTimer > 48
-    ) {
+
+    if (gemTimer > 48) {
 
         spawnGem();
 
@@ -1213,17 +1312,16 @@ function spawnObjects(delta) {
 
 /* =========================================================
    OBSTACLES
-   ========================================================= */
+========================================================= */
 
 function spawnObstacle() {
 
     const types = [
         "cactus",
         "rock",
-        "bird",
-        "crystal",
-        "laser"
+        "bird"
     ];
+
 
     const type =
         types[
@@ -1233,11 +1331,14 @@ function spawnObstacle() {
             )
         ];
 
+
     let width = 40;
     let height = 60;
+
     let y =
         groundY -
         height;
+
 
     if (type === "rock") {
 
@@ -1249,6 +1350,7 @@ function spawnObstacle() {
             height;
     }
 
+
     if (type === "bird") {
 
         width = 55;
@@ -1257,37 +1359,27 @@ function spawnObstacle() {
         y =
             groundY -
             150 -
-            Math.random() * 70;
+            Math.random() *
+            70;
     }
 
-    if (type === "crystal") {
-
-        width = 48;
-        height = 75;
-
-        y =
-            groundY -
-            height;
-    }
-
-    if (type === "laser") {
-
-        width = 80;
-        height = 18;
-
-        y =
-            groundY -
-            70 -
-            Math.random() * 120;
-    }
 
     obstacles.push({
+
         type,
-        x: canvas.width + 50,
+
+        x:
+            canvas.width +
+            40,
+
         y,
+
         width,
+
         height,
+
         counted: false
+
     });
 }
 
@@ -1299,8 +1391,10 @@ function updateObstacles(delta) {
             ? 1.5
             : 1;
 
+
     for (
-        let i = obstacles.length - 1;
+        let i =
+            obstacles.length - 1;
         i >= 0;
         i--
     ) {
@@ -1308,10 +1402,12 @@ function updateObstacles(delta) {
         const obstacle =
             obstacles[i];
 
+
         obstacle.x -=
             gameSpeed *
             speedMultiplier *
             delta;
+
 
         if (
             checkCollision(
@@ -1327,10 +1423,11 @@ function updateObstacles(delta) {
             continue;
         }
 
+
         if (
             !obstacle.counted &&
             obstacle.x +
-                obstacle.width <
+            obstacle.width <
             player.x
         ) {
 
@@ -1343,13 +1440,15 @@ function updateObstacles(delta) {
                 );
 
             score +=
-                25 * combo;
+                25 *
+                combo;
         }
+
 
         if (
             obstacle.x +
-                obstacle.width <
-            -100
+            obstacle.width <
+            -50
         ) {
 
             obstacles.splice(i, 1);
@@ -1360,23 +1459,26 @@ function updateObstacles(delta) {
 
 /* =========================================================
    GEMS
-   ========================================================= */
+========================================================= */
 
 function spawnGem() {
 
     collectibles.push({
 
         x:
-            canvas.width + 30,
+            canvas.width +
+            30,
 
         y:
             groundY -
             80 -
-            Math.random() * 170,
+            Math.random() *
+            170,
 
         radius: 13,
 
         angle: 0
+
     });
 }
 
@@ -1393,12 +1495,16 @@ function updateCollectibles(delta) {
         const gem =
             collectibles[i];
 
+
         gem.x -=
             gameSpeed *
             delta;
 
+
         gem.angle +=
-            0.12 * delta;
+            0.12 *
+            delta;
+
 
         if (
             circleRectCollision(
@@ -1410,13 +1516,16 @@ function updateCollectibles(delta) {
             save.gems++;
 
             score +=
-                50 * combo;
+                50 *
+                combo;
+
 
             combo =
                 Math.min(
                     10,
                     combo + 1
                 );
+
 
             createParticles(
                 gem.x,
@@ -1425,24 +1534,18 @@ function updateCollectibles(delta) {
                 "#2ce1ff"
             );
 
-            collectibles.splice(
-                i,
-                1
-            );
+
+            collectibles.splice(i, 1);
 
             saveGame();
 
             continue;
         }
 
-        if (
-            gem.x < -50
-        ) {
 
-            collectibles.splice(
-                i,
-                1
-            );
+        if (gem.x < -50) {
+
+            collectibles.splice(i, 1);
         }
     }
 }
@@ -1450,34 +1553,37 @@ function updateCollectibles(delta) {
 
 /* =========================================================
    COLLISION
-   ========================================================= */
+========================================================= */
 
 function checkCollision(a, b) {
 
     const padding = 10;
 
+
     return (
+
         a.x + padding <
-            b.x +
-            b.width -
-            padding &&
+        b.x +
+        b.width -
+        padding &&
 
         a.x +
-            a.width -
-            padding >
-            b.x +
-            padding &&
+        a.width -
+        padding >
+        b.x +
+        padding &&
 
         a.y + padding <
-            b.y +
-            b.height -
-            padding &&
+        b.y +
+        b.height -
+        padding &&
 
         a.y +
-            a.height -
-            padding >
-            b.y +
-            padding
+        a.height -
+        padding >
+        b.y +
+        padding
+
     );
 }
 
@@ -1497,6 +1603,7 @@ function circleRectCollision(
             )
         );
 
+
     const closestY =
         Math.max(
             rect.y,
@@ -1507,6 +1614,7 @@ function circleRectCollision(
             )
         );
 
+
     const dx =
         circle.x -
         closestX;
@@ -1514,6 +1622,7 @@ function circleRectCollision(
     const dy =
         circle.y -
         closestY;
+
 
     return (
         dx * dx +
@@ -1535,6 +1644,7 @@ function hitPlayer() {
             player.x + 30,
             player.y + 35,
             18,
+
             shieldTimer > 0
                 ? "#2ce1ff"
                 : "#ffffff"
@@ -1543,11 +1653,13 @@ function hitPlayer() {
         return;
     }
 
+
     health--;
 
     combo = 1;
 
     invincibleTimer = 75;
+
 
     createParticles(
         player.x + 30,
@@ -1556,9 +1668,8 @@ function hitPlayer() {
         "#ff5571"
     );
 
-    if (
-        health <= 0
-    ) {
+
+    if (health <= 0) {
 
         endGame();
     }
@@ -1567,7 +1678,7 @@ function hitPlayer() {
 
 /* =========================================================
    CONTROLS
-   ========================================================= */
+========================================================= */
 
 function jump() {
 
@@ -1575,18 +1686,23 @@ function jump() {
         return;
     }
 
+
     if (!player.grounded) {
         return;
     }
 
+
     const jumpLevel =
         save.upgrades.jump;
+
 
     player.velocityY =
         player.jumpPower -
         jumpLevel * 1.1;
 
+
     player.grounded = false;
+
 
     createParticles(
         player.x + 20,
@@ -1603,16 +1719,20 @@ function dash() {
         return;
     }
 
+
     if (dashTimer > 0) {
         return;
     }
 
+
     const dashLevel =
         save.upgrades.dash;
+
 
     dashTimer =
         35 +
         dashLevel * 8;
+
 
     createParticles(
         player.x,
@@ -1629,16 +1749,20 @@ function activateShield() {
         return;
     }
 
+
     if (shieldTimer > 0) {
         return;
     }
 
+
     const shieldLevel =
         save.upgrades.shield;
+
 
     shieldTimer =
         90 +
         shieldLevel * 20;
+
 
     createParticles(
         player.x + 30,
@@ -1649,9 +1773,7 @@ function activateShield() {
 }
 
 
-/* =========================================================
-   KEYBOARD
-   ========================================================= */
+/* Keyboard */
 
 document.addEventListener(
     "keydown",
@@ -1659,8 +1781,7 @@ document.addEventListener(
 
         if (
             event.code === "Space" ||
-            event.code === "ArrowUp" ||
-            event.code === "KeyW"
+            event.code === "ArrowUp"
         ) {
 
             event.preventDefault();
@@ -1668,28 +1789,27 @@ document.addEventListener(
             jump();
         }
 
+
         if (
-            event.code === "KeyD" ||
-            event.code === "ShiftLeft"
+            event.code === "KeyD"
         ) {
 
             dash();
         }
 
+
         if (
-            event.code === "KeyS" ||
-            event.code === "ArrowDown"
+            event.code === "KeyS"
         ) {
 
             activateShield();
         }
+
     }
 );
 
 
-/* =========================================================
-   BUTTONS
-   ========================================================= */
+/* Buttons */
 
 startButton.addEventListener(
     "click",
@@ -1719,7 +1839,7 @@ shieldButton.addEventListener(
 
 /* =========================================================
    DRAW
-   ========================================================= */
+========================================================= */
 
 function draw() {
 
@@ -1730,24 +1850,34 @@ function draw() {
         canvas.height
     );
 
+
     drawSky();
+
     drawBackground();
+
     drawGround();
+
     drawCollectibles();
+
     drawObstacles();
+
     drawPlayer();
+
     drawParticles();
 }
 
 
 /* =========================================================
    SKY
-   ========================================================= */
+========================================================= */
 
 function drawSky() {
 
     const world =
-        worlds[save.selectedWorld];
+        worlds[
+            save.selectedWorld
+        ];
+
 
     const gradient =
         ctx.createLinearGradient(
@@ -1756,6 +1886,7 @@ function drawSky() {
             0,
             groundY
         );
+
 
     gradient.addColorStop(
         0,
@@ -1767,8 +1898,10 @@ function drawSky() {
         world.skyBottom
     );
 
+
     ctx.fillStyle =
         gradient;
+
 
     ctx.fillRect(
         0,
@@ -1777,25 +1910,31 @@ function drawSky() {
         groundY
     );
 
+
     if (
         save.selectedWorld === 4
     ) {
 
-        stars.forEach(star => {
+        stars.forEach(
+            star => {
 
-            ctx.globalAlpha =
-                star.alpha;
+                ctx.globalAlpha =
+                    star.alpha;
 
-            ctx.fillStyle =
-                "#ffffff";
+                ctx.fillStyle =
+                    "#ffffff";
 
-            ctx.fillRect(
-                star.x,
-                star.y,
-                star.size,
-                star.size
-            );
-        });
+
+                ctx.fillRect(
+                    star.x,
+                    star.y,
+                    star.size,
+                    star.size
+                );
+
+            }
+        );
+
 
         ctx.globalAlpha = 1;
 
@@ -1812,31 +1951,37 @@ function drawSun() {
     const world =
         save.selectedWorld;
 
+
     let color =
         "rgba(255,255,255,0.3)";
 
+
     if (world === 1) {
+
         color =
             "rgba(255,211,77,0.7)";
     }
 
+
     if (world === 2) {
+
         color =
             "rgba(180,240,255,0.5)";
     }
 
+
     if (world === 3) {
+
         color =
             "rgba(255,85,113,0.55)";
     }
+
 
     ctx.beginPath();
 
     ctx.fillStyle =
         color;
 
-    ctx.shadowBlur = 35;
-    ctx.shadowColor = color;
 
     ctx.arc(
         canvas.width - 150,
@@ -1846,99 +1991,112 @@ function drawSun() {
         Math.PI * 2
     );
 
-    ctx.fill();
 
-    ctx.shadowBlur = 0;
+    ctx.fill();
 }
 
 
 function drawClouds() {
 
-    clouds.forEach(cloud => {
+    clouds.forEach(
+        cloud => {
 
-        cloud.x -=
-            cloud.speed;
+            cloud.x -=
+                cloud.speed;
 
-        if (
-            cloud.x <
-            -150
-        ) {
 
-            cloud.x =
-                canvas.width + 100;
-        }
+            if (cloud.x < -150) {
 
-        ctx.fillStyle =
-            "rgba(255,255,255,0.08)";
+                cloud.x =
+                    canvas.width +
+                    100;
+            }
 
-        ctx.beginPath();
 
-        ctx.arc(
-            cloud.x,
-            cloud.y,
-            cloud.size * 0.5,
-            0,
-            Math.PI * 2
-        );
+            ctx.fillStyle =
+                "rgba(255,255,255,0.08)";
 
-        ctx.arc(
-            cloud.x +
+
+            ctx.beginPath();
+
+
+            ctx.arc(
+                cloud.x,
+                cloud.y,
+                cloud.size * 0.5,
+                0,
+                Math.PI * 2
+            );
+
+
+            ctx.arc(
+                cloud.x +
                 cloud.size * 0.6,
-            cloud.y - 10,
-            cloud.size * 0.65,
-            0,
-            Math.PI * 2
-        );
+                cloud.y - 10,
+                cloud.size * 0.65,
+                0,
+                Math.PI * 2
+            );
 
-        ctx.arc(
-            cloud.x +
+
+            ctx.arc(
+                cloud.x +
                 cloud.size * 1.2,
-            cloud.y,
-            cloud.size * 0.45,
-            0,
-            Math.PI * 2
-        );
+                cloud.y,
+                cloud.size * 0.45,
+                0,
+                Math.PI * 2
+            );
 
-        ctx.fill();
-    });
+
+            ctx.fill();
+        }
+    );
 }
 
 
 /* =========================================================
    BACKGROUND
-   ========================================================= */
+========================================================= */
 
 function drawBackground() {
 
     ctx.fillStyle =
-        "rgba(0,0,0,0.15)";
+        "rgba(0,0,0,0.12)";
+
 
     for (
         let x =
-            -((distance * 0.2) % 160);
+            -(
+                distance * 0.2
+            ) % 160;
 
         x <
-            canvas.width + 160;
+        canvas.width + 160;
 
         x += 160
     ) {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             x,
             groundY
         );
+
 
         ctx.lineTo(
             x + 80,
             groundY - 80
         );
 
+
         ctx.lineTo(
             x + 160,
             groundY
         );
+
 
         ctx.fill();
     }
@@ -1947,15 +2105,19 @@ function drawBackground() {
 
 /* =========================================================
    GROUND
-   ========================================================= */
+========================================================= */
 
 function drawGround() {
 
     const world =
-        worlds[save.selectedWorld];
+        worlds[
+            save.selectedWorld
+        ];
+
 
     ctx.fillStyle =
         world.ground;
+
 
     ctx.fillRect(
         0,
@@ -1965,51 +2127,65 @@ function drawGround() {
         groundY
     );
 
+
     ctx.strokeStyle =
         "rgba(255,255,255,0.15)";
 
+
     ctx.lineWidth = 3;
 
+
     ctx.beginPath();
+
 
     ctx.moveTo(
         0,
         groundY + 2
     );
 
+
     ctx.lineTo(
         canvas.width,
         groundY + 2
     );
 
+
     ctx.stroke();
+
 
     ctx.strokeStyle =
         "rgba(255,255,255,0.07)";
 
+
     ctx.lineWidth = 2;
+
 
     for (
         let x =
-            -((distance * 2) % 50);
+            -(
+                distance * 2
+            ) % 50;
 
         x <
-            canvas.width + 50;
+        canvas.width + 50;
 
         x += 50
     ) {
 
         ctx.beginPath();
 
+
         ctx.moveTo(
             x,
             groundY + 35
         );
 
+
         ctx.lineTo(
             x + 20,
             groundY + 35
         );
+
 
         ctx.stroke();
     }
@@ -2018,11 +2194,12 @@ function drawGround() {
 
 /* =========================================================
    PLAYER
-   ========================================================= */
+========================================================= */
 
 function drawPlayer() {
 
     ctx.save();
+
 
     if (
         invincibleTimer > 0 &&
@@ -2031,25 +2208,26 @@ function drawPlayer() {
         ) % 2 === 0
     ) {
 
-        ctx.globalAlpha = 0.45;
+        ctx.globalAlpha =
+            0.45;
     }
 
-    if (
-        dashTimer > 0
-    ) {
+
+    if (dashTimer > 0) {
 
         ctx.fillStyle =
             "rgba(255,211,77,0.2)";
 
+
         for (
             let i = 1;
-            i <= 5;
+            i <= 4;
             i++
         ) {
 
             ctx.fillRect(
                 player.x -
-                    i * 35,
+                i * 35,
                 player.y + 20,
                 40,
                 18
@@ -2057,9 +2235,8 @@ function drawPlayer() {
         }
     }
 
-    if (
-        shieldTimer > 0
-    ) {
+
+    if (shieldTimer > 0) {
 
         ctx.strokeStyle =
             "#2ce1ff";
@@ -2067,32 +2244,42 @@ function drawPlayer() {
         ctx.lineWidth = 4;
 
         ctx.shadowBlur = 25;
+
         ctx.shadowColor =
             "#2ce1ff";
 
+
         ctx.beginPath();
+
 
         ctx.arc(
             player.x +
-                player.width / 2,
+            player.width / 2,
             player.y +
-                player.height / 2,
+            player.height / 2,
             58,
             0,
             Math.PI * 2
         );
 
+
         ctx.stroke();
+
 
         ctx.shadowBlur = 0;
     }
 
+
     ctx.shadowBlur = 20;
+
     ctx.shadowColor =
         player.color;
 
     ctx.fillStyle =
         player.color;
+
+
+    /* Body */
 
     roundRect(
         ctx,
@@ -2103,9 +2290,14 @@ function drawPlayer() {
         13
     );
 
+
     ctx.fill();
 
+
+    /* Head */
+
     ctx.beginPath();
+
 
     ctx.arc(
         player.x + 48,
@@ -2115,33 +2307,46 @@ function drawPlayer() {
         Math.PI * 2
     );
 
+
     ctx.fill();
 
+
+    /* Tail */
+
     ctx.beginPath();
+
 
     ctx.moveTo(
         player.x + 14,
         player.y + 43
     );
 
+
     ctx.lineTo(
         player.x - 30,
         player.y + 62
     );
+
 
     ctx.lineTo(
         player.x + 15,
         player.y + 66
     );
 
+
     ctx.fill();
+
+
+    /* Eye */
 
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
         "#06101d";
 
+
     ctx.beginPath();
+
 
     ctx.arc(
         player.x + 56,
@@ -2151,10 +2356,15 @@ function drawPlayer() {
         Math.PI * 2
     );
 
+
     ctx.fill();
+
+
+    /* Legs */
 
     ctx.fillStyle =
         player.color;
+
 
     ctx.fillRect(
         player.x + 18,
@@ -2163,6 +2373,7 @@ function drawPlayer() {
         22
     );
 
+
     ctx.fillRect(
         player.x + 39,
         player.y + 60,
@@ -2170,298 +2381,279 @@ function drawPlayer() {
         22
     );
 
+
     ctx.restore();
 }
 
 
 /* =========================================================
    OBSTACLE DRAWING
-   ========================================================= */
+========================================================= */
 
 function drawObstacles() {
 
-    obstacles.forEach(obstacle => {
+    obstacles.forEach(
+        obstacle => {
 
-        ctx.save();
+            ctx.save();
 
-        if (
-            obstacle.type ===
-            "cactus"
-        ) {
 
-            ctx.fillStyle =
-                "#3db56d";
+            if (
+                obstacle.type ===
+                "cactus"
+            ) {
 
-            roundRect(
-                ctx,
-                obstacle.x,
-                obstacle.y,
-                obstacle.width,
-                obstacle.height,
-                8
-            );
+                ctx.fillStyle =
+                    "#3db56d";
 
-            ctx.fill();
 
-            ctx.fillRect(
-                obstacle.x - 13,
-                obstacle.y + 22,
-                13,
-                9
-            );
-
-            ctx.fillRect(
-                obstacle.x +
+                roundRect(
+                    ctx,
+                    obstacle.x,
+                    obstacle.y,
                     obstacle.width,
-                obstacle.y + 32,
-                13,
-                9
-            );
-        }
+                    obstacle.height,
+                    8
+                );
 
-        if (
-            obstacle.type ===
-            "rock"
-        ) {
 
-            ctx.fillStyle =
-                "#738296";
+                ctx.fill();
 
-            ctx.beginPath();
 
-            ctx.moveTo(
-                obstacle.x,
-                obstacle.y +
+                ctx.fillRect(
+                    obstacle.x - 13,
+                    obstacle.y + 22,
+                    13,
+                    9
+                );
+
+
+                ctx.fillRect(
+                    obstacle.x +
+                    obstacle.width,
+                    obstacle.y + 32,
+                    13,
+                    9
+                );
+            }
+
+
+            if (
+                obstacle.type ===
+                "rock"
+            ) {
+
+                ctx.fillStyle =
+                    "#738296";
+
+
+                ctx.beginPath();
+
+
+                ctx.moveTo(
+                    obstacle.x,
+                    obstacle.y +
                     obstacle.height
-            );
+                );
 
-            ctx.lineTo(
-                obstacle.x + 12,
-                obstacle.y + 8
-            );
 
-            ctx.lineTo(
-                obstacle.x +
+                ctx.lineTo(
+                    obstacle.x + 12,
+                    obstacle.y + 8
+                );
+
+
+                ctx.lineTo(
+                    obstacle.x +
                     obstacle.width -
                     10,
-                obstacle.y + 4
-            );
+                    obstacle.y + 4
+                );
 
-            ctx.lineTo(
-                obstacle.x +
+
+                ctx.lineTo(
+                    obstacle.x +
                     obstacle.width,
-                obstacle.y +
+                    obstacle.y +
                     obstacle.height
-            );
+                );
 
-            ctx.closePath();
 
-            ctx.fill();
+                ctx.closePath();
+
+                ctx.fill();
+            }
+
+
+            if (
+                obstacle.type ===
+                "bird"
+            ) {
+
+                ctx.fillStyle =
+                    "#ff7c88";
+
+
+                ctx.beginPath();
+
+
+                ctx.arc(
+                    obstacle.x + 28,
+                    obstacle.y + 18,
+                    18,
+                    0,
+                    Math.PI * 2
+                );
+
+
+                ctx.fill();
+
+
+                ctx.fillStyle =
+                    "rgba(255,255,255,0.7)";
+
+
+                ctx.beginPath();
+
+
+                ctx.moveTo(
+                    obstacle.x + 15,
+                    obstacle.y + 20
+                );
+
+
+                ctx.lineTo(
+                    obstacle.x - 15,
+                    obstacle.y + 5
+                );
+
+
+                ctx.lineTo(
+                    obstacle.x + 5,
+                    obstacle.y + 34
+                );
+
+
+                ctx.fill();
+
+
+                ctx.beginPath();
+
+
+                ctx.moveTo(
+                    obstacle.x + 38,
+                    obstacle.y + 20
+                );
+
+
+                ctx.lineTo(
+                    obstacle.x + 70,
+                    obstacle.y + 5
+                );
+
+
+                ctx.lineTo(
+                    obstacle.x + 48,
+                    obstacle.y + 34
+                );
+
+
+                ctx.fill();
+            }
+
+
+            ctx.restore();
         }
-
-        if (
-            obstacle.type ===
-            "bird"
-        ) {
-
-            ctx.fillStyle =
-                "#ff7c88";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                obstacle.x + 28,
-                obstacle.y + 18,
-                18,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.7)";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                obstacle.x + 15,
-                obstacle.y + 20
-            );
-
-            ctx.lineTo(
-                obstacle.x - 15,
-                obstacle.y + 5
-            );
-
-            ctx.lineTo(
-                obstacle.x + 5,
-                obstacle.y + 34
-            );
-
-            ctx.fill();
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                obstacle.x + 38,
-                obstacle.y + 20
-            );
-
-            ctx.lineTo(
-                obstacle.x + 70,
-                obstacle.y + 5
-            );
-
-            ctx.lineTo(
-                obstacle.x + 48,
-                obstacle.y + 34
-            );
-
-            ctx.fill();
-        }
-
-        if (
-            obstacle.type ===
-            "crystal"
-        ) {
-
-            ctx.shadowBlur = 20;
-            ctx.shadowColor =
-                "#b994ff";
-
-            ctx.fillStyle =
-                "#b994ff";
-
-            ctx.beginPath();
-
-            ctx.moveTo(
-                obstacle.x +
-                    obstacle.width / 2,
-                obstacle.y
-            );
-
-            ctx.lineTo(
-                obstacle.x +
-                    obstacle.width,
-                obstacle.y +
-                    obstacle.height
-            );
-
-            ctx.lineTo(
-                obstacle.x,
-                obstacle.y +
-                    obstacle.height
-            );
-
-            ctx.closePath();
-
-            ctx.fill();
-
-            ctx.shadowBlur = 0;
-        }
-
-        if (
-            obstacle.type ===
-            "laser"
-        ) {
-
-            ctx.shadowBlur = 20;
-            ctx.shadowColor =
-                "#ff335f";
-
-            ctx.fillStyle =
-                "#ff335f";
-
-            roundRect(
-                ctx,
-                obstacle.x,
-                obstacle.y,
-                obstacle.width,
-                obstacle.height,
-                9
-            );
-
-            ctx.fill();
-
-            ctx.shadowBlur = 0;
-        }
-
-        ctx.restore();
-    });
+    );
 }
 
 
 /* =========================================================
    GEMS
-   ========================================================= */
+========================================================= */
 
 function drawCollectibles() {
 
-    collectibles.forEach(gem => {
+    collectibles.forEach(
+        gem => {
 
-        ctx.save();
+            ctx.save();
 
-        ctx.translate(
-            gem.x,
-            gem.y
-        );
 
-        ctx.rotate(
-            gem.angle
-        );
+            ctx.translate(
+                gem.x,
+                gem.y
+            );
 
-        ctx.shadowBlur = 20;
-        ctx.shadowColor =
-            "#2ce1ff";
 
-        ctx.fillStyle =
-            "#2ce1ff";
+            ctx.rotate(
+                gem.angle
+            );
 
-        ctx.beginPath();
 
-        ctx.moveTo(
-            0,
-            -gem.radius
-        );
+            ctx.shadowBlur = 20;
 
-        ctx.lineTo(
-            gem.radius,
-            0
-        );
+            ctx.shadowColor =
+                "#2ce1ff";
 
-        ctx.lineTo(
-            0,
-            gem.radius
-        );
 
-        ctx.lineTo(
-            -gem.radius,
-            0
-        );
+            ctx.fillStyle =
+                "#2ce1ff";
 
-        ctx.closePath();
 
-        ctx.fill();
+            ctx.beginPath();
 
-        ctx.fillStyle =
-            "rgba(255,255,255,0.6)";
 
-        ctx.fillRect(
-            -3,
-            -7,
-            6,
-            10
-        );
+            ctx.moveTo(
+                0,
+                -gem.radius
+            );
 
-        ctx.restore();
-    });
+
+            ctx.lineTo(
+                gem.radius,
+                0
+            );
+
+
+            ctx.lineTo(
+                0,
+                gem.radius
+            );
+
+
+            ctx.lineTo(
+                -gem.radius,
+                0
+            );
+
+
+            ctx.closePath();
+
+            ctx.fill();
+
+
+            ctx.fillStyle =
+                "rgba(255,255,255,0.6)";
+
+
+            ctx.fillRect(
+                -3,
+                -7,
+                6,
+                10
+            );
+
+
+            ctx.restore();
+        }
+    );
 }
 
 
 /* =========================================================
    PARTICLES
-   ========================================================= */
+========================================================= */
 
 function createParticles(
     x,
@@ -2479,15 +2671,20 @@ function createParticles(
         particles.push({
 
             x,
+
             y,
 
             vx:
-                (Math.random() - 0.5) *
-                8,
+                (
+                    Math.random() -
+                    0.5
+                ) * 8,
 
             vy:
-                (Math.random() - 0.5) *
-                8,
+                (
+                    Math.random() -
+                    0.5
+                ) * 8,
 
             size:
                 2 +
@@ -2498,6 +2695,7 @@ function createParticles(
                 Math.random() * 30,
 
             color
+
         });
     }
 }
@@ -2515,20 +2713,25 @@ function updateParticles(delta) {
         const particle =
             particles[i];
 
+
         particle.x +=
             particle.vx *
             delta;
+
 
         particle.y +=
             particle.vy *
             delta;
 
+
         particle.vy +=
             0.08 *
             delta;
 
+
         particle.life -=
             delta;
+
 
         if (
             particle.life <= 0
@@ -2550,14 +2753,17 @@ function drawParticles() {
 
             ctx.save();
 
+
             ctx.globalAlpha =
                 Math.max(
                     0,
                     particle.life / 60
                 );
 
+
             ctx.fillStyle =
                 particle.color;
+
 
             ctx.fillRect(
                 particle.x,
@@ -2565,6 +2771,7 @@ function drawParticles() {
                 particle.size,
                 particle.size
             );
+
 
             ctx.restore();
         }
@@ -2574,7 +2781,7 @@ function drawParticles() {
 
 /* =========================================================
    ROUND RECT
-   ========================================================= */
+========================================================= */
 
 function roundRect(
     context,
@@ -2592,13 +2799,16 @@ function roundRect(
             height / 2
         );
 
+
     context.beginPath();
+
 
     context.moveTo(
         x + r,
         y
     );
 
+
     context.arcTo(
         x + width,
         y,
@@ -2606,6 +2816,7 @@ function roundRect(
         y + height,
         r
     );
+
 
     context.arcTo(
         x + width,
@@ -2615,6 +2826,7 @@ function roundRect(
         r
     );
 
+
     context.arcTo(
         x,
         y + height,
@@ -2623,6 +2835,7 @@ function roundRect(
         r
     );
 
+
     context.arcTo(
         x,
         y,
@@ -2630,6 +2843,7 @@ function roundRect(
         y,
         r
     );
+
 
     context.closePath();
 }
@@ -2637,12 +2851,22 @@ function roundRect(
 
 /* =========================================================
    REDEEM CODES
-   =========================================================
-   نکته:
-   این کدها فقط نمونه‌ی سمت کلاینت هستند.
-   برای فروش واقعی Redeem Code باید اعتبارسنجی
-   سمت سرور انجام شود.
-   ========================================================= */
+========================================================= */
+
+/*
+   معمولی:
+   RUN100       = 100
+   LEGEND1000   = 1,000
+   DINO5000     = 5,000
+   LEGEND26B    = 26,000,000,000
+
+   ویژه:
+   DINO_INFINITE = MAX SAFE INTEGER
+
+   DINO_INFINITE در usedCodes ذخیره نمی‌شود،
+   بنابراین هر بار قابل استفاده است.
+*/
+
 
 const giftCodes = {
 
@@ -2652,32 +2876,13 @@ const giftCodes = {
 
     DINO5000: 5000,
 
-    STARTER1000000: 1000000,
+    LEGEND26B: 26000000000
 
-    MEGA5000000: 5000000,
-
-    LEGENDARY10000000: 10000000,
-
-    ULTRA50000000: 50000000,
-
-    MYTHIC100000000: 100000000,
-
-    COSMIC500000000: 500000000,
-
-    TITAN1000000000: 1000000000,
-
-    SUPREME5000000000: 5000000000,
-
-    ULTIMATE10000000000: 10000000000,
-
-    GOD100000000000: 100000000000,
-
-    ETERNAL500000000000: 500000000000,
-
-    SECRET1000000000000: 1000000000000,
-
-    LEGEND26000000000: 26000000000
 };
+
+
+const INFINITE_CODE =
+    "DINO_INFINITE";
 
 
 function redeemCode() {
@@ -2686,6 +2891,7 @@ function redeemCode() {
         codeInput.value
             .trim()
             .toUpperCase();
+
 
     if (!code) {
 
@@ -2696,6 +2902,54 @@ function redeemCode() {
 
         return;
     }
+
+
+    /* =====================================
+       SECRET INFINITE CODE
+    ===================================== */
+
+    if (
+        code ===
+        INFINITE_CODE
+    ) {
+
+        /*
+          JavaScript maximum safe integer.
+          This can be redeemed repeatedly.
+        */
+
+        save.gems =
+            Number.MAX_SAFE_INTEGER;
+
+
+        saveGame();
+
+        updateUI();
+
+        codeInput.value = "";
+
+
+        showMessage(
+            "♾️ INFINITE GEMS ACTIVATED!",
+            "#50f5a1"
+        );
+
+
+        createParticles(
+            player.x + 30,
+            player.y + 40,
+            40,
+            "#ffd34d"
+        );
+
+
+        return;
+    }
+
+
+    /* =====================================
+       NORMAL CODES
+    ===================================== */
 
     if (
         !Object.prototype.hasOwnProperty
@@ -2710,67 +2964,82 @@ function redeemCode() {
         return;
     }
 
+
+    /* جلوگیری از استفاده دوباره */
     if (
-        save.usedCodes.includes(code)
+        save.usedCodes
+            .includes(code)
     ) {
 
         showMessage(
-            "این کد قبلاً استفاده شده است.",
+            "این کد را قبلاً استفاده کرده‌ای.",
             "#ffd34d"
         );
 
         return;
     }
 
+
     const reward =
         giftCodes[code];
 
+
     save.gems +=
         reward;
+
 
     save.usedCodes.push(
         code
     );
 
+
     saveGame();
 
     updateUI();
 
+
     codeInput.value = "";
 
+
     showMessage(
-        "🎉 " +
-        reward.toLocaleString() +
-        " GEM دریافت کردی!",
+        `🎉 ${reward.toLocaleString()} الماس گرفتی!`,
         "#50f5a1"
     );
 }
 
+
+/* Redeem button */
 
 redeemButton.addEventListener(
     "click",
     redeemCode
 );
 
+
+/* Enter */
+
 codeInput.addEventListener(
     "keydown",
     event => {
 
         if (
-            event.key === "Enter"
+            event.key ===
+            "Enter"
         ) {
 
             redeemCode();
         }
+
     }
 );
 
 
 /* =========================================================
    MESSAGE
-   ========================================================= */
+========================================================= */
 
 let messageTimer = null;
+
 
 function showMessage(
     text,
@@ -2783,9 +3052,11 @@ function showMessage(
     codeMessage.style.color =
         color;
 
+
     clearTimeout(
         messageTimer
     );
+
 
     messageTimer =
         setTimeout(
@@ -2802,7 +3073,7 @@ function showMessage(
 
 /* =========================================================
    RESIZE
-   ========================================================= */
+========================================================= */
 
 function resizeCanvas() {
 
@@ -2810,29 +3081,36 @@ function resizeCanvas() {
         window.devicePixelRatio ||
         1;
 
+
     const displayWidth =
         canvas.clientWidth;
 
+
     const displayHeight =
         canvas.clientHeight;
+
 
     if (
         !displayWidth ||
         !displayHeight
     ) {
-
         return;
     }
 
+
     const targetWidth =
         Math.floor(
-            displayWidth * ratio
+            displayWidth *
+            ratio
         );
+
 
     const targetHeight =
         Math.floor(
-            displayHeight * ratio
+            displayHeight *
+            ratio
         );
+
 
     if (
         canvas.width !==
@@ -2846,6 +3124,12 @@ function resizeCanvas() {
 
         canvas.height =
             targetHeight;
+
+
+        /*
+          Keep the game world at
+          1200 x 500 coordinates.
+        */
 
         ctx.setTransform(
             canvas.width / 1200,
@@ -2866,68 +3150,38 @@ window.addEventListener(
 
 
 /* =========================================================
-   INITIALIZE
-   ========================================================= */
+   STARTUP
+========================================================= */
 
 function initialize() {
-
-    if (
-        !Array.isArray(
-            save.unlockedCharacters
-        )
-    ) {
-
-        save.unlockedCharacters =
-            [0];
-    }
-
-    if (
-        !save.unlockedCharacters
-            .includes(0)
-    ) {
-
-        save.unlockedCharacters
-            .unshift(0);
-    }
-
-    if (
-        !Array.isArray(
-            save.unlockedWorlds
-        )
-    ) {
-
-        save.unlockedWorlds =
-            [0];
-    }
-
-    if (
-        !save.unlockedWorlds
-            .includes(0)
-    ) {
-
-        save.unlockedWorlds
-            .unshift(0);
-    }
 
     const selectedCharacter =
         characters[
             save.selectedCharacter
-        ] || characters[0];
+        ];
+
 
     player.color =
         selectedCharacter.color;
 
+
     createBackground();
 
-    resizeCanvas();
 
     renderCharacters();
+
     renderUpgrades();
+
     renderWorlds();
+
 
     updateUI();
 
+
+    resizeCanvas();
+
     draw();
 }
+
 
 initialize();
