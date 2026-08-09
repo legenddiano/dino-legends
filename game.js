@@ -1,15 +1,17 @@
 "use strict";
 
 /* =========================================================
-   DINO LEGENDS — COMPLETE GAME.JS
-   ========================================================= */
-
-/* =========================
-   UI ELEMENTS
-========================= */
+   DINO LEGENDS - GAME ENGINE
+   REDEEM:
+   TRILLION1 = 1,000,000,000,000 GEMS - ONE TIME ONLY
+========================================================= */
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
+
+/* =========================
+   UI
+========================= */
 
 const gemsEl = document.getElementById("gems");
 const bestScoreEl = document.getElementById("bestScore");
@@ -52,6 +54,7 @@ const defaultSave = {
     bestScore: 0,
 
     selectedCharacter: 0,
+
     unlockedCharacters: [0],
 
     upgrades: {
@@ -63,11 +66,14 @@ const defaultSave = {
     unlockedWorlds: [0],
     selectedWorld: 0,
 
-    /* Redeem codes are NOT one-time anymore */
     usedCodes: []
 };
 
 let save = loadGame();
+
+function cloneDefaultSave() {
+    return JSON.parse(JSON.stringify(defaultSave));
+}
 
 function loadGame() {
 
@@ -79,41 +85,68 @@ function loadGame() {
             );
 
         if (!stored) {
-            return structuredClone(defaultSave);
+            return cloneDefaultSave();
         }
 
         return {
-            ...structuredClone(defaultSave),
+
+            ...cloneDefaultSave(),
+
             ...stored,
 
             upgrades: {
                 ...defaultSave.upgrades,
                 ...(stored.upgrades || {})
-            }
+            },
+
+            unlockedCharacters:
+                Array.isArray(stored.unlockedCharacters)
+                    ? stored.unlockedCharacters
+                    : [0],
+
+            unlockedWorlds:
+                Array.isArray(stored.unlockedWorlds)
+                    ? stored.unlockedWorlds
+                    : [0],
+
+            usedCodes:
+                Array.isArray(stored.usedCodes)
+                    ? stored.usedCodes
+                    : []
         };
 
     } catch (error) {
 
-        console.warn(
-            "Save loading failed:",
+        console.error(
+            "Save loading error:",
             error
         );
 
-        return structuredClone(defaultSave);
+        return cloneDefaultSave();
     }
 }
 
 function saveGame() {
 
-    localStorage.setItem(
-        SAVE_KEY,
-        JSON.stringify(save)
-    );
+    try {
+
+        localStorage.setItem(
+            SAVE_KEY,
+            JSON.stringify(save)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Save error:",
+            error
+        );
+    }
 }
 
 
 /* =========================================================
-   CHARACTERS
+   GAME DATA
 ========================================================= */
 
 const characters = [
@@ -133,8 +166,8 @@ const characters = [
         emoji: "🔥",
         subtitle: "SPEED HUNTER",
         description:
-            "Faster dash and aggressive movement.",
-        cost: 1000000,
+            "Faster dash and better movement.",
+        cost: 250,
         color: "#ff9a4d"
     },
 
@@ -143,8 +176,8 @@ const characters = [
         emoji: "❄️",
         subtitle: "ICE GUARDIAN",
         description:
-            "A powerful defensive legend.",
-        cost: 5000000,
+            "Stronger shield protection.",
+        cost: 700,
         color: "#7de8ff"
     },
 
@@ -153,8 +186,8 @@ const characters = [
         emoji: "⚡",
         subtitle: "LIGHTNING BEAST",
         description:
-            "Extreme speed and score bonuses.",
-        cost: 25000000,
+            "Powerful dash and score bonus.",
+        cost: 1500,
         color: "#ffe05d"
     },
 
@@ -163,67 +196,12 @@ const characters = [
         emoji: "🌌",
         subtitle: "ULTIMATE LEGEND",
         description:
-            "A rare legendary character.",
-        cost: 100000000,
+            "Rare legendary survival power.",
+        cost: 4000,
         color: "#b994ff"
-    },
-
-    {
-        name: "Titan",
-        emoji: "👑",
-        subtitle: "ANCIENT KING",
-        description:
-            "A legendary ruler of the dinosaurs.",
-        cost: 250000000,
-        color: "#ffcc66"
-    },
-
-    {
-        name: "Phantom",
-        emoji: "👻",
-        subtitle: "VOID RUNNER",
-        description:
-            "Moves like a shadow through danger.",
-        cost: 500000000,
-        color: "#c58cff"
-    },
-
-    {
-        name: "Inferno",
-        emoji: "🔥",
-        subtitle: "VOLCANIC BEAST",
-        description:
-            "Born inside the Volcano Core.",
-        cost: 1000000000,
-        color: "#ff5c5c"
-    },
-
-    {
-        name: "Cosmic",
-        emoji: "🌠",
-        subtitle: "SPACE LEGEND",
-        description:
-            "A creature from beyond the stars.",
-        cost: 2500000000,
-        color: "#75e6ff"
-    },
-
-    {
-        name: "OMEGA",
-        emoji: "💠",
-        subtitle: "FINAL LEGEND",
-        description:
-            "The ultimate Dino Legends character.",
-        cost: 8000000000,
-        color: "#ffffff"
     }
-
 ];
 
-
-/* =========================================================
-   WORLDS
-========================================================= */
 
 const worlds = [
 
@@ -242,8 +220,8 @@ const worlds = [
         name: "GOLDEN DESERT",
         className: "desert",
         description:
-            "Survive the endless burning dunes.",
-        cost: 5000000,
+            "Endless burning dunes.",
+        cost: 500,
         skyTop: "#704715",
         skyBottom: "#1c1006",
         ground: "#654116"
@@ -253,8 +231,8 @@ const worlds = [
         name: "FROZEN ERA",
         className: "ice",
         description:
-            "A dangerous world of ice and snow.",
-        cost: 25000000,
+            "A dangerous world of ice.",
+        cost: 1200,
         skyTop: "#1d5876",
         skyBottom: "#071827",
         ground: "#164256"
@@ -265,7 +243,7 @@ const worlds = [
         className: "volcano",
         description:
             "The ground itself is dangerous.",
-        cost: 100000000,
+        cost: 2500,
         skyTop: "#56111a",
         skyBottom: "#180408",
         ground: "#4b1517"
@@ -276,18 +254,13 @@ const worlds = [
         className: "space",
         description:
             "The final legendary dimension.",
-        cost: 500000000,
+        cost: 5000,
         skyTop: "#130d35",
         skyBottom: "#05040e",
         ground: "#171238"
     }
-
 ];
 
-
-/* =========================================================
-   UPGRADES
-========================================================= */
 
 const upgrades = [
 
@@ -296,7 +269,7 @@ const upgrades = [
         emoji: "⬆️",
         name: "SUPER JUMP",
         description:
-            "Jump higher and escape taller obstacles."
+            "Jump higher and escape obstacles."
     },
 
     {
@@ -314,7 +287,6 @@ const upgrades = [
         description:
             "Make dash faster and longer."
     }
-
 ];
 
 
@@ -351,16 +323,11 @@ let stars = [];
 const groundY = 420;
 
 
-/* =========================================================
-   PLAYER
-========================================================= */
-
 const player = {
 
     x: 150,
 
-    y:
-        groundY - 80,
+    y: groundY - 80,
 
     width: 62,
 
@@ -375,7 +342,6 @@ const player = {
     grounded: true,
 
     color: "#50f5a1"
-
 };
 
 
@@ -410,9 +376,9 @@ function createBackground() {
                 0.3 +
                 Math.random() *
                 0.5
-
         });
     }
+
 
     for (let i = 0; i < 100; i++) {
 
@@ -433,7 +399,6 @@ function createBackground() {
             alpha:
                 0.2 +
                 Math.random() * 0.8
-
         });
     }
 }
@@ -446,10 +411,10 @@ function createBackground() {
 function updateUI() {
 
     gemsEl.textContent =
-        Number(save.gems).toLocaleString();
+        formatNumber(save.gems);
 
     bestScoreEl.textContent =
-        Math.floor(save.bestScore).toLocaleString();
+        formatNumber(save.bestScore);
 
     levelEl.textContent =
         Math.max(
@@ -460,7 +425,7 @@ function updateUI() {
         );
 
     scoreEl.textContent =
-        Math.floor(score).toLocaleString();
+        Math.floor(score);
 
     comboEl.textContent =
         "x" + combo;
@@ -477,6 +442,14 @@ function updateUI() {
         save.unlockedCharacters.length +
         " / " +
         characters.length;
+}
+
+
+function formatNumber(number) {
+
+    return Number(number).toLocaleString(
+        "en-US"
+    );
 }
 
 
@@ -528,7 +501,6 @@ document
                         "active-panel"
                     );
                 }
-
             }
         );
 
@@ -551,7 +523,8 @@ function renderCharacters() {
                     .includes(index);
 
             const selected =
-                save.selectedCharacter === index;
+                save.selectedCharacter ===
+                index;
 
             const card =
                 document.createElement(
@@ -602,15 +575,14 @@ function renderCharacters() {
                 <div class="card-footer">
 
                     <span class="card-cost">
-
                         ${
                             unlocked
                                 ? "✓ OWNED"
                                 : "💎 " +
-                                  character.cost
-                                    .toLocaleString()
+                                  formatNumber(
+                                      character.cost
+                                  )
                         }
-
                     </span>
 
                     <button
@@ -620,9 +592,7 @@ function renderCharacters() {
                                 : "locked"
                         }"
                         data-character="${index}">
-
                         ${buttonText}
-
                     </button>
 
                 </div>
@@ -631,6 +601,7 @@ function renderCharacters() {
             characterGrid.appendChild(card);
         }
     );
+
 
     document
         .querySelectorAll(
@@ -644,16 +615,15 @@ function renderCharacters() {
 
                     selectOrUnlockCharacter(
                         Number(
-                            button.dataset
-                                .character
+                            button.dataset.character
                         )
                     );
-
                 }
             );
 
         });
 }
+
 
 function selectOrUnlockCharacter(index) {
 
@@ -674,11 +644,11 @@ function selectOrUnlockCharacter(index) {
         saveGame();
 
         renderCharacters();
-
         updateUI();
 
         return;
     }
+
 
     if (
         save.gems <
@@ -692,6 +662,7 @@ function selectOrUnlockCharacter(index) {
 
         return;
     }
+
 
     save.gems -=
         character.cost;
@@ -725,11 +696,10 @@ function selectOrUnlockCharacter(index) {
 
 function getUpgradeCost(level) {
 
-    return (
-        500000 +
-        level * 1000000
-    );
+    return 200 +
+        level * 300;
 }
+
 
 function renderUpgrades() {
 
@@ -791,7 +761,7 @@ function renderUpgrades() {
                         currentLevel >= 5
                             ? "MAX LEVEL"
                             : "💎 " +
-                              cost.toLocaleString()
+                              formatNumber(cost)
                     }
 
                 </span>
@@ -814,6 +784,7 @@ function renderUpgrades() {
         upgradeGrid.appendChild(card);
     });
 
+
     document
         .querySelectorAll(
             "[data-upgrade]"
@@ -825,15 +796,14 @@ function renderUpgrades() {
                 () => {
 
                     upgradePlayer(
-                        button.dataset
-                            .upgrade
+                        button.dataset.upgrade
                     );
-
                 }
             );
 
         });
 }
+
 
 function upgradePlayer(key) {
 
@@ -847,7 +817,10 @@ function upgradePlayer(key) {
     const cost =
         getUpgradeCost(current);
 
-    if (save.gems < cost) {
+    if (
+        save.gems <
+        cost
+    ) {
 
         showMessage(
             "Not enough gems!",
@@ -864,7 +837,6 @@ function upgradePlayer(key) {
     saveGame();
 
     updateUI();
-
     renderUpgrades();
 
     showMessage(
@@ -890,7 +862,8 @@ function renderWorlds() {
                     .includes(index);
 
             const selected =
-                save.selectedWorld === index;
+                save.selectedWorld ===
+                index;
 
             const card =
                 document.createElement(
@@ -932,8 +905,9 @@ function renderWorlds() {
                                         : "✓ UNLOCKED"
                                 )
                                 : "💎 " +
-                                  world.cost
-                                    .toLocaleString()
+                                  formatNumber(
+                                      world.cost
+                                  )
                         }
 
                     </span>
@@ -963,6 +937,7 @@ function renderWorlds() {
         }
     );
 
+
     document
         .querySelectorAll(
             "[data-world]"
@@ -975,8 +950,7 @@ function renderWorlds() {
 
                     selectOrUnlockWorld(
                         Number(
-                            button.dataset
-                                .world
+                            button.dataset.world
                         )
                     );
 
@@ -985,6 +959,7 @@ function renderWorlds() {
 
         });
 }
+
 
 function selectOrUnlockWorld(index) {
 
@@ -1012,6 +987,7 @@ function selectOrUnlockWorld(index) {
         return;
     }
 
+
     if (
         save.gems <
         world.cost
@@ -1024,6 +1000,7 @@ function selectOrUnlockWorld(index) {
 
         return;
     }
+
 
     save.gems -=
         world.cost;
@@ -1038,7 +1015,6 @@ function selectOrUnlockWorld(index) {
     saveGame();
 
     updateUI();
-
     renderWorlds();
 
     showMessage(
@@ -1117,6 +1093,7 @@ function startGame() {
         );
 }
 
+
 function endGame() {
 
     gameRunning = false;
@@ -1143,7 +1120,7 @@ function endGame() {
     saveGame();
 
     finalScoreEl.textContent =
-        finalScore.toLocaleString();
+        formatNumber(finalScore);
 
     updateUI();
 
@@ -1174,7 +1151,6 @@ function gameLoop(timestamp) {
         timestamp;
 
     update(delta);
-
     draw();
 
     animationId =
@@ -1191,8 +1167,7 @@ function gameLoop(timestamp) {
 function update(delta) {
 
     distance +=
-        gameSpeed *
-        delta;
+        gameSpeed * delta;
 
     score +=
         0.18 *
@@ -1212,19 +1187,15 @@ function update(delta) {
         );
 
     updatePlayer(delta);
-
     updateTimers(delta);
-
     spawnObjects(delta);
-
     updateObstacles(delta);
-
     updateCollectibles(delta);
-
     updateParticles(delta);
 
     updateUI();
 }
+
 
 function updatePlayer(delta) {
 
@@ -1252,6 +1223,7 @@ function updatePlayer(delta) {
     }
 }
 
+
 function updateTimers(delta) {
 
     if (dashTimer > 0) {
@@ -1267,10 +1239,10 @@ function updateTimers(delta) {
     }
 }
 
+
 function spawnObjects(delta) {
 
     obstacleTimer += delta;
-
     gemTimer += delta;
 
     const obstacleInterval =
@@ -1289,6 +1261,7 @@ function spawnObjects(delta) {
 
         obstacleTimer = 0;
     }
+
 
     if (gemTimer > 48) {
 
@@ -1326,6 +1299,7 @@ function spawnObstacle() {
         groundY -
         height;
 
+
     if (type === "rock") {
 
         width = 58;
@@ -1335,6 +1309,7 @@ function spawnObstacle() {
             groundY -
             height;
     }
+
 
     if (type === "bird") {
 
@@ -1347,13 +1322,13 @@ function spawnObstacle() {
             Math.random() * 70;
     }
 
+
     obstacles.push({
 
         type,
 
         x:
-            canvas.width +
-            40,
+            canvas.width + 40,
 
         y,
 
@@ -1362,9 +1337,9 @@ function spawnObstacle() {
         height,
 
         counted: false
-
     });
 }
+
 
 function updateObstacles(delta) {
 
@@ -1388,6 +1363,7 @@ function updateObstacles(delta) {
             speedMultiplier *
             delta;
 
+
         if (
             checkCollision(
                 player,
@@ -1397,13 +1373,11 @@ function updateObstacles(delta) {
 
             hitPlayer();
 
-            obstacles.splice(
-                i,
-                1
-            );
+            obstacles.splice(i, 1);
 
             continue;
         }
+
 
         if (
             !obstacle.counted &&
@@ -1412,8 +1386,7 @@ function updateObstacles(delta) {
                 player.x
         ) {
 
-            obstacle.counted =
-                true;
+            obstacle.counted = true;
 
             combo =
                 Math.min(
@@ -1425,16 +1398,14 @@ function updateObstacles(delta) {
                 25 * combo;
         }
 
+
         if (
             obstacle.x +
                 obstacle.width <
                 -50
         ) {
 
-            obstacles.splice(
-                i,
-                1
-            );
+            obstacles.splice(i, 1);
         }
     }
 }
@@ -1449,20 +1420,19 @@ function spawnGem() {
     collectibles.push({
 
         x:
-            canvas.width +
-            30,
+            canvas.width + 30,
 
         y:
             groundY -
             80 -
-            Math.random() *
-            170,
+            Math.random() * 170,
 
         radius: 13,
 
         angle: 0
     });
 }
+
 
 function updateCollectibles(delta) {
 
@@ -1483,6 +1453,7 @@ function updateCollectibles(delta) {
         gem.angle +=
             0.12 *
             delta;
+
 
         if (
             circleRectCollision(
@@ -1518,6 +1489,7 @@ function updateCollectibles(delta) {
 
             continue;
         }
+
 
         if (gem.x < -50) {
 
@@ -1561,9 +1533,9 @@ function checkCollision(a, b) {
             padding >
             b.y +
             padding
-
     );
 }
+
 
 function circleRectCollision(
     circle,
@@ -1606,6 +1578,7 @@ function circleRectCollision(
     );
 }
 
+
 function hitPlayer() {
 
     if (
@@ -1625,11 +1598,13 @@ function hitPlayer() {
         return;
     }
 
+
     health--;
 
     combo = 1;
 
     invincibleTimer = 75;
+
 
     createParticles(
         player.x + 30,
@@ -1637,6 +1612,7 @@ function hitPlayer() {
         25,
         "#ff5571"
     );
+
 
     if (health <= 0) {
 
@@ -1668,6 +1644,7 @@ function jump() {
 
     player.grounded = false;
 
+
     createParticles(
         player.x + 20,
         groundY,
@@ -1675,6 +1652,7 @@ function jump() {
         "#91a8bd"
     );
 }
+
 
 function dash() {
 
@@ -1693,6 +1671,7 @@ function dash() {
         35 +
         dashLevel * 8;
 
+
     createParticles(
         player.x,
         player.y + 40,
@@ -1700,6 +1679,7 @@ function dash() {
         "#ffd34d"
     );
 }
+
 
 function activateShield() {
 
@@ -1718,6 +1698,7 @@ function activateShield() {
         90 +
         shieldLevel * 20;
 
+
     createParticles(
         player.x + 30,
         player.y + 40,
@@ -1725,6 +1706,11 @@ function activateShield() {
         "#2ce1ff"
     );
 }
+
+
+/* =========================================================
+   KEYBOARD
+========================================================= */
 
 document.addEventListener(
     "keydown",
@@ -1740,12 +1726,14 @@ document.addEventListener(
             jump();
         }
 
+
         if (
             event.code === "KeyD"
         ) {
 
             dash();
         }
+
 
         if (
             event.code === "KeyS"
@@ -1755,6 +1743,11 @@ document.addEventListener(
         }
     }
 );
+
+
+/* =========================================================
+   BUTTONS
+========================================================= */
 
 startButton.addEventListener(
     "click",
@@ -1796,17 +1789,11 @@ function draw() {
     );
 
     drawSky();
-
     drawBackground();
-
     drawGround();
-
     drawCollectibles();
-
     drawObstacles();
-
     drawPlayer();
-
     drawParticles();
 }
 
@@ -1850,6 +1837,7 @@ function drawSky() {
         groundY
     );
 
+
     if (
         save.selectedWorld === 4
     ) {
@@ -1875,10 +1863,10 @@ function drawSky() {
     } else {
 
         drawSun();
-
         drawClouds();
     }
 }
+
 
 function drawSun() {
 
@@ -1888,11 +1876,13 @@ function drawSun() {
     let color =
         "rgba(255,255,255,0.3)";
 
+
     if (world === 1) {
 
         color =
             "rgba(255,211,77,0.7)";
     }
+
 
     if (world === 2) {
 
@@ -1900,11 +1890,13 @@ function drawSun() {
             "rgba(180,240,255,0.5)";
     }
 
+
     if (world === 3) {
 
         color =
             "rgba(255,85,113,0.55)";
     }
+
 
     ctx.beginPath();
 
@@ -1922,6 +1914,7 @@ function drawSun() {
     ctx.fill();
 }
 
+
 function drawClouds() {
 
     clouds.forEach(cloud => {
@@ -1932,9 +1925,9 @@ function drawClouds() {
         if (cloud.x < -150) {
 
             cloud.x =
-                canvas.width +
-                100;
+                canvas.width + 100;
         }
+
 
         ctx.fillStyle =
             "rgba(255,255,255,0.08)";
@@ -1971,6 +1964,11 @@ function drawClouds() {
     });
 }
 
+
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
 function drawBackground() {
 
     ctx.fillStyle =
@@ -1984,8 +1982,7 @@ function drawBackground() {
             );
 
         x <
-            canvas.width +
-            160;
+            canvas.width + 160;
 
         x += 160
     ) {
@@ -2012,10 +2009,6 @@ function drawBackground() {
 }
 
 
-/* =========================================================
-   GROUND
-========================================================= */
-
 function drawGround() {
 
     const world =
@@ -2033,6 +2026,7 @@ function drawGround() {
         canvas.height -
             groundY
     );
+
 
     ctx.strokeStyle =
         "rgba(255,255,255,0.15)";
@@ -2053,10 +2047,12 @@ function drawGround() {
 
     ctx.stroke();
 
+
     ctx.strokeStyle =
         "rgba(255,255,255,0.07)";
 
     ctx.lineWidth = 2;
+
 
     for (
         let x =
@@ -2066,8 +2062,7 @@ function drawGround() {
             );
 
         x <
-            canvas.width +
-            50;
+            canvas.width + 50;
 
         x += 50
     ) {
@@ -2097,6 +2092,7 @@ function drawPlayer() {
 
     ctx.save();
 
+
     if (
         invincibleTimer > 0 &&
         Math.floor(
@@ -2104,9 +2100,9 @@ function drawPlayer() {
         ) % 2 === 0
     ) {
 
-        ctx.globalAlpha =
-            0.45;
+        ctx.globalAlpha = 0.45;
     }
+
 
     if (dashTimer > 0) {
 
@@ -2128,6 +2124,7 @@ function drawPlayer() {
             );
         }
     }
+
 
     if (shieldTimer > 0) {
 
@@ -2158,6 +2155,7 @@ function drawPlayer() {
         ctx.shadowBlur = 0;
     }
 
+
     ctx.shadowBlur = 20;
 
     ctx.shadowColor =
@@ -2165,6 +2163,7 @@ function drawPlayer() {
 
     ctx.fillStyle =
         player.color;
+
 
     roundRect(
         ctx,
@@ -2177,6 +2176,7 @@ function drawPlayer() {
 
     ctx.fill();
 
+
     ctx.beginPath();
 
     ctx.arc(
@@ -2188,6 +2188,7 @@ function drawPlayer() {
     );
 
     ctx.fill();
+
 
     ctx.beginPath();
 
@@ -2208,6 +2209,7 @@ function drawPlayer() {
 
     ctx.fill();
 
+
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
@@ -2224,6 +2226,7 @@ function drawPlayer() {
     );
 
     ctx.fill();
+
 
     ctx.fillStyle =
         player.color;
@@ -2242,6 +2245,7 @@ function drawPlayer() {
         22
     );
 
+
     ctx.restore();
 }
 
@@ -2255,6 +2259,7 @@ function drawObstacles() {
     obstacles.forEach(obstacle => {
 
         ctx.save();
+
 
         if (
             obstacle.type ===
@@ -2290,6 +2295,7 @@ function drawObstacles() {
                 9
             );
         }
+
 
         if (
             obstacle.type ===
@@ -2331,6 +2337,7 @@ function drawObstacles() {
             ctx.fill();
         }
 
+
         if (
             obstacle.type ===
             "bird"
@@ -2351,8 +2358,10 @@ function drawObstacles() {
 
             ctx.fill();
 
+
             ctx.fillStyle =
                 "rgba(255,255,255,0.7)";
+
 
             ctx.beginPath();
 
@@ -2372,6 +2381,7 @@ function drawObstacles() {
             );
 
             ctx.fill();
+
 
             ctx.beginPath();
 
@@ -2393,13 +2403,14 @@ function drawObstacles() {
             ctx.fill();
         }
 
+
         ctx.restore();
     });
 }
 
 
 /* =========================================================
-   GEMS DRAWING
+   GEM DRAWING
 ========================================================= */
 
 function drawCollectibles() {
@@ -2451,6 +2462,7 @@ function drawCollectibles() {
 
         ctx.fill();
 
+
         ctx.fillStyle =
             "rgba(255,255,255,0.6)";
 
@@ -2460,6 +2472,7 @@ function drawCollectibles() {
             6,
             10
         );
+
 
         ctx.restore();
     });
@@ -2486,6 +2499,7 @@ function createParticles(
         particles.push({
 
             x,
+
             y,
 
             vx:
@@ -2512,6 +2526,7 @@ function createParticles(
         });
     }
 }
+
 
 function updateParticles(delta) {
 
@@ -2540,6 +2555,7 @@ function updateParticles(delta) {
         particle.life -=
             delta;
 
+
         if (
             particle.life <= 0
         ) {
@@ -2552,6 +2568,7 @@ function updateParticles(delta) {
     }
 }
 
+
 function drawParticles() {
 
     particles.forEach(
@@ -2562,7 +2579,8 @@ function drawParticles() {
             ctx.globalAlpha =
                 Math.max(
                     0,
-                    particle.life / 60
+                    particle.life /
+                        60
                 );
 
             ctx.fillStyle =
@@ -2648,49 +2666,33 @@ function roundRect(
    REDEEM CODES
 ========================================================= */
 
-/*
-    IMPORTANT:
-
-    These codes are intentionally NOT one-time codes.
-
-    You can enter them repeatedly.
-
-    INFINITE = 26 BILLION GEMS
-*/
-
 const giftCodes = {
 
-    DINO2026:
-        1000000,
+    /*
+     * ONE-TIME CODE
+     * 1 TRILLION GEMS
+     */
+    TRILLION1: 1000000000000,
 
-    LEGEND:
-        5000000,
+    RUN100: 100,
 
-    ULTRA:
-        50000000,
+    LEGEND1000: 1000,
 
-    SECRET:
-        100000000,
-
-    COSMIC:
-        1000000000,
-
-    INFINITE:
-        26000000000
-
+    DINO5000: 5000
 };
 
 
+/*
+ * این تابع فقط یک بار اجازه استفاده
+ * از هر کد را می‌دهد.
+ */
 function redeemCode() {
-
-    if (!codeInput) {
-        return;
-    }
 
     const code =
         codeInput.value
             .trim()
             .toUpperCase();
+
 
     if (!code) {
 
@@ -2702,8 +2704,15 @@ function redeemCode() {
         return;
     }
 
+
+    /*
+     * مهم:
+     * از hasOwnProperty استفاده شده تا
+     * کدهای نامعتبر درست تشخیص داده شوند.
+     */
     if (
-        !Object.prototype.hasOwnProperty
+        !Object.prototype
+            .hasOwnProperty
             .call(
                 giftCodes,
                 code
@@ -2711,60 +2720,83 @@ function redeemCode() {
     ) {
 
         showMessage(
-            "❌ کد نامعتبر است!",
+            "کد نامعتبر است!",
             "#ff5571"
         );
 
         return;
     }
 
+
+    /*
+     * جلوگیری از استفاده دوباره
+     */
+    if (
+        save.usedCodes
+            .includes(code)
+    ) {
+
+        showMessage(
+            "این کد قبلاً استفاده شده است.",
+            "#ffd34d"
+        );
+
+        return;
+    }
+
+
     const reward =
         giftCodes[code];
 
-    /*
-       No usedCodes check here.
-       The codes can be used repeatedly.
-    */
 
-    save.gems +=
-        reward;
+    /*
+     * اضافه کردن جایزه
+     */
+    save.gems += reward;
+
+
+    /*
+     * ثبت مصرف کد
+     */
+    save.usedCodes.push(code);
+
 
     saveGame();
 
     updateUI();
 
+
     codeInput.value = "";
 
+
     showMessage(
-        `🎉 ${reward.toLocaleString()} الماس دریافت کردی!`,
+        "🎉 " +
+        formatNumber(reward) +
+        " جم گرفتی!",
         "#50f5a1"
     );
 }
 
-if (redeemButton) {
 
-    redeemButton.addEventListener(
-        "click",
-        redeemCode
-    );
-}
+redeemButton.addEventListener(
+    "click",
+    redeemCode
+);
 
-if (codeInput) {
 
-    codeInput.addEventListener(
-        "keydown",
-        event => {
+codeInput.addEventListener(
+    "keydown",
+    event => {
 
-            if (
-                event.key ===
-                "Enter"
-            ) {
+        if (
+            event.key ===
+            "Enter"
+        ) {
 
-                redeemCode();
-            }
+            redeemCode();
         }
-    );
-}
+    }
+);
 
 
 /* =========================================================
@@ -2778,10 +2810,6 @@ function showMessage(
     color = "#50f5a1"
 ) {
 
-    if (!codeMessage) {
-        return;
-    }
-
     codeMessage.textContent =
         text;
 
@@ -2791,6 +2819,7 @@ function showMessage(
     clearTimeout(
         messageTimer
     );
+
 
     messageTimer =
         setTimeout(
@@ -2821,38 +2850,33 @@ function resizeCanvas() {
     const displayHeight =
         canvas.clientHeight;
 
-    if (
-        !displayWidth ||
-        !displayHeight
-    ) {
-
-        return;
-    }
-
-    const targetWidth =
-        Math.floor(
-            displayWidth *
-            ratio
-        );
-
-    const targetHeight =
-        Math.floor(
-            displayHeight *
-            ratio
-        );
 
     if (
         canvas.width !==
-            targetWidth ||
+            Math.floor(
+                displayWidth *
+                ratio
+            ) ||
+
         canvas.height !==
-            targetHeight
+            Math.floor(
+                displayHeight *
+                ratio
+            )
     ) {
 
         canvas.width =
-            targetWidth;
+            Math.floor(
+                displayWidth *
+                ratio
+            );
 
         canvas.height =
-            targetHeight;
+            Math.floor(
+                displayHeight *
+                ratio
+            );
+
 
         ctx.setTransform(
             canvas.width / 1200,
@@ -2864,6 +2888,7 @@ function resizeCanvas() {
         );
     }
 }
+
 
 window.addEventListener(
     "resize",
@@ -2882,16 +2907,10 @@ function initialize() {
             save.selectedCharacter
         ];
 
-    if (!selectedCharacter) {
-
-        save.selectedCharacter =
-            0;
-    }
 
     player.color =
-        characters[
-            save.selectedCharacter
-        ].color;
+        selectedCharacter.color;
+
 
     createBackground();
 
@@ -2907,5 +2926,6 @@ function initialize() {
 
     draw();
 }
+
 
 initialize();
