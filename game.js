@@ -2,7 +2,7 @@
 
 /* =========================================================
    DINO LEGENDS — COMPLETE GAME.JS
-========================================================= */
+   ========================================================= */
 
 /* =========================
    UI ELEMENTS
@@ -45,7 +45,7 @@ const codeMessage = document.getElementById("codeMessage");
    SAVE SYSTEM
 ========================================================= */
 
-const SAVE_KEY = "dinoLegendsSaveV2";
+const SAVE_KEY = "dinoLegendsSaveV3";
 
 const defaultSave = {
     gems: 0,
@@ -63,6 +63,7 @@ const defaultSave = {
     unlockedWorlds: [0],
     selectedWorld: 0,
 
+    /* Redeem codes are NOT one-time anymore */
     usedCodes: []
 };
 
@@ -82,37 +83,19 @@ function loadGame() {
         }
 
         return {
-
             ...structuredClone(defaultSave),
-
             ...stored,
 
             upgrades: {
                 ...defaultSave.upgrades,
                 ...(stored.upgrades || {})
-            },
-
-            unlockedCharacters:
-                Array.isArray(stored.unlockedCharacters)
-                    ? stored.unlockedCharacters
-                    : [0],
-
-            unlockedWorlds:
-                Array.isArray(stored.unlockedWorlds)
-                    ? stored.unlockedWorlds
-                    : [0],
-
-            usedCodes:
-                Array.isArray(stored.usedCodes)
-                    ? stored.usedCodes
-                    : []
-
+            }
         };
 
     } catch (error) {
 
         console.warn(
-            "Save data could not be loaded.",
+            "Save loading failed:",
             error
         );
 
@@ -150,8 +133,8 @@ const characters = [
         emoji: "🔥",
         subtitle: "SPEED HUNTER",
         description:
-            "Faster dash and better movement speed.",
-        cost: 250,
+            "Faster dash and aggressive movement.",
+        cost: 1000000,
         color: "#ff9a4d"
     },
 
@@ -160,8 +143,8 @@ const characters = [
         emoji: "❄️",
         subtitle: "ICE GUARDIAN",
         description:
-            "A stronger shield protects you for longer.",
-        cost: 700,
+            "A powerful defensive legend.",
+        cost: 5000000,
         color: "#7de8ff"
     },
 
@@ -170,8 +153,8 @@ const characters = [
         emoji: "⚡",
         subtitle: "LIGHTNING BEAST",
         description:
-            "Dash faster and earn a higher score.",
-        cost: 1500,
+            "Extreme speed and score bonuses.",
+        cost: 25000000,
         color: "#ffe05d"
     },
 
@@ -180,9 +163,59 @@ const characters = [
         emoji: "🌌",
         subtitle: "ULTIMATE LEGEND",
         description:
-            "Rare power with powerful survival bonuses.",
-        cost: 4000,
+            "A rare legendary character.",
+        cost: 100000000,
         color: "#b994ff"
+    },
+
+    {
+        name: "Titan",
+        emoji: "👑",
+        subtitle: "ANCIENT KING",
+        description:
+            "A legendary ruler of the dinosaurs.",
+        cost: 250000000,
+        color: "#ffcc66"
+    },
+
+    {
+        name: "Phantom",
+        emoji: "👻",
+        subtitle: "VOID RUNNER",
+        description:
+            "Moves like a shadow through danger.",
+        cost: 500000000,
+        color: "#c58cff"
+    },
+
+    {
+        name: "Inferno",
+        emoji: "🔥",
+        subtitle: "VOLCANIC BEAST",
+        description:
+            "Born inside the Volcano Core.",
+        cost: 1000000000,
+        color: "#ff5c5c"
+    },
+
+    {
+        name: "Cosmic",
+        emoji: "🌠",
+        subtitle: "SPACE LEGEND",
+        description:
+            "A creature from beyond the stars.",
+        cost: 2500000000,
+        color: "#75e6ff"
+    },
+
+    {
+        name: "OMEGA",
+        emoji: "💠",
+        subtitle: "FINAL LEGEND",
+        description:
+            "The ultimate Dino Legends character.",
+        cost: 8000000000,
+        color: "#ffffff"
     }
 
 ];
@@ -210,7 +243,7 @@ const worlds = [
         className: "desert",
         description:
             "Survive the endless burning dunes.",
-        cost: 500,
+        cost: 5000000,
         skyTop: "#704715",
         skyBottom: "#1c1006",
         ground: "#654116"
@@ -221,7 +254,7 @@ const worlds = [
         className: "ice",
         description:
             "A dangerous world of ice and snow.",
-        cost: 1200,
+        cost: 25000000,
         skyTop: "#1d5876",
         skyBottom: "#071827",
         ground: "#164256"
@@ -232,7 +265,7 @@ const worlds = [
         className: "volcano",
         description:
             "The ground itself is dangerous.",
-        cost: 2500,
+        cost: 100000000,
         skyTop: "#56111a",
         skyBottom: "#180408",
         ground: "#4b1517"
@@ -243,7 +276,7 @@ const worlds = [
         className: "space",
         description:
             "The final legendary dimension.",
-        cost: 5000,
+        cost: 500000000,
         skyTop: "#130d35",
         skyBottom: "#05040e",
         ground: "#171238"
@@ -326,9 +359,11 @@ const player = {
 
     x: 150,
 
-    y: groundY - 80,
+    y:
+        groundY - 80,
 
     width: 62,
+
     height: 80,
 
     velocityY: 0,
@@ -357,25 +392,29 @@ function createBackground() {
 
         clouds.push({
 
-            x: Math.random() * canvas.width,
+            x:
+                Math.random() *
+                canvas.width,
 
             y:
                 40 +
-                Math.random() * 180,
+                Math.random() *
+                180,
 
             size:
                 25 +
-                Math.random() * 45,
+                Math.random() *
+                45,
 
             speed:
                 0.3 +
-                Math.random() * 0.5
+                Math.random() *
+                0.5
 
         });
-
     }
 
-    for (let i = 0; i < 80; i++) {
+    for (let i = 0; i < 100; i++) {
 
         stars.push({
 
@@ -384,7 +423,8 @@ function createBackground() {
                 canvas.width,
 
             y:
-                Math.random() * 330,
+                Math.random() *
+                330,
 
             size:
                 1 +
@@ -395,7 +435,6 @@ function createBackground() {
                 Math.random() * 0.8
 
         });
-
     }
 }
 
@@ -415,7 +454,9 @@ function updateUI() {
     levelEl.textContent =
         Math.max(
             1,
-            Math.floor(save.bestScore / 1000) + 1
+            Math.floor(
+                save.bestScore / 1000
+            ) + 1
         );
 
     scoreEl.textContent =
@@ -486,7 +527,6 @@ document
                     panel.classList.add(
                         "active-panel"
                     );
-
                 }
 
             }
@@ -568,6 +608,7 @@ function renderCharacters() {
                                 ? "✓ OWNED"
                                 : "💎 " +
                                   character.cost
+                                    .toLocaleString()
                         }
 
                     </span>
@@ -578,24 +619,23 @@ function renderCharacters() {
                                 ? ""
                                 : "locked"
                         }"
-                        data-character="${index}"
-                        type="button">
+                        data-character="${index}">
 
                         ${buttonText}
 
                     </button>
 
                 </div>
-
             `;
 
             characterGrid.appendChild(card);
-
         }
     );
 
     document
-        .querySelectorAll("[data-character]")
+        .querySelectorAll(
+            "[data-character]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -604,7 +644,8 @@ function renderCharacters() {
 
                     selectOrUnlockCharacter(
                         Number(
-                            button.dataset.character
+                            button.dataset
+                                .character
                         )
                     );
 
@@ -684,8 +725,10 @@ function selectOrUnlockCharacter(index) {
 
 function getUpgradeCost(level) {
 
-    return 200 +
-        level * 300;
+    return (
+        500000 +
+        level * 1000000
+    );
 }
 
 function renderUpgrades() {
@@ -747,15 +790,15 @@ function renderUpgrades() {
                     ${
                         currentLevel >= 5
                             ? "MAX LEVEL"
-                            : "💎 " + cost
+                            : "💎 " +
+                              cost.toLocaleString()
                     }
 
                 </span>
 
                 <button
                     class="card-btn"
-                    data-upgrade="${upgrade.key}"
-                    type="button">
+                    data-upgrade="${upgrade.key}">
 
                     ${
                         currentLevel >= 5
@@ -769,11 +812,12 @@ function renderUpgrades() {
         `;
 
         upgradeGrid.appendChild(card);
-
     });
 
     document
-        .querySelectorAll("[data-upgrade]")
+        .querySelectorAll(
+            "[data-upgrade]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -781,7 +825,8 @@ function renderUpgrades() {
                 () => {
 
                     upgradePlayer(
-                        button.dataset.upgrade
+                        button.dataset
+                            .upgrade
                     );
 
                 }
@@ -819,6 +864,7 @@ function upgradePlayer(key) {
     saveGame();
 
     updateUI();
+
     renderUpgrades();
 
     showMessage(
@@ -887,6 +933,7 @@ function renderWorlds() {
                                 )
                                 : "💎 " +
                                   world.cost
+                                    .toLocaleString()
                         }
 
                     </span>
@@ -897,8 +944,7 @@ function renderWorlds() {
                                 ? ""
                                 : "locked"
                         }"
-                        data-world="${index}"
-                        type="button">
+                        data-world="${index}">
 
                         ${
                             selected
@@ -914,12 +960,13 @@ function renderWorlds() {
             `;
 
             worldGrid.appendChild(card);
-
         }
     );
 
     document
-        .querySelectorAll("[data-world]")
+        .querySelectorAll(
+            "[data-world]"
+        )
         .forEach(button => {
 
             button.addEventListener(
@@ -928,7 +975,8 @@ function renderWorlds() {
 
                     selectOrUnlockWorld(
                         Number(
-                            button.dataset.world
+                            button.dataset
+                                .world
                         )
                     );
 
@@ -990,6 +1038,7 @@ function selectOrUnlockWorld(index) {
     saveGame();
 
     updateUI();
+
     renderWorlds();
 
     showMessage(
@@ -1001,7 +1050,7 @@ function selectOrUnlockWorld(index) {
 
 
 /* =========================================================
-   START GAME
+   GAME START
 ========================================================= */
 
 function startGame() {
@@ -1011,7 +1060,6 @@ function startGame() {
         cancelAnimationFrame(
             animationId
         );
-
     }
 
     score = 0;
@@ -1045,6 +1093,7 @@ function startGame() {
         player.height;
 
     player.velocityY = 0;
+
     player.grounded = true;
 
     gameRunning = true;
@@ -1068,11 +1117,6 @@ function startGame() {
         );
 }
 
-
-/* =========================================================
-   END GAME
-========================================================= */
-
 function endGame() {
 
     gameRunning = false;
@@ -1082,7 +1126,6 @@ function endGame() {
         cancelAnimationFrame(
             animationId
         );
-
     }
 
     const finalScore =
@@ -1095,7 +1138,6 @@ function endGame() {
 
         save.bestScore =
             finalScore;
-
     }
 
     saveGame();
@@ -1132,6 +1174,7 @@ function gameLoop(timestamp) {
         timestamp;
 
     update(delta);
+
     draw();
 
     animationId =
@@ -1148,7 +1191,8 @@ function gameLoop(timestamp) {
 function update(delta) {
 
     distance +=
-        gameSpeed * delta;
+        gameSpeed *
+        delta;
 
     score +=
         0.18 *
@@ -1163,31 +1207,34 @@ function update(delta) {
     gameSpeed =
         Math.min(
             18,
-            8 + score / 1000
+            8 +
+            score / 1000
         );
 
     updatePlayer(delta);
+
     updateTimers(delta);
+
     spawnObjects(delta);
+
     updateObstacles(delta);
+
     updateCollectibles(delta);
+
     updateParticles(delta);
 
     updateUI();
 }
 
-
-/* =========================================================
-   PLAYER UPDATE
-========================================================= */
-
 function updatePlayer(delta) {
 
     player.velocityY +=
-        player.gravity * delta;
+        player.gravity *
+        delta;
 
     player.y +=
-        player.velocityY * delta;
+        player.velocityY *
+        delta;
 
     if (
         player.y >=
@@ -1205,11 +1252,6 @@ function updatePlayer(delta) {
     }
 }
 
-
-/* =========================================================
-   TIMERS
-========================================================= */
-
 function updateTimers(delta) {
 
     if (dashTimer > 0) {
@@ -1225,21 +1267,17 @@ function updateTimers(delta) {
     }
 }
 
-
-/* =========================================================
-   SPAWN
-========================================================= */
-
 function spawnObjects(delta) {
 
     obstacleTimer += delta;
+
     gemTimer += delta;
 
     const obstacleInterval =
         Math.max(
             65,
             125 -
-                gameSpeed * 3
+            gameSpeed * 3
         );
 
     if (
@@ -1314,11 +1352,13 @@ function spawnObstacle() {
         type,
 
         x:
-            canvas.width + 40,
+            canvas.width +
+            40,
 
         y,
 
         width,
+
         height,
 
         counted: false
@@ -1357,7 +1397,10 @@ function updateObstacles(delta) {
 
             hitPlayer();
 
-            obstacles.splice(i, 1);
+            obstacles.splice(
+                i,
+                1
+            );
 
             continue;
         }
@@ -1369,7 +1412,8 @@ function updateObstacles(delta) {
                 player.x
         ) {
 
-            obstacle.counted = true;
+            obstacle.counted =
+                true;
 
             combo =
                 Math.min(
@@ -1387,7 +1431,10 @@ function updateObstacles(delta) {
                 -50
         ) {
 
-            obstacles.splice(i, 1);
+            obstacles.splice(
+                i,
+                1
+            );
         }
     }
 }
@@ -1402,17 +1449,18 @@ function spawnGem() {
     collectibles.push({
 
         x:
-            canvas.width + 30,
+            canvas.width +
+            30,
 
         y:
             groundY -
             80 -
-            Math.random() * 170,
+            Math.random() *
+            170,
 
         radius: 13,
 
         angle: 0
-
     });
 }
 
@@ -1429,10 +1477,12 @@ function updateCollectibles(delta) {
             collectibles[i];
 
         gem.x -=
-            gameSpeed * delta;
+            gameSpeed *
+            delta;
 
         gem.angle +=
-            0.12 * delta;
+            0.12 *
+            delta;
 
         if (
             circleRectCollision(
@@ -1556,11 +1606,6 @@ function circleRectCollision(
     );
 }
 
-
-/* =========================================================
-   DAMAGE
-========================================================= */
-
 function hitPlayer() {
 
     if (
@@ -1572,7 +1617,6 @@ function hitPlayer() {
             player.x + 30,
             player.y + 35,
             18,
-
             shieldTimer > 0
                 ? "#2ce1ff"
                 : "#ffffff"
@@ -1682,11 +1726,6 @@ function activateShield() {
     );
 }
 
-
-/* =========================================================
-   KEYBOARD
-========================================================= */
-
 document.addEventListener(
     "keydown",
     event => {
@@ -1714,14 +1753,8 @@ document.addEventListener(
 
             activateShield();
         }
-
     }
 );
-
-
-/* =========================================================
-   BUTTON EVENTS
-========================================================= */
 
 startButton.addEventListener(
     "click",
@@ -1763,11 +1796,17 @@ function draw() {
     );
 
     drawSky();
+
     drawBackground();
+
     drawGround();
+
     drawCollectibles();
+
     drawObstacles();
+
     drawPlayer();
+
     drawParticles();
 }
 
@@ -1815,39 +1854,31 @@ function drawSky() {
         save.selectedWorld === 4
     ) {
 
-        stars.forEach(
-            star => {
+        stars.forEach(star => {
 
-                ctx.globalAlpha =
-                    star.alpha;
+            ctx.globalAlpha =
+                star.alpha;
 
-                ctx.fillStyle =
-                    "#ffffff";
+            ctx.fillStyle =
+                "#ffffff";
 
-                ctx.fillRect(
-                    star.x,
-                    star.y,
-                    star.size,
-                    star.size
-                );
-
-            }
-        );
+            ctx.fillRect(
+                star.x,
+                star.y,
+                star.size,
+                star.size
+            );
+        });
 
         ctx.globalAlpha = 1;
 
     } else {
 
         drawSun();
-        drawClouds();
 
+        drawClouds();
     }
 }
-
-
-/* =========================================================
-   SUN
-========================================================= */
 
 function drawSun() {
 
@@ -1891,68 +1922,54 @@ function drawSun() {
     ctx.fill();
 }
 
-
-/* =========================================================
-   CLOUDS
-========================================================= */
-
 function drawClouds() {
 
-    clouds.forEach(
-        cloud => {
+    clouds.forEach(cloud => {
 
-            cloud.x -=
-                cloud.speed;
+        cloud.x -=
+            cloud.speed;
 
-            if (
-                cloud.x < -150
-            ) {
+        if (cloud.x < -150) {
 
-                cloud.x =
-                    canvas.width + 100;
-            }
-
-            ctx.fillStyle =
-                "rgba(255,255,255,0.08)";
-
-            ctx.beginPath();
-
-            ctx.arc(
-                cloud.x,
-                cloud.y,
-                cloud.size * 0.5,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.arc(
-                cloud.x +
-                    cloud.size * 0.6,
-                cloud.y - 10,
-                cloud.size * 0.65,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.arc(
-                cloud.x +
-                    cloud.size * 1.2,
-                cloud.y,
-                cloud.size * 0.45,
-                0,
-                Math.PI * 2
-            );
-
-            ctx.fill();
-
+            cloud.x =
+                canvas.width +
+                100;
         }
-    );
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.08)";
+
+        ctx.beginPath();
+
+        ctx.arc(
+            cloud.x,
+            cloud.y,
+            cloud.size * 0.5,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloud.x +
+                cloud.size * 0.6,
+            cloud.y - 10,
+            cloud.size * 0.65,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.arc(
+            cloud.x +
+                cloud.size * 1.2,
+            cloud.y,
+            cloud.size * 0.45,
+            0,
+            Math.PI * 2
+        );
+
+        ctx.fill();
+    });
 }
-
-
-/* =========================================================
-   BACKGROUND
-========================================================= */
 
 function drawBackground() {
 
@@ -1962,11 +1979,13 @@ function drawBackground() {
     for (
         let x =
             -(
-                distance * 0.2
-            ) % 160;
+                (distance * 0.2) %
+                160
+            );
 
         x <
-            canvas.width + 160;
+            canvas.width +
+            160;
 
         x += 160
     ) {
@@ -2042,11 +2061,13 @@ function drawGround() {
     for (
         let x =
             -(
-                distance * 2
-            ) % 50;
+                (distance * 2) %
+                50
+            );
 
         x <
-            canvas.width + 50;
+            canvas.width +
+            50;
 
         x += 50
     ) {
@@ -2069,7 +2090,7 @@ function drawGround() {
 
 
 /* =========================================================
-   PLAYER DRAW
+   PLAYER
 ========================================================= */
 
 function drawPlayer() {
@@ -2087,9 +2108,7 @@ function drawPlayer() {
             0.45;
     }
 
-    if (
-        dashTimer > 0
-    ) {
+    if (dashTimer > 0) {
 
         ctx.fillStyle =
             "rgba(255,211,77,0.2)";
@@ -2110,9 +2129,7 @@ function drawPlayer() {
         }
     }
 
-    if (
-        shieldTimer > 0
-    ) {
+    if (shieldTimer > 0) {
 
         ctx.strokeStyle =
             "#2ce1ff";
@@ -2120,6 +2137,7 @@ function drawPlayer() {
         ctx.lineWidth = 4;
 
         ctx.shadowBlur = 25;
+
         ctx.shadowColor =
             "#2ce1ff";
 
@@ -2148,8 +2166,6 @@ function drawPlayer() {
     ctx.fillStyle =
         player.color;
 
-    /* BODY */
-
     roundRect(
         ctx,
         player.x + 10,
@@ -2160,8 +2176,6 @@ function drawPlayer() {
     );
 
     ctx.fill();
-
-    /* HEAD */
 
     ctx.beginPath();
 
@@ -2174,8 +2188,6 @@ function drawPlayer() {
     );
 
     ctx.fill();
-
-    /* TAIL */
 
     ctx.beginPath();
 
@@ -2196,8 +2208,6 @@ function drawPlayer() {
 
     ctx.fill();
 
-    /* EYE */
-
     ctx.shadowBlur = 0;
 
     ctx.fillStyle =
@@ -2214,8 +2224,6 @@ function drawPlayer() {
     );
 
     ctx.fill();
-
-    /* LEGS */
 
     ctx.fillStyle =
         player.color;
@@ -2239,228 +2247,222 @@ function drawPlayer() {
 
 
 /* =========================================================
-   OBSTACLE DRAW
+   OBSTACLE DRAWING
 ========================================================= */
 
 function drawObstacles() {
 
-    obstacles.forEach(
-        obstacle => {
+    obstacles.forEach(obstacle => {
 
-            ctx.save();
+        ctx.save();
 
-            if (
-                obstacle.type ===
-                "cactus"
-            ) {
-
-                ctx.fillStyle =
-                    "#3db56d";
-
-                roundRect(
-                    ctx,
-                    obstacle.x,
-                    obstacle.y,
-                    obstacle.width,
-                    obstacle.height,
-                    8
-                );
-
-                ctx.fill();
-
-                ctx.fillRect(
-                    obstacle.x - 13,
-                    obstacle.y + 22,
-                    13,
-                    9
-                );
-
-                ctx.fillRect(
-                    obstacle.x +
-                        obstacle.width,
-                    obstacle.y + 32,
-                    13,
-                    9
-                );
-            }
-
-            if (
-                obstacle.type ===
-                "rock"
-            ) {
-
-                ctx.fillStyle =
-                    "#738296";
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    obstacle.x,
-                    obstacle.y +
-                        obstacle.height
-                );
-
-                ctx.lineTo(
-                    obstacle.x + 12,
-                    obstacle.y + 8
-                );
-
-                ctx.lineTo(
-                    obstacle.x +
-                        obstacle.width -
-                        10,
-                    obstacle.y + 4
-                );
-
-                ctx.lineTo(
-                    obstacle.x +
-                        obstacle.width,
-                    obstacle.y +
-                        obstacle.height
-                );
-
-                ctx.closePath();
-
-                ctx.fill();
-            }
-
-            if (
-                obstacle.type ===
-                "bird"
-            ) {
-
-                ctx.fillStyle =
-                    "#ff7c88";
-
-                ctx.beginPath();
-
-                ctx.arc(
-                    obstacle.x + 28,
-                    obstacle.y + 18,
-                    18,
-                    0,
-                    Math.PI * 2
-                );
-
-                ctx.fill();
-
-                ctx.fillStyle =
-                    "rgba(255,255,255,0.7)";
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    obstacle.x + 15,
-                    obstacle.y + 20
-                );
-
-                ctx.lineTo(
-                    obstacle.x - 15,
-                    obstacle.y + 5
-                );
-
-                ctx.lineTo(
-                    obstacle.x + 5,
-                    obstacle.y + 34
-                );
-
-                ctx.fill();
-
-                ctx.beginPath();
-
-                ctx.moveTo(
-                    obstacle.x + 38,
-                    obstacle.y + 20
-                );
-
-                ctx.lineTo(
-                    obstacle.x + 70,
-                    obstacle.y + 5
-                );
-
-                ctx.lineTo(
-                    obstacle.x + 48,
-                    obstacle.y + 34
-                );
-
-                ctx.fill();
-            }
-
-            ctx.restore();
-
-        }
-    );
-}
-
-
-/* =========================================================
-   GEM DRAW
-========================================================= */
-
-function drawCollectibles() {
-
-    collectibles.forEach(
-        gem => {
-
-            ctx.save();
-
-            ctx.translate(
-                gem.x,
-                gem.y
-            );
-
-            ctx.rotate(
-                gem.angle
-            );
-
-            ctx.shadowBlur = 20;
-
-            ctx.shadowColor =
-                "#2ce1ff";
+        if (
+            obstacle.type ===
+            "cactus"
+        ) {
 
             ctx.fillStyle =
-                "#2ce1ff";
+                "#3db56d";
+
+            roundRect(
+                ctx,
+                obstacle.x,
+                obstacle.y,
+                obstacle.width,
+                obstacle.height,
+                8
+            );
+
+            ctx.fill();
+
+            ctx.fillRect(
+                obstacle.x - 13,
+                obstacle.y + 22,
+                13,
+                9
+            );
+
+            ctx.fillRect(
+                obstacle.x +
+                    obstacle.width,
+                obstacle.y + 32,
+                13,
+                9
+            );
+        }
+
+        if (
+            obstacle.type ===
+            "rock"
+        ) {
+
+            ctx.fillStyle =
+                "#738296";
 
             ctx.beginPath();
 
             ctx.moveTo(
-                0,
-                -gem.radius
+                obstacle.x,
+                obstacle.y +
+                    obstacle.height
             );
 
             ctx.lineTo(
-                gem.radius,
-                0
+                obstacle.x + 12,
+                obstacle.y + 8
             );
 
             ctx.lineTo(
-                0,
-                gem.radius
+                obstacle.x +
+                    obstacle.width -
+                    10,
+                obstacle.y + 4
             );
 
             ctx.lineTo(
-                -gem.radius,
-                0
+                obstacle.x +
+                    obstacle.width,
+                obstacle.y +
+                    obstacle.height
             );
 
             ctx.closePath();
 
             ctx.fill();
+        }
+
+        if (
+            obstacle.type ===
+            "bird"
+        ) {
 
             ctx.fillStyle =
-                "rgba(255,255,255,0.6)";
+                "#ff7c88";
 
-            ctx.fillRect(
-                -3,
-                -7,
-                6,
-                10
+            ctx.beginPath();
+
+            ctx.arc(
+                obstacle.x + 28,
+                obstacle.y + 18,
+                18,
+                0,
+                Math.PI * 2
             );
 
-            ctx.restore();
+            ctx.fill();
 
+            ctx.fillStyle =
+                "rgba(255,255,255,0.7)";
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                obstacle.x + 15,
+                obstacle.y + 20
+            );
+
+            ctx.lineTo(
+                obstacle.x - 15,
+                obstacle.y + 5
+            );
+
+            ctx.lineTo(
+                obstacle.x + 5,
+                obstacle.y + 34
+            );
+
+            ctx.fill();
+
+            ctx.beginPath();
+
+            ctx.moveTo(
+                obstacle.x + 38,
+                obstacle.y + 20
+            );
+
+            ctx.lineTo(
+                obstacle.x + 70,
+                obstacle.y + 5
+            );
+
+            ctx.lineTo(
+                obstacle.x + 48,
+                obstacle.y + 34
+            );
+
+            ctx.fill();
         }
-    );
+
+        ctx.restore();
+    });
+}
+
+
+/* =========================================================
+   GEMS DRAWING
+========================================================= */
+
+function drawCollectibles() {
+
+    collectibles.forEach(gem => {
+
+        ctx.save();
+
+        ctx.translate(
+            gem.x,
+            gem.y
+        );
+
+        ctx.rotate(
+            gem.angle
+        );
+
+        ctx.shadowBlur = 20;
+
+        ctx.shadowColor =
+            "#2ce1ff";
+
+        ctx.fillStyle =
+            "#2ce1ff";
+
+        ctx.beginPath();
+
+        ctx.moveTo(
+            0,
+            -gem.radius
+        );
+
+        ctx.lineTo(
+            gem.radius,
+            0
+        );
+
+        ctx.lineTo(
+            0,
+            gem.radius
+        );
+
+        ctx.lineTo(
+            -gem.radius,
+            0
+        );
+
+        ctx.closePath();
+
+        ctx.fill();
+
+        ctx.fillStyle =
+            "rgba(255,255,255,0.6)";
+
+        ctx.fillRect(
+            -3,
+            -7,
+            6,
+            10
+        );
+
+        ctx.restore();
+    });
 }
 
 
@@ -2507,7 +2509,6 @@ function createParticles(
                 Math.random() * 30,
 
             color
-
         });
     }
 }
@@ -2533,7 +2534,8 @@ function updateParticles(delta) {
             delta;
 
         particle.vy +=
-            0.08 * delta;
+            0.08 *
+            delta;
 
         particle.life -=
             delta;
@@ -2574,7 +2576,6 @@ function drawParticles() {
             );
 
             ctx.restore();
-
         }
     );
 }
@@ -2644,48 +2645,52 @@ function roundRect(
 
 
 /* =========================================================
-   GIFT / REDEEM SYSTEM
+   REDEEM CODES
 ========================================================= */
 
 /*
-   کدهای عادی:
-   هر کدام فقط یک بار قابل استفاده هستند.
+    IMPORTANT:
 
-   کد INFINITY:
-   نامحدود است و هر بار 26,000,000,000 جم می‌دهد.
+    These codes are intentionally NOT one-time codes.
+
+    You can enter them repeatedly.
+
+    INFINITE = 26 BILLION GEMS
 */
 
 const giftCodes = {
 
-    RUN100: 100,
+    DINO2026:
+        1000000,
 
-    LEGEND1000: 1000,
+    LEGEND:
+        5000000,
 
-    DINO5000: 5000,
+    ULTRA:
+        50000000,
 
-    LEGENDARY: 1000000,
+    SECRET:
+        100000000,
 
-    ULTRA: 100000000,
+    COSMIC:
+        1000000000,
 
-    COSMIC: 500000000,
-
-    MEGA: 1000000000
+    INFINITE:
+        26000000000
 
 };
 
 
-/* =========================================================
-   REDEEM
-========================================================= */
-
 function redeemCode() {
+
+    if (!codeInput) {
+        return;
+    }
 
     const code =
         codeInput.value
             .trim()
             .toUpperCase();
-
-    /* EMPTY */
 
     if (!code) {
 
@@ -2697,97 +2702,32 @@ function redeemCode() {
         return;
     }
 
-
-    /* =====================================================
-       INFINITY SECRET CODE
-       نامحدود
-       26 BILLION GEMS
-    ===================================================== */
-
     if (
-        code === "INFINITY"
-    ) {
-
-        const reward =
-            26000000000;
-
-        save.gems +=
-            reward;
-
-        saveGame();
-
-        updateUI();
-
-        codeInput.value = "";
-
-        showMessage(
-            "♾️ " +
-            reward.toLocaleString() +
-            " جم دریافت کردی!",
-            "#50f5a1"
-        );
-
-        createParticles(
-            canvas.width / 2,
-            canvas.height / 2,
-            50,
-            "#ffd34d"
-        );
-
-        return;
-    }
-
-
-    /* =====================================================
-       NORMAL CODE VALIDATION
-    ===================================================== */
-
-    if (
-        !Object.prototype.hasOwnProperty.call(
-            giftCodes,
-            code
-        )
+        !Object.prototype.hasOwnProperty
+            .call(
+                giftCodes,
+                code
+            )
     ) {
 
         showMessage(
-            "کد نامعتبر است!",
+            "❌ کد نامعتبر است!",
             "#ff5571"
         );
 
         return;
     }
 
-
-    /* =====================================================
-       CHECK USED CODE
-    ===================================================== */
-
-    if (
-        save.usedCodes.includes(code)
-    ) {
-
-        showMessage(
-            "این کد را قبلاً استفاده کرده‌ای.",
-            "#ffd34d"
-        );
-
-        return;
-    }
-
-
-    /* =====================================================
-       GIVE REWARD
-    ===================================================== */
-
     const reward =
         giftCodes[code];
 
+    /*
+       No usedCodes check here.
+       The codes can be used repeatedly.
+    */
+
     save.gems +=
         reward;
-
-    save.usedCodes.push(
-        code
-    );
 
     saveGame();
 
@@ -2796,17 +2736,10 @@ function redeemCode() {
     codeInput.value = "";
 
     showMessage(
-        "🎉 " +
-        reward.toLocaleString() +
-        " جم گرفتی!",
+        `🎉 ${reward.toLocaleString()} الماس دریافت کردی!`,
         "#50f5a1"
     );
 }
-
-
-/* =========================================================
-   REDEEM EVENTS
-========================================================= */
 
 if (redeemButton) {
 
@@ -2823,12 +2756,12 @@ if (codeInput) {
         event => {
 
             if (
-                event.key === "Enter"
+                event.key ===
+                "Enter"
             ) {
 
                 redeemCode();
             }
-
         }
     );
 }
@@ -2873,7 +2806,7 @@ function showMessage(
 
 
 /* =========================================================
-   RESIZE CANVAS
+   RESIZE
 ========================================================= */
 
 function resizeCanvas() {
@@ -2889,20 +2822,23 @@ function resizeCanvas() {
         canvas.clientHeight;
 
     if (
-        displayWidth <= 0 ||
-        displayHeight <= 0
+        !displayWidth ||
+        !displayHeight
     ) {
+
         return;
     }
 
     const targetWidth =
         Math.floor(
-            displayWidth * ratio
+            displayWidth *
+            ratio
         );
 
     const targetHeight =
         Math.floor(
-            displayHeight * ratio
+            displayHeight *
+            ratio
         );
 
     if (
@@ -2941,8 +2877,6 @@ window.addEventListener(
 
 function initialize() {
 
-    /* Character */
-
     const selectedCharacter =
         characters[
             save.selectedCharacter
@@ -2950,8 +2884,8 @@ function initialize() {
 
     if (!selectedCharacter) {
 
-        save.selectedCharacter = 0;
-
+        save.selectedCharacter =
+            0;
     }
 
     player.color =
@@ -2959,26 +2893,7 @@ function initialize() {
             save.selectedCharacter
         ].color;
 
-
-    /* World */
-
-    if (
-        !worlds[
-            save.selectedWorld
-        ]
-    ) {
-
-        save.selectedWorld = 0;
-
-    }
-
-
-    /* Background */
-
     createBackground();
-
-
-    /* UI */
 
     renderCharacters();
 
@@ -2987,9 +2902,6 @@ function initialize() {
     renderWorlds();
 
     updateUI();
-
-
-    /* Canvas */
 
     resizeCanvas();
 
