@@ -3,217 +3,72 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#060713">
-<title>DINO LEGENDS — Fantasy Realms</title>
+<meta name="theme-color" content="#050713">
+<meta name="description" content="DINO LEGENDS V30 — a neon fantasy action runner with bosses, quests, relics, worlds, abilities and progression.">
+<title>DINO LEGENDS — V30 ASCENSION</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css?v=20">
+<link rel="stylesheet" href="style.css?v=30">
 </head>
-
 <body>
+<div id="stars"></div>
 <div class="app">
-
 <header class="topbar">
-  <div class="brand">
-    <div class="logo">🦖</div>
-    <div>
-      <h1>DINO <b>LEGENDS</b></h1>
-      <p>FANTASY REALMS • SEASON 02</p>
-    </div>
-  </div>
-
+  <div class="brand"><div class="logo">🦖</div><div><h1>DINO <b>LEGENDS</b></h1><p>ASCENSION • V30 • FANTASY ACTION UNIVERSE</p></div></div>
   <div class="stats">
-    <div>
-      <span>💎</span>
-      <b id="gems">0</b>
-      <small>GEMS</small>
-    </div>
-    <div>
-      <span>🏆</span>
-      <b id="bestScore">0</b>
-      <small>BEST</small>
-    </div>
-    <div>
-      <span>⭐</span>
-      <b id="level">1</b>
-      <small>LEVEL</small>
-    </div>
+    <div><span>💎</span><b id="gems">0</b><small>GEMS</small></div>
+    <div><span>🏆</span><b id="bestScore">0</b><small>BEST</small></div>
+    <div><span>⭐</span><b id="level">1</b><small>LEVEL</small></div>
+    <div><span>🔥</span><b id="streak">0</b><small>STREAK</small></div>
   </div>
 </header>
 
 <main>
-
 <section class="game card">
   <div class="hud">
-    <div>SCORE <b id="score">0</b></div>
-    <div>COMBO <b id="combo">x1</b></div>
-    <div>HEALTH <b id="health">❤️❤️❤️</b></div>
-    <div>WORLD <b id="currentWorldHud">FOREST</b></div>
+    <div>SCORE <b id="score">0</b></div><div>COMBO <b id="combo">x1</b></div><div>HEALTH <b id="health">❤️❤️❤️</b></div><div>WORLD <b id="currentWorldHud">FOREST</b></div>
   </div>
-
   <div class="stage">
-    <canvas id="gameCanvas" width="1200" height="520"></canvas>
-
+    <canvas id="gameCanvas" width="1200" height="560" aria-label="Dino Legends game"></canvas>
+    <div class="bossHud hidden" id="bossHud"><div><span id="bossName">BOSS</span><b id="bossHpText">100%</b></div><div class="bossBar"><i id="bossHp"></i></div></div>
+    <div class="runBanner" id="runBanner"></div>
     <div class="overlay" id="startScreen">
-      <div class="big" id="startAvatar">🦖</div>
-      <div class="eyebrow">LEGENDARY FANTASY RUNNER</div>
-      <h2>ENTER THE <b>REALMS</b></h2>
-      <p>Run • Double Jump • Dash • Shield • Collect • Survive</p>
-
-      <button class="primary" id="startButton">
-        ▶ START ADVENTURE
-      </button>
-
-      <div class="keys">
-        <i>SPACE / ↑ JUMP</i>
-        <i>DOUBLE JUMP</i>
-        <i>D DASH</i>
-        <i>S SHIELD</i>
-      </div>
+      <div class="big" id="startAvatar">🦖</div><div class="eyebrow">V30 ASCENSION UPDATE</div><h2>ENTER THE <b>REALMS</b></h2>
+      <p>Run • Double Jump • Dash • Shield • Relics • Bosses • Events</p><button class="primary" id="startButton">▶ START ADVENTURE</button>
+      <div class="keys"><i>SPACE / ↑ JUMP</i><i>D DASH</i><i>S SHIELD</i><i>Q ABILITY</i></div>
     </div>
-
-    <div class="overlay hidden" id="gameOverScreen">
-      <div class="big">💫</div>
-      <div class="eyebrow">RUN COMPLETE</div>
-      <h2>LEGEND <b>FINISHED</b></h2>
-      <p>FINAL SCORE</p>
-      <strong class="final" id="finalScore">0</strong>
-      <button class="primary" id="restartButton">
-        ↻ PLAY AGAIN
-      </button>
-    </div>
+    <div class="overlay hidden" id="gameOverScreen"><div class="big">💫</div><div class="eyebrow" id="resultEyebrow">RUN COMPLETE</div><h2 id="resultTitle">LEGEND <b>FINISHED</b></h2><p>FINAL SCORE</p><strong class="final" id="finalScore">0</strong><div class="resultStats" id="resultStats"></div><button class="primary" id="restartButton">↻ PLAY AGAIN</button></div>
   </div>
+  <div class="touch"><button id="jumpButton">⬆ JUMP</button><button id="dashButton">⚡ DASH</button><button id="shieldButton">🛡 SHIELD</button><button id="abilityButton">Q ABILITY</button></div>
+</section>
 
-  <div class="touch">
-    <button id="jumpButton">⬆ JUMP</button>
-    <button id="dashButton">⚡ DASH</button>
-    <button id="shieldButton">🛡 SHIELD</button>
+<section class="command card">
+  <div class="commandHead"><div><small>LIVE OPERATIONS</small><h2>LEGEND COMMAND CENTER</h2></div><span class="online">● ONLINE</span></div>
+  <div class="commandGrid">
+    <article><span>🔥 STREAK</span><strong id="ccStreak">0</strong><small>Daily return bonus</small></article>
+    <article><span>🎯 DAILY</span><strong id="dailyTitle">Loading</strong><div class="progress"><i id="dailyProgress"></i></div><small id="dailyText">0 / 1</small></article>
+    <article><span>🏆 ACHIEVEMENTS</span><strong id="achievementCount">0/12</strong><button class="mini" id="achievementsButton">VIEW</button></article>
+    <article><span>⚡ ABILITY</span><strong id="abilityName">Roar</strong><small id="abilityReady">READY</small></article>
   </div>
 </section>
 
-<nav class="tabs" aria-label="Game panels">
-  <button class="tab active" data-panel="profile">👤 PROFILE</button>
-  <button class="tab" data-panel="skins">🦖 SKINS</button>
-  <button class="tab" data-panel="missions">🎯 MISSIONS</button>
-  <button class="tab" data-panel="worlds">🌌 WORLDS</button>
-  <button class="tab" data-panel="shop">⚡ UPGRADES</button>
-  <button class="tab" data-panel="redeem">🎁 REDEEM</button>
-</nav>
+<nav class="tabs"><button class="tab active" data-panel="profile">👤 PROFILE</button><button class="tab" data-panel="skins">🦖 SKINS</button><button class="tab" data-panel="missions">🎯 QUESTS</button><button class="tab" data-panel="worlds">🌌 WORLDS</button><button class="tab" data-panel="relics">💠 RELICS</button><button class="tab" data-panel="shop">⚡ LAB</button><button class="tab" data-panel="events">🌠 EVENTS</button><button class="tab" data-panel="redeem">🎁 REDEEM</button></nav>
 
 <section id="profile" class="panel active">
-  <div class="heroPanel">
-    <div class="avatar" id="avatar"></div>
-
-    <div>
-      <small>LEGEND PROFILE</small>
-      <h2 id="profileName">Rookie Rex</h2>
-      <p>
-        Level <b id="profileLevel">1</b>
-        • Best score <b id="profileBest">0</b>
-      </p>
-    </div>
-  </div>
-
-  <div class="bars">
-    <div>
-      <span>LEVEL PROGRESS</span>
-      <div class="bar">
-        <i id="xpBar"></i>
-      </div>
-    </div>
-
-    <div>
-      <span>LEGEND RANK</span>
-      <strong id="rank">ROOKIE</strong>
-    </div>
-  </div>
+  <div class="profileHero"><div class="avatar" id="avatar"></div><div><small>LEGEND PROFILE</small><h2 id="profileName">Rookie Rex</h2><p>Level <b id="profileLevel">1</b> • Rank <b id="rank">ROOKIE</b> • Best <b id="profileBest">0</b></p></div><div class="profilePower"><span>POWER</span><strong id="power">100</strong></div></div>
+  <div class="profileGrid"><article><small>LEVEL PROGRESS</small><div class="progress"><i id="xpBar"></i></div><p id="xpText">0 / 2500 XP</p></article><article><small>LIFETIME RUNS</small><strong id="runs">0</strong><p>Adventures survived</p></article><article><small>LIFETIME GEMS</small><strong id="totalGems">0</strong><p>Crystals collected</p></article><article><small>BOSSES DEFEATED</small><strong id="bossesDefeated">0</strong><p>Realm guardians</p></article></div>
 </section>
 
-<section id="skins" class="panel">
-  <div class="heading">
-    <div>
-      <small>100 FANTASY CREATURES</small>
-      <h2>SKIN VAULT</h2>
-    </div>
-    <b id="skinCount">1 / 100</b>
-  </div>
-
-  <div class="grid" id="skinGrid"></div>
-</section>
-
-<section id="missions" class="panel">
-  <div class="heading">
-    <div>
-      <small>PLAY TO EARN</small>
-      <h2>MISSIONS</h2>
-    </div>
-    <b>CLAIM REWARDS</b>
-  </div>
-
-  <div class="grid" id="missionGrid"></div>
-</section>
-
-<section id="worlds" class="panel">
-  <div class="heading">
-    <div>
-      <small>FANTASY REALMS</small>
-      <h2>WORLDS</h2>
-    </div>
-    <b id="worldStatus">EXPLORE</b>
-  </div>
-
-  <div class="grid" id="worldGrid"></div>
-</section>
-
-<section id="shop" class="panel">
-  <div class="heading">
-    <div>
-      <small>PERMANENT POWER</small>
-      <h2>UPGRADE LAB</h2>
-    </div>
-    <b>POWER UP</b>
-  </div>
-
-  <div class="grid" id="shopGrid"></div>
-</section>
-
-<section id="redeem" class="panel">
-  <div class="redeem">
-    <div class="redeemIcon">🎁</div>
-
-    <small>SECRET REWARDS</small>
-    <h2>REDEEM CENTER</h2>
-
-    <p>
-      Enter a reward code to unlock legendary gems.
-    </p>
-
-    <div class="code">
-      <input
-        id="codeInput"
-        placeholder="ENTER REWARD CODE"
-        maxlength="40"
-        autocomplete="off"
-        spellcheck="false"
-      >
-      <button id="redeemButton" type="button">
-        REDEEM
-      </button>
-    </div>
-
-    <p id="codeMessage" role="status" aria-live="polite"></p>
-
-    <div class="redeemHint">
-      <span>REWARD SYSTEM ONLINE</span>
-      <span>ONE USE PER CODE</span>
-    </div>
-  </div>
-</section>
-
+<section id="skins" class="panel"><div class="heading"><div><small>100 FANTASY CREATURES</small><h2>SKIN VAULT</h2></div><b id="skinCount">1 / 100</b></div><div class="grid" id="skinGrid"></div></section>
+<section id="missions" class="panel"><div class="heading"><div><small>QUEST BOARD</small><h2>MISSIONS & QUESTS</h2></div><b>PLAY TO EARN</b></div><div class="grid" id="missionGrid"></div></section>
+<section id="worlds" class="panel"><div class="heading"><div><small>FANTASY REALMS</small><h2>WORLD SELECT</h2></div><b id="worldStatus">EXPLORE</b></div><div class="grid" id="worldGrid"></div></section>
+<section id="relics" class="panel"><div class="heading"><div><small>ANCIENT POWER</small><h2>RELIC FORGE</h2></div><b>3 SLOTS</b></div><div class="grid" id="relicGrid"></div></section>
+<section id="shop" class="panel"><div class="heading"><div><small>PERMANENT POWER</small><h2>UPGRADE LAB</h2></div><b>ASCEND</b></div><div class="grid" id="shopGrid"></div></section>
+<section id="events" class="panel"><div class="heading"><div><small>ROTATING CONTENT</small><h2>LIVE EVENTS</h2></div><b id="eventTimer">ACTIVE</b></div><div class="eventHero"><div class="eventIcon">🌠</div><div><small>WEEKLY EVENT</small><h2 id="eventName">Meteor Rush</h2><p id="eventDesc">Survive meteor showers for bonus gems.</p><div class="progress"><i id="eventProgress"></i></div></div><button class="primary smallPrimary" id="eventClaim">CLAIM</button></div></section>
+<section id="redeem" class="panel"><div class="redeem"><div class="redeemIcon">🎁</div><small>SECRET REWARDS</small><h2>REDEEM CENTER</h2><p>Enter a reward code to unlock legendary gems.</p><div class="code"><input id="codeInput" placeholder="ENTER REWARD CODE" maxlength="40" autocomplete="off"><button id="redeemButton">REDEEM</button></div><p id="codeMessage" role="status"></p><div class="redeemHint"><span>REWARD SYSTEM ONLINE</span><span>ONE USE PER CODE</span></div></div></section>
 </main>
 </div>
-
-<script src="game.js?v=20" defer></script>
-</body>
-</html>
+<div class="modal hidden" id="modal"><div class="dialog"><button class="close" id="closeModal">×</button><div id="modalContent"></div></div></div>
+<script src="game.js?v=30" defer></script>
+</body></html>
