@@ -1,17 +1,407 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050713"><meta name="description" content="DINO LEGENDS — skill based survival runner"><title>DINO LEGENDS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="style.css?v=60.0">
-</head><body><div class="app">
-<header class="topbar"><div class="brand"><div class="logo">🦖</div><div><h1>DINO LEGENDS</h1><p>SKILL • RISK • SURVIVAL</p></div></div><div class="stats"><div><span>💎</span><b id="gems">0</b><small>GEMS</small></div><div><span>🏆</span><b id="bestScore">0</b><small>BEST</small></div><div><span>⭐</span><b id="level">1</b><small>LEVEL</small></div></div></header>
-<main><section class="game card"><div class="hud"><div>SCORE<b id="score">0</b></div><div>COMBO<b id="combo">x1</b></div><div>HEALTH<b id="health">❤️❤️❤️</b></div><div>WORLD<b id="currentWorldHud">FOREST</b></div></div>
-<div class="stage"><canvas id="gameCanvas" width="1200" height="520"></canvas><div class="overlay" id="startScreen"><div class="big">🦖</div><div class="eyebrow">DINO LEGENDS</div><h2>MASTER THE <b>RUN</b></h2><p>Switch lanes • dodge • jump • dash • shield • take risks</p><button class="primary" id="startButton">▶ START RUN</button><div class="keys"><i>← → LANE</i><i>SPACE / ↑ JUMP</i><i>D DASH</i><i>S SHIELD</i></div></div><div class="overlay hidden" id="gameOverScreen"><div class="big">💫</div><div class="eyebrow">RUN COMPLETE</div><h2>FINAL <b>SCORE</b></h2><strong class="final" id="finalScore">0</strong><button class="primary" id="restartButton">↻ RUN AGAIN</button></div></div><div class="touch"><button id="jumpButton">⬆ JUMP</button><button id="dashButton">⚡ DASH</button><button id="shieldButton">🛡 SHIELD</button></div></section>
-<nav class="tabs"><button class="tab active" data-panel="profile">👤 PROFILE</button><button class="tab" data-panel="skins">🦖 SKINS</button><button class="tab" data-panel="missions">🎯 QUESTS</button><button class="tab" data-panel="worlds">🌌 WORLDS</button><button class="tab" data-panel="shop">⚡ LAB</button><button class="tab" data-panel="redeem">🎁 REDEEM</button></nav>
-<section id="profile" class="panel active"><div class="profileHero"><div class="avatar">🦖</div><div><small>LEGEND PROFILE</small><h2>Rookie Rex</h2><p>Level <b id="profileLevel">1</b> • Best <b id="profileBest">0</b></p></div></div></section>
-<section id="skins" class="panel"><div class="heading"><div><small>MODULAR CREATURE VAULT</small><h2>SKINS</h2></div><b>100 SETS</b></div><div class="grid" id="skinGrid"></div></section>
-<section id="missions" class="panel"><div class="heading"><div><small>PROGRESSION</small><h2>QUESTS</h2></div><b>PLAY TO EARN</b></div><div class="grid" id="missionGrid"></div></section>
-<section id="worlds" class="panel"><div class="heading"><div><small>FANTASY REALMS</small><h2>WORLDS</h2></div><b>EXPLORE</b></div><div class="grid" id="worldGrid"></div></section>
-<section id="shop" class="panel"><div class="heading"><div><small>PERMANENT POWER</small><h2>UPGRADE LAB</h2></div><b>UPGRADE</b></div><div class="grid" id="shopGrid"></div></section>
-<section id="redeem" class="panel"><div class="redeem"><div class="redeemIcon">🎁</div><small>SECRET REWARDS</small><h2>REDEEM</h2><p>Enter a reward code.</p><div class="code"><input id="codeInput" placeholder="ENTER CODE" maxlength="40"><button id="redeemButton">REDEEM</button></div><p id="codeMessage"></p></div></section>
-</main></div><script src="game.js?v=60.0" defer></script></body></html>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+  <title>DINO LEGENDS</title>
+  <meta name="description" content="DINO LEGENDS - action survival runner">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="style.css">
+
+  <script>
+    window.addEventListener("error", function(e) {
+      console.error("DINO LEGENDS:", e.error || e.message);
+    });
+  </script>
+</head>
+
+<body>
+
+<div id="app">
+
+  <header class="topbar">
+    <div class="brand">DINO LEGENDS</div>
+
+    <div class="hud">
+      <div class="hud-item">
+        <span>SCORE</span>
+        <strong id="score">0</strong>
+      </div>
+
+      <div class="hud-item">
+        <span>GEMS</span>
+        <strong id="gems">0</strong>
+      </div>
+
+      <div class="hud-item">
+        <span>COMBO</span>
+        <strong id="combo">x1.0</strong>
+      </div>
+
+      <div class="hud-item">
+        <span>BEST</span>
+        <strong id="bestScore">0</strong>
+      </div>
+
+      <div class="hud-item">
+        <span>HP</span>
+        <strong id="health">❤️❤️❤️</strong>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <section id="gameScreen" class="screen active">
+
+      <div class="world-label">
+        <span id="currentWorldHud">ANCIENT JUNGLE</span>
+      </div>
+
+      <canvas id="gameCanvas"></canvas>
+
+      <div id="startScreen" class="overlay">
+        <div class="panel hero-panel">
+          <div class="logo-dino">🦖</div>
+
+          <h1>DINO LEGENDS</h1>
+
+          <p>
+            RUN • DODGE • COMBO • SURVIVE
+          </p>
+
+          <button id="startButton" class="primary-button">
+            START RUN
+          </button>
+
+          <div class="controls-help">
+            <span>← →</span> MOVE
+            <span>SPACE</span> JUMP
+            <span>SHIFT</span> DASH
+            <span>S</span> SHIELD
+          </div>
+        </div>
+      </div>
+
+      <div id="gameOverScreen" class="overlay hidden">
+        <div class="panel">
+
+          <div class="game-over-title">
+            RUN ENDED
+          </div>
+
+          <div class="final-score-label">
+            SCORE
+          </div>
+
+          <div id="finalScore" class="final-score">
+            0
+          </div>
+
+          <button id="restartButton" class="primary-button">
+            RUN AGAIN
+          </button>
+
+        </div>
+      </div>
+
+      <div class="mobile-controls">
+
+        <button id="leftButton" class="control-button">
+          ◀
+        </button>
+
+        <button id="jumpButton" class="control-button jump">
+          JUMP
+        </button>
+
+        <button id="rightButton" class="control-button">
+          ▶
+        </button>
+
+        <button id="dashButton" class="control-button dash">
+          DASH
+        </button>
+
+        <button id="shieldButton" class="control-button shield">
+          SHIELD
+        </button>
+
+      </div>
+
+    </section>
+
+    <nav class="main-menu">
+
+      <button class="menu-button active" data-panel="playPanel">
+        ▶
+        <span>PLAY</span>
+      </button>
+
+      <button class="menu-button" data-panel="skinsPanel">
+        🦖
+        <span>SKINS</span>
+      </button>
+
+      <button class="menu-button" data-panel="abilitiesPanel">
+        ⚡
+        <span>ABILITIES</span>
+      </button>
+
+      <button class="menu-button" data-panel="missionsPanel">
+        🎯
+        <span>MISSIONS</span>
+      </button>
+
+      <button class="menu-button" data-panel="worldsPanel">
+        🌍
+        <span>WORLDS</span>
+      </button>
+
+      <button class="menu-button" data-panel="settingsPanel">
+        ⚙
+        <span>SETTINGS</span>
+      </button>
+
+    </nav>
+
+    <section id="playPanel" class="content-panel active">
+      <h2>RUN CENTER</h2>
+
+      <div class="cards">
+
+        <div class="card">
+          <span>BEST SCORE</span>
+          <strong id="bestCard">0</strong>
+        </div>
+
+        <div class="card">
+          <span>GEMS</span>
+          <strong id="gemCard">0</strong>
+        </div>
+
+        <div class="card">
+          <span>WORLD</span>
+          <strong>ANCIENT JUNGLE</strong>
+        </div>
+
+      </div>
+
+      <p class="info">
+        Survive longer, take risky routes and build your combo.
+        Near misses and difficult dodges give better rewards.
+      </p>
+    </section>
+
+    <section id="skinsPanel" class="content-panel">
+      <h2>SKIN FORGE</h2>
+
+      <div class="skin-grid">
+
+        <article class="skin-card selected">
+          <div class="skin-preview">🦖</div>
+          <h3>ROOKIE REX</h3>
+          <p>Starter Loadout</p>
+
+          <div class="parts">
+            <span>Helmet: Basic</span>
+            <span>Armor: Basic</span>
+            <span>Cape: None</span>
+            <span>Boots: Basic</span>
+            <span>Weapon: None</span>
+            <span>Aura: None</span>
+          </div>
+
+          <button class="equip-button">
+            EQUIPPED
+          </button>
+        </article>
+
+        <article class="skin-card">
+          <div class="skin-preview">🦖</div>
+          <h3>CYBER REX</h3>
+          <p>EPIC</p>
+
+          <div class="parts">
+            <span>Helmet: Neon Visor</span>
+            <span>Armor: Cyber Shell</span>
+            <span>Cape: Holo Cape</span>
+            <span>Boots: Pulse Boots</span>
+            <span>Weapon: Plasma Blade</span>
+            <span>Aura: Electric</span>
+          </div>
+
+          <button class="equip-button">
+            5,000 GEMS
+          </button>
+        </article>
+
+        <article class="skin-card">
+          <div class="skin-preview">🦖</div>
+          <h3>VOID REX</h3>
+          <p>MYTHIC</p>
+
+          <div class="parts">
+            <span>Helmet: Void Halo</span>
+            <span>Armor: Astral Shell</span>
+            <span>Cape: Gravity Cloak</span>
+            <span>Boots: Singularity</span>
+            <span>Weapon: Void Scythe</span>
+            <span>Aura: Black Star</span>
+          </div>
+
+          <button class="equip-button">
+            LOCKED
+          </button>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="abilitiesPanel" class="content-panel">
+      <h2>ABILITY LAB</h2>
+
+      <div class="ability-grid">
+
+        <article class="ability-card">
+          <div>⚡</div>
+          <h3>DASH STRIKE</h3>
+          <p>Destroy nearby obstacles.</p>
+          <strong>35 ENERGY</strong>
+        </article>
+
+        <article class="ability-card">
+          <div>🛡️</div>
+          <h3>ENERGY SHIELD</h3>
+          <p>Protect yourself from one hit.</p>
+          <strong>20 ENERGY</strong>
+        </article>
+
+        <article class="ability-card">
+          <div>❄️</div>
+          <h3>TIME FREEZE</h3>
+          <p>Temporarily slow the world.</p>
+          <strong>LOCKED</strong>
+        </article>
+
+        <article class="ability-card">
+          <div>☄️</div>
+          <h3>METEOR</h3>
+          <p>Clear a dangerous wave.</p>
+          <strong>LOCKED</strong>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="missionsPanel" class="content-panel">
+      <h2>MISSIONS</h2>
+
+      <div class="mission-list">
+
+        <div class="mission">
+          <strong>RUN 1,000 METERS</strong>
+          <span>0 / 1,000</span>
+          <div class="progress">
+            <i style="width:0%"></i>
+          </div>
+          <b>+500 GEMS</b>
+        </div>
+
+        <div class="mission">
+          <strong>REACH x10 COMBO</strong>
+          <span>0 / 10</span>
+          <div class="progress">
+            <i style="width:0%"></i>
+          </div>
+          <b>+1,000 GEMS</b>
+        </div>
+
+        <div class="mission">
+          <strong>PERFORM 5 NEAR MISSES</strong>
+          <span>0 / 5</span>
+          <div class="progress">
+            <i style="width:0%"></i>
+          </div>
+          <b>RARE CHEST</b>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="worldsPanel" class="content-panel">
+      <h2>WORLDS</h2>
+
+      <div class="world-grid">
+
+        <article class="world-card selected">
+          <div>🌲</div>
+          <h3>ANCIENT JUNGLE</h3>
+          <p>Dense forests and ancient ruins.</p>
+          <strong>UNLOCKED</strong>
+        </article>
+
+        <article class="world-card locked">
+          <div>🌋</div>
+          <h3>VOLCANIC WASTES</h3>
+          <p>Lava changes the safe routes.</p>
+          <strong>LOCKED</strong>
+        </article>
+
+        <article class="world-card locked">
+          <div>❄️</div>
+          <h3>FROST REALM</h3>
+          <p>Ice reduces movement control.</p>
+          <strong>LOCKED</strong>
+        </article>
+
+        <article class="world-card locked">
+          <div>🌌</div>
+          <h3>VOID REALM</h3>
+          <p>Gravity itself becomes dangerous.</p>
+          <strong>LOCKED</strong>
+        </article>
+
+      </div>
+    </section>
+
+    <section id="settingsPanel" class="content-panel">
+      <h2>SETTINGS</h2>
+
+      <div class="settings-list">
+
+        <label>
+          Graphics
+          <select id="graphicsQuality">
+            <option value="high">HIGH</option>
+            <option value="medium">MEDIUM</option>
+            <option value="low">LOW</option>
+          </select>
+        </label>
+
+        <label>
+          Reduced Effects
+          <input id="reducedEffects" type="checkbox">
+        </label>
+
+        <label>
+          Screen Shake
+          <input id="screenShake" type="checkbox" checked>
+        </label>
+
+      </div>
+    </section>
+
+  </main>
+
+</div>
+
+<script src="game.js"></script>
+
+</body>
+</html>
