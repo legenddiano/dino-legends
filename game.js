@@ -1,2084 +1,2221 @@
 "use strict";
 
 /* =========================================================
-DINO LEGENDS — GAME ENGINE V20
-========================================================= */
+   DINO LEGENDS
+   VERSION 20
+   ========================================================= */
 
 const $ = id => document.getElementById(id);
+
 const canvas = $("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const previewCanvas = $("previewCanvas");
+const previewCtx = previewCanvas.getContext("2d");
+
+const profileCanvas = $("profileCanvas");
+const profileCtx = profileCanvas.getContext("2d");
+
+const W = canvas.width;
+const H = canvas.height;
+const GROUND = 435;
+
 const SAVE_KEY = "DINO_LEGENDS_V20";
-const OLD_KEYS = ["DINO_LEGENDS_V11", "DINO_LEGENDS_V10"];
-
-const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-const rand = (a, b) => Math.random() * (b - a) + a;
-const pick = arr => arr[Math.floor(Math.random() * arr.length)];
 
 /* =========================================================
-SKINS
-========================================================= */
+   SKINS
+   ========================================================= */
 
-const skinTemplates = [
-["Arthur Rex","⚔️","LEGENDARY","#d8b56a"],
-["Ghost Rex","👻","EPIC","#aab9ff"],
-["Price Raptor","🎯","LEGENDARY","#4f79b8"],
-["Leon Rex","🦁","EPIC","#d49a63"],
-["Agent Rex","🕶️","LEGENDARY","#53647d"],
-["Michael Rex","🚗","EPIC","#bd7d45"],
-["CJ Rex","🏙️","LEGENDARY","#4375bb"],
-["Cyber Rex","🤖","MYTHIC","#2de6ff"],
-["Samurai Rex","🥷","MYTHIC","#b75dff"],
-["Valkyrie Rex","🪽","MYTHIC","#dce8ff"],
-["Dragon Lord","🐉","DIVINE","#ff7a32"],
-["Demon Rex","😈","MYTHIC","#ff315d"],
-["Ice Emperor","🧊","MYTHIC","#aeeeff"],
-["Storm Emperor","⚡","MYTHIC","#5b9cff"],
-["Void Emperor","🌌","DIVINE","#8e63ff"],
-["Golden Titan","👑","DIVINE","#ffd75a"],
-["Neon Phantom","💠","MYTHIC","#25ffff"],
-["Blood Moon Rex","🌑","DIVINE","#ff315f"],
-["Galaxy Rex","🌠","DIVINE","#c25cff"],
-["Eternal Dragon","♾️","DIVINE","#dfffff"]
+const SKINS = [
+  {
+    name:"Arthur Rex",
+    rarity:"LEGENDARY",
+    cost:0,
+    primary:"#d7b66b",
+    secondary:"#263346",
+    accent:"#fff0a8",
+    weapon:"sword"
+  },
+  {
+    name:"Ghost Rex",
+    rarity:"PHANTOM",
+    cost:5000,
+    primary:"#b9c7dc",
+    secondary:"#394861",
+    accent:"#9fc5ff",
+    weapon:"ghost"
+  },
+  {
+    name:"Price Raptor",
+    rarity:"ELITE",
+    cost:15000,
+    primary:"#687895",
+    secondary:"#101827",
+    accent:"#ff536d",
+    weapon:"rifle"
+  },
+  {
+    name:"Leon Rex",
+    rarity:"SURVIVOR",
+    cost:30000,
+    primary:"#d29b62",
+    secondary:"#27321e",
+    accent:"#ffbf54",
+    weapon:"blade"
+  },
+  {
+    name:"Agent Rex",
+    rarity:"STEALTH",
+    cost:50000,
+    primary:"#52647b",
+    secondary:"#10131d",
+    accent:"#61d9ff",
+    weapon:"pistol"
+  },
+  {
+    name:"Michael Rex",
+    rarity:"OUTLAW",
+    cost:80000,
+    primary:"#a87950",
+    secondary:"#222a34",
+    accent:"#ffbc4d",
+    weapon:"bat"
+  },
+  {
+    name:"CJ Rex",
+    rarity:"STREET KING",
+    cost:120000,
+    primary:"#6c9d79",
+    secondary:"#1b2430",
+    accent:"#54f0a4",
+    weapon:"chain"
+  },
+  {
+    name:"Cyber Rex",
+    rarity:"CYBER",
+    cost:200000,
+    primary:"#28d9ff",
+    secondary:"#10283a",
+    accent:"#ff4fd8",
+    weapon:"energy"
+  },
+  {
+    name:"Samurai Rex",
+    rarity:"SHADOW",
+    cost:300000,
+    primary:"#8b6476",
+    secondary:"#211827",
+    accent:"#ff5577",
+    weapon:"katana"
+  },
+  {
+    name:"Valkyrie Rex",
+    rarity:"SKY LEGEND",
+    cost:450000,
+    primary:"#e6edf5",
+    secondary:"#394a68",
+    accent:"#b8e7ff",
+    weapon:"wing"
+  },
+  {
+    name:"Dragon Lord",
+    rarity:"ANCIENT",
+    cost:650000,
+    primary:"#8d563d",
+    secondary:"#351719",
+    accent:"#ff6538",
+    weapon:"dragon"
+  },
+  {
+    name:"Demon Rex",
+    rarity:"INFERNAL",
+    cost:900000,
+    primary:"#a32943",
+    secondary:"#24101b",
+    accent:"#ff284f",
+    weapon:"demon"
+  },
+  {
+    name:"Ice Emperor",
+    rarity:"FROSTBORN",
+    cost:1300000,
+    primary:"#b9ecff",
+    secondary:"#214a63",
+    accent:"#66eaff",
+    weapon:"ice"
+  },
+  {
+    name:"Storm Emperor",
+    rarity:"THUNDERBORN",
+    cost:1800000,
+    primary:"#718dff",
+    secondary:"#17204a",
+    accent:"#fff06a",
+    weapon:"storm"
+  },
+  {
+    name:"Void Emperor",
+    rarity:"COSMIC",
+    cost:2500000,
+    primary:"#9e68ff",
+    secondary:"#1c1240",
+    accent:"#e8c7ff",
+    weapon:"void"
+  },
+  {
+    name:"Golden Titan",
+    rarity:"ROYAL",
+    cost:3500000,
+    primary:"#ffd75c",
+    secondary:"#573f13",
+    accent:"#fff4a4",
+    weapon:"crown"
+  },
+  {
+    name:"Neon Phantom",
+    rarity:"NEON",
+    cost:5000000,
+    primary:"#23f1dc",
+    secondary:"#092b31",
+    accent:"#ff4ed1",
+    weapon:"neon"
+  },
+  {
+    name:"Blood Moon Rex",
+    rarity:"NIGHTMARE",
+    cost:7000000,
+    primary:"#8f2637",
+    secondary:"#210b14",
+    accent:"#ff334f",
+    weapon:"moon"
+  },
+  {
+    name:"Galaxy Rex",
+    rarity:"GALACTIC",
+    cost:10000000,
+    primary:"#a76dff",
+    secondary:"#1a1541",
+    accent:"#62eaff",
+    weapon:"galaxy"
+  },
+  {
+    name:"Eternal Dragon",
+    rarity:"DIVINE",
+    cost:15000000,
+    primary:"#d8f8ff",
+    secondary:"#294d56",
+    accent:"#fff27a",
+    weapon:"eternal"
+  }
 ];
 
-const iconSet = [
-"🐲","🦕","🦖","🐉","👾","🤖","🦄","🌟","☄️","🪐",
-"💀","🪽","🔥","❄️","⚡","🌌","👑","💎","🗿","🎭"
-];
+/* =========================================================
+   REDEEM
+   ========================================================= */
 
-const rarityCost = {
-COMMON: 0,
-EPIC: 50000,
-LEGENDARY: 500000,
-MYTHIC: 5000000,
-DIVINE: 50000000
-};
-
-const skins = skinTemplates.map((x, i) => ({
-id: i,
-name: x[0],
-icon: x[1],
-rarity: x[2],
-color: x[3],
-cost: i === 0 ? 0 : rarityCost[x[2]] + Math.floor(i * 37500)
-}));
-
-while (skins.length < 100) {
-const i = skins.length;
-const rarity =
-i < 35 ? "COMMON" :
-i < 60 ? "EPIC" :
-i < 80 ? "LEGENDARY" :
-i < 95 ? "MYTHIC" : "DIVINE";
-
-skins.push({
-id: i,
-name: `${rarity} Beast ${i + 1}`,
-icon: iconSet[i % iconSet.length],
-rarity,
-color: pick([
-"#62ecff","#ff62c7","#8067ff","#ffd866",
-"#67ffad","#ff6b6b","#a78bfa","#fb7185"
-]),
-cost: rarityCost[rarity] + Math.floor(i * 25000)
+const REDEEM_CODES = Object.freeze({
+  TRILLION1: 1000000000000,
+  DINO100: 100,
+  LEGEND500: 500,
+  FANTASY1K: 1000,
+  MYTHIC50K: 50000,
+  LEGENDARY1M: 1000000
 });
-}
 
 /* =========================================================
-SAVE SYSTEM
-========================================================= */
+   SAVE
+   ========================================================= */
 
-const defaultSave = {
-version: 20,
-gems: 2500,
-best: 0,
-skin: 0,
-owned: [0],
-usedCodes: [],
-runs: 0,
-totalGems: 2500,
-totalScore: 0,
-upgrades: {
-speed: 0,
-jump: 0,
-shield: 0,
-dash: 0,
-magnet: 0,
-combo: 0
-},
-missions: {},
-claimedMissions: [],
-settings: {
-sound: true
-}
+const DEFAULT_SAVE = {
+  version:20,
+  gems:2500,
+  best:0,
+  skin:0,
+  owned:[0],
+  used:[],
+  runs:0,
+
+  upgrades:{
+    speed:0,
+    jump:0,
+    shield:0,
+    magnet:0
+  },
+
+  missions:{
+    runs:0,
+    gems:0,
+    jumps:0,
+    dash:0,
+    score:0
+  },
+
+  world:"FOREST"
 };
-
-function cloneDefault() {
-return JSON.parse(JSON.stringify(defaultSave));
-}
-
-function loadSave() {
-let raw = localStorage.getItem(SAVE_KEY);
-
-if (!raw) {
-for (const key of OLD_KEYS) {
-const old = localStorage.getItem(key);
-if (old) {
-raw = old;
-break;
-}
-}
-}
-
-let data = cloneDefault();
-
-try {
-if (raw) data = {...data, ...JSON.parse(raw)};
-} catch {
-data = cloneDefault();
-}
-
-data.owned = Array.isArray(data.owned) ? [...new Set(data.owned.map(Number))] : [0];
-if (!data.owned.includes(0)) data.owned.unshift(0);
-
-data.usedCodes = Array.isArray(data.usedCodes)
-? [...new Set(data.usedCodes.map(x => String(x).toUpperCase()))]
-: Array.isArray(data.used)
-? [...new Set(data.used.map(x => String(x).toUpperCase()))]
-: [];
-
-data.upgrades = {...defaultSave.upgrades, ...(data.upgrades || {})};
-data.missions = {...defaultSave.missions, ...(data.missions || {})};
-data.claimedMissions = Array.isArray(data.claimedMissions)
-? data.claimedMissions
-: [];
-
-data.version = 20;
-return data;
-}
 
 let save = loadSave();
 
-function persist() {
-localStorage.setItem(SAVE_KEY, JSON.stringify(save));
-}
-
-/* =========================================================
-REDEEM
-========================================================= */
-
-const REDEEM_CODES = Object.freeze({
-TRILLION1: 1000000000000,
-DINO100: 100,
-LEGEND500: 500,
-FANTASY1K: 1000,
-MYTHIC50K: 50000,
-LEGENDARY1M: 1000000
-});
-
-function redeem() {
-const input = $("codeInput");
-if (!input) return;
-
-const code = String(input.value || "")
-.trim()
-.replace(/\s+/g, "")
-.toUpperCase();
-
-if (!code) {
-showMessage("Enter a code first.", false);
-return;
-}
-
-if (save.usedCodes.includes(code)) {
-showMessage("❌ This code has already been used.", false);
-return;
-}
-
-const reward = REDEEM_CODES[code];
-
-if (typeof reward !== "number") {
-showMessage("❌ Invalid redeem code.", false);
-return;
-}
-
-save.gems += reward;
-save.totalGems += reward;
-save.usedCodes.push(code);
-
-persist();
-updateUI();
-input.value = "";
-
-showMessage(
-`🎉 Redeemed successfully! +${reward.toLocaleString()} gems`,
-true
-);
-}
-
-function showMessage(text, good = true) {
-const el = $("codeMessage");
-if (!el) return;
-
-el.textContent = text;
-el.classList.toggle("error", !good);
-el.classList.toggle("success", good);
-}
-
-/* =========================================================
-PLAYER / GAME STATE
-========================================================= */
-
-const GROUND = 430;
-
-const player = {
-x: 150,
-y: GROUND - 72,
-w: 60,
-h: 72,
-vy: 0,
-jumps: 0,
-invincible: 0,
-dash: 0
-};
-
-let running = false;
-let paused = false;
-let score = 0;
-let speed = 7;
-let health = 3;
-let combo = 1;
-let comboTimer = 0;
-let lastTime = 0;
-let obstacleTimer = 0;
-let gemTimer = 0;
-let powerTimer = 0;
-let worldTime = 0;
-
-let obstacles = [];
-let gems = [];
-let particles = [];
-let powerups = [];
-let shake = 0;
-let activeRarity = "ALL";
-
-/* =========================================================
-MISSIONS
-========================================================= */
-
-const missionDefinitions = [
-{
-id: "run",
-icon: "🏃",
-name: "First Adventure",
-desc: "Start 1 adventure",
-target: 1,
-reward: 500
-},
-{
-id: "gems",
-icon: "💎",
-name: "Gem Hunter",
-desc: "Collect 100 gems",
-target: 100,
-reward: 2500
-},
-{
-id: "jumps",
-icon: "🪽",
-name: "Sky Master",
-desc: "Make 25 jumps",
-target: 25,
-reward: 10000
-},
-{
-id: "dash",
-icon: "⚡",
-name: "Speed Demon",
-desc: "Use Dash 10 times",
-target: 10,
-reward: 15000
-},
-{
-id: "score",
-icon: "🏆",
-name: "Legendary Run",
-desc: "Reach 10,000 score",
-target: 10000,
-reward: 50000
-},
-{
-id: "combo",
-icon: "🔥",
-name: "Combo Master",
-desc: "Reach x10 combo",
-target: 10,
-reward: 100000
-}
-];
-
-function missionValue(id) {
-return Number(save.missions[id] || 0);
-}
-
-function missionProgress(id, value) {
-save.missions[id] = Math.max(missionValue(id), value);
-persist();
-}
-
-function claimMission(id) {
-const m = missionDefinitions.find(x => x.id === id);
-if (!m) return;
-
-const value = missionValue(id);
-
-if (value < m.target) return;
-if (save.claimedMissions.includes(id)) return;
-
-save.claimedMissions.push(id);
-save.gems += m.reward;
-save.totalGems += m.reward;
-
-persist();
-renderMissions();
-updateUI();
-}
-
-function renderMissions() {
-const grid = $("missionGrid");
-if (!grid) return;
-
-grid.innerHTML = "";
-
-let completed = 0;
-
-missionDefinitions.forEach(m => {
-const value = missionValue(m.id);
-const claimed = save.claimedMissions.includes(m.id);
-const ready = value >= m.target;
-
-```
-if (claimed) completed++;
-
-const percent = clamp((value / m.target) * 100, 0, 100);
-
-const card = document.createElement("article");
-card.className = `item mission-card ${ready && !claimed ? "ready" : ""}`;
-
-card.innerHTML = `
-  <div class="icon">${m.icon}</div>
-  <h3>${m.name}</h3>
-  <small>MISSION</small>
-  <p>${m.desc}</p>
-
-  <div class="missionProgress">
-    <i style="width:${percent}%"></i>
-  </div>
-
-  <div class="missionNumbers">
-    <span>${Math.min(value, m.target).toLocaleString()} / ${m.target.toLocaleString()}</span>
-    <b>💎 ${m.reward.toLocaleString()}</b>
-  </div>
-
-  <footer>
-    <span class="price">
-      ${claimed ? "✓ CLAIMED" : ready ? "🎁 READY" : "IN PROGRESS"}
-    </span>
-    <button class="action" ${ready && !claimed ? "" : "disabled"}>
-      ${claimed ? "CLAIMED" : ready ? "CLAIM" : "LOCKED"}
-    </button>
-  </footer>
-`;
-
-const button = card.querySelector("button");
-
-if (ready && !claimed) {
-  button.onclick = () => claimMission(m.id);
-}
-
-grid.appendChild(card);
-```
-
-});
-
-const count = $("missionCount");
-if (count) count.textContent = `${completed} / ${missionDefinitions.length}`;
-}
-
-/* =========================================================
-LEVEL / PROFILE
-========================================================= */
-
-function getLevel() {
-return Math.max(1, Math.floor(save.best / 2500) + 1);
-}
-
-function getRank() {
-const l = getLevel();
-
-if (l >= 50) return "IMMORTAL";
-if (l >= 40) return "MYTHIC";
-if (l >= 25) return "LEGEND";
-if (l >= 15) return "ELITE";
-if (l >= 5) return "HUNTER";
-return "ROOKIE";
-}
-
-function getRarityName() {
-return skins[save.skin]?.rarity || "COMMON";
-}
-
-/* =========================================================
-UI
-========================================================= */
-
-function updateUI() {
-const level = getLevel();
-
-const values = {
-gems: save.gems.toLocaleString(),
-bestScore: Math.floor(save.best).toLocaleString(),
-level,
-score: Math.floor(score).toLocaleString(),
-combo: `x${combo}`,
-speedHud: speed.toFixed(1),
-profileLevel: level,
-profileBest: Math.floor(save.best).toLocaleString(),
-profileRuns: save.runs.toLocaleString(),
-statRuns: save.runs.toLocaleString(),
-statGems: save.totalGems.toLocaleString(),
-statSkins: save.owned.length.toLocaleString()
-};
-
-Object.entries(values).forEach(([id, value]) => {
-const el = $(id);
-if (el) el.textContent = value;
-});
-
-const hearts = Math.max(0, health);
-const healthEl = $("health");
-
-if (healthEl) {
-healthEl.textContent =
-"❤️".repeat(Math.min(8, hearts)) +
-"🖤".repeat(Math.max(0, 3 - hearts));
-}
-
-const xp = save.best % 2500;
-const percent = (xp / 2500) * 100;
-
-const xpBar = $("xpBar");
-if (xpBar) xpBar.style.width = `${percent}%`;
-
-const xpText = $("xpText");
-if (xpText) xpText.textContent = `${Math.floor(xp)} / 2500 XP`;
-
-const rank = $("rank");
-if (rank) rank.textContent = getRank();
-
-const skin = skins[save.skin] || skins[0];
-
-const avatar = $("avatar");
-if (avatar) avatar.textContent = skin.icon;
-
-const badge = $("rarityBadge");
-if (badge) {
-badge.textContent = skin.rarity;
-badge.dataset.rarity = skin.rarity;
-}
-
-const name = $("profileName");
-if (name) name.textContent = skin.name;
-
-const skinCount = $("skinCount");
-if (skinCount) skinCount.textContent = `${save.owned.length} / ${skins.length}`;
-
-const completedMissions =
-missionDefinitions.filter(m => save.claimedMissions.includes(m.id)).length;
-
-const missionStat = $("statMissions");
-if (missionStat) missionStat.textContent = completedMissions;
-}
-
-/* =========================================================
-SKINS
-========================================================= */
-
-function renderSkins() {
-const grid = $("skinGrid");
-if (!grid) return;
-
-grid.innerHTML = "";
-
-skins
-.filter(s => activeRarity === "ALL" || s.rarity === activeRarity)
-.forEach(s => {
-const owned = save.owned.includes(s.id);
-const equipped = save.skin === s.id;
-
-```
-  const card = document.createElement("article");
-  card.className = `item skin-card rarity-${s.rarity.toLowerCase()}`;
-
-  card.style.setProperty("--skin-color", s.color);
-
-  card.innerHTML = `
-    <div class="skinVisual">
-      <div class="skinAura"></div>
-      <div class="skinCreature">${s.icon}</div>
-      <span class="rarity">${s.rarity}</span>
-    </div>
-
-    <h3>${s.name}</h3>
-    <small>${s.rarity} CHAMPION</small>
-
-    <p>
-      ${
-        owned
-          ? equipped
-            ? "Currently equipped."
-            : "Owned • ready to equip."
-          : "Unlock this champion skin."
+function loadSave(){
+
+  try{
+
+    const raw = localStorage.getItem(SAVE_KEY);
+
+    if(!raw){
+      return structuredClone(DEFAULT_SAVE);
+    }
+
+    const parsed = JSON.parse(raw);
+
+    return {
+      ...structuredClone(DEFAULT_SAVE),
+      ...parsed,
+      owned:Array.isArray(parsed.owned) ? parsed.owned : [0],
+      used:Array.isArray(parsed.used) ? parsed.used : [],
+      upgrades:{
+        ...DEFAULT_SAVE.upgrades,
+        ...(parsed.upgrades || {})
+      },
+      missions:{
+        ...DEFAULT_SAVE.missions,
+        ...(parsed.missions || {})
       }
-    </p>
+    };
 
-    <footer>
-      <span class="price">
-        ${owned ? "✓ OWNED" : `💎 ${s.cost.toLocaleString()}`}
-      </span>
+  }catch(error){
 
-      <button class="action">
-        ${equipped ? "EQUIPPED" : owned ? "EQUIP" : "UNLOCK"}
-      </button>
-    </footer>
-  `;
+    console.warn("Save recovery:",error);
 
-  const button = card.querySelector("button");
+    return structuredClone(DEFAULT_SAVE);
+  }
+}
 
-  button.onclick = () => {
-    if (equipped) return;
+function persist(){
 
-    if (owned) {
-      save.skin = s.id;
-      persist();
-      renderSkins();
-      updateUI();
-      return;
-    }
+  try{
+    localStorage.setItem(
+      SAVE_KEY,
+      JSON.stringify(save)
+    );
+  }catch(error){
+    console.warn("Save failed:",error);
+  }
+}
 
-    if (save.gems < s.cost) {
-      showMessage("❌ Not enough gems.", false);
-      return;
-    }
+/* =========================================================
+   GAME STATE
+   ========================================================= */
 
-    save.gems -= s.cost;
-    save.owned.push(s.id);
-    save.skin = s.id;
+let running=false;
+let gameOver=false;
 
-    persist();
-    renderSkins();
-    updateUI();
+let score=0;
+let speed=7;
+
+let health=3;
+let maxHealth=3;
+
+let combo=1;
+
+let lastTime=0;
+
+let spawnTimer=0;
+let gemTimer=0;
+
+let dashTimer=0;
+let dashCooldown=0;
+
+let shieldActive=false;
+
+let particles=[];
+let obstacles=[];
+let collectibles=[];
+
+let worldColor="#08182c";
+
+const player={
+  x:160,
+  y:GROUND-78,
+  w:70,
+  h:78,
+  vy:0,
+  jumps:0,
+  grounded:true
+};
+
+/* =========================================================
+   LEVEL / RANK
+   ========================================================= */
+
+function getLevel(){
+
+  return Math.max(
+    1,
+    Math.floor(save.best/2500)+1
+  );
+}
+
+function getRank(){
+
+  const l=getLevel();
+
+  if(l>=50) return "DIVINE";
+  if(l>=40) return "MYTHIC";
+  if(l>=30) return "LEGEND";
+  if(l>=20) return "ELITE";
+  if(l>=10) return "HUNTER";
+
+  return "ROOKIE";
+}
+
+/* =========================================================
+   UI
+   ========================================================= */
+
+function updateUI(){
+
+  const level=getLevel();
+
+  const elements={
+    gems:save.gems.toLocaleString(),
+    bestScore:Math.floor(save.best).toLocaleString(),
+    level,
+    score:Math.floor(score).toLocaleString(),
+    combo:"x"+combo,
+    worldHud:save.world,
+    profileName:SKINS[save.skin]?.name || "Arthur Rex",
+    profileLevel:level,
+    profileBest:Math.floor(save.best).toLocaleString(),
+    rank:getRank(),
+    runs:save.runs,
+    ownedSkins:`${save.owned.length} / ${SKINS.length}`,
+    skinCount:`${save.owned.length} / ${SKINS.length}`
   };
 
-  grid.appendChild(card);
-});
-```
+  for(const [id,value] of Object.entries(elements)){
+    const el=$(id);
+    if(el) el.textContent=value;
+  }
 
+  const hp=Math.max(0,health);
+
+  const hpEl=$("health");
+
+  if(hpEl){
+
+    hpEl.textContent=
+      "❤️".repeat(Math.min(hp,8))+
+      "🖤".repeat(Math.max(0,3-hp));
+  }
+
+  const progress=save.best%2500;
+
+  const bar=$("xpBar");
+
+  if(bar){
+    bar.style.width=
+      Math.min(100,progress/25)+"%";
+  }
+
+  const xpText=$("xpText");
+
+  if(xpText){
+    xpText.textContent=
+      `${Math.floor(progress)} / 2500`;
+  }
+
+  drawProfile();
 }
 
 /* =========================================================
-WORLDS
-========================================================= */
+   REDEEM
+   ========================================================= */
 
-function renderWorlds() {
-const grid = $("worldGrid");
-if (!grid) return;
+function showCodeMessage(text,type){
 
-const worlds = [
-["🌲","Enchanted Forest",0,"STARTER"],
-["🌙","Moonlit Ruins",2500,"LEVEL 2"],
-["🔥","Dragon Volcano",10000,"LEVEL 5"],
-["❄️","Frozen Kingdom",25000,"LEVEL 10"],
-["🌌","Astral Void",100000,"LEVEL 20"],
-["🌀","Eternal Rift",500000,"LEVEL 40"]
+  const el=$("codeMessage");
+
+  if(!el) return;
+
+  el.textContent=text;
+  el.className="code-message "+type;
+}
+
+function redeem(){
+
+  const input=$("codeInput");
+
+  if(!input) return;
+
+  const code=(input.value||"")
+    .trim()
+    .toUpperCase()
+    .replace(/\s+/g,"");
+
+  if(!code){
+
+    showCodeMessage(
+      "ENTER A REWARD CODE.",
+      "error"
+    );
+
+    return;
+  }
+
+  if(save.used.includes(code)){
+
+    showCodeMessage(
+      "THIS CODE HAS ALREADY BEEN USED.",
+      "error"
+    );
+
+    return;
+  }
+
+  if(!Object.prototype.hasOwnProperty.call(REDEEM_CODES,code)){
+
+    showCodeMessage(
+      "INVALID REDEEM CODE.",
+      "error"
+    );
+
+    return;
+  }
+
+  const reward=REDEEM_CODES[code];
+
+  save.gems+=reward;
+  save.used.push(code);
+
+  persist();
+  updateUI();
+
+  input.value="";
+
+  showCodeMessage(
+    `REDEEMED SUCCESSFULLY • +${reward.toLocaleString()} GEMS`,
+    "success"
+  );
+}
+
+/* =========================================================
+   PARTICLES
+   ========================================================= */
+
+function particle(x,y,color,count=8){
+
+  for(let i=0;i<count;i++){
+
+    particles.push({
+      x,
+      y,
+      vx:(Math.random()-.5)*5,
+      vy:(Math.random()-.5)*5,
+      life:30+Math.random()*30,
+      size:2+Math.random()*4,
+      color
+    });
+  }
+}
+
+function updateParticles(dt){
+
+  for(let i=particles.length-1;i>=0;i--){
+
+    const p=particles[i];
+
+    p.x+=p.vx*dt;
+    p.y+=p.vy*dt;
+    p.vy+=.05*dt;
+    p.life-=dt;
+
+    if(p.life<=0){
+      particles.splice(i,1);
+    }
+  }
+}
+
+function drawParticles(){
+
+  for(const p of particles){
+
+    ctx.globalAlpha=Math.max(0,p.life/50);
+    ctx.fillStyle=p.color;
+
+    ctx.fillRect(
+      p.x,
+      p.y,
+      p.size,
+      p.size
+    );
+  }
+
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   SKIN DRAWING
+   ========================================================= */
+
+function roundedRect(c,x,y,w,h,r){
+
+  c.beginPath();
+  c.roundRect(x,y,w,h,r);
+  c.fill();
+}
+
+function drawLegend(c,x,y,scale=1,index=save.skin,shadow=true){
+
+  const s=SKINS[index] || SKINS[0];
+
+  c.save();
+
+  c.translate(x,y);
+  c.scale(scale,scale);
+
+  if(shadow){
+
+    c.shadowBlur=25;
+    c.shadowColor=s.accent;
+  }
+
+  /* aura */
+
+  c.globalAlpha=.08;
+  c.fillStyle=s.accent;
+  c.beginPath();
+  c.arc(0,-15,72,0,Math.PI*2);
+  c.fill();
+  c.globalAlpha=1;
+
+  /* tail */
+
+  c.fillStyle=s.primary;
+  c.strokeStyle="#080b13";
+  c.lineWidth=4;
+
+  c.beginPath();
+  c.moveTo(-22,15);
+  c.quadraticCurveTo(-70,5,-80,28);
+  c.quadraticCurveTo(-52,39,-20,28);
+  c.closePath();
+  c.fill();
+  c.stroke();
+
+  /* legs */
+
+  c.fillStyle=s.secondary;
+
+  roundedRect(c,-30,31,20,45,7);
+  roundedRect(c,10,31,20,45,7);
+
+  c.fillStyle=s.accent;
+
+  roundedRect(c,-35,67,29,10,4);
+  roundedRect(c,6,67,29,10,4);
+
+  /* torso */
+
+  c.fillStyle=s.secondary;
+  c.strokeStyle="#080b13";
+  c.lineWidth=4;
+
+  roundedRect(c,-35,-18,70,60,16);
+  c.stroke();
+
+  /* chest plate */
+
+  c.fillStyle=s.primary;
+  roundedRect(c,-27,-10,54,17,6);
+
+  /* center reactor */
+
+  c.fillStyle=s.accent;
+  c.shadowBlur=shadow?14:0;
+  c.shadowColor=s.accent;
+
+  c.beginPath();
+  c.arc(0,18,6,0,Math.PI*2);
+  c.fill();
+
+  c.shadowBlur=0;
+
+  /* arms */
+
+  c.fillStyle=s.secondary;
+
+  c.save();
+  c.translate(-36,-2);
+  c.rotate(-.35);
+  roundedRect(c,-8,0,16,42,7);
+  c.restore();
+
+  c.save();
+  c.translate(36,-2);
+  c.rotate(.35);
+  roundedRect(c,-8,0,16,42,7);
+  c.restore();
+
+  /* neck */
+
+  c.fillStyle=s.primary;
+  c.beginPath();
+  c.arc(28,-27,13,0,Math.PI*2);
+  c.fill();
+  c.stroke();
+
+  /* head */
+
+  c.beginPath();
+  c.ellipse(30,-50,32,27,0,0,Math.PI*2);
+  c.fill();
+  c.stroke();
+
+  /* snout */
+
+  roundedRect(c,47,-48,27,16,7);
+  c.stroke();
+
+  /* visor */
+
+  c.fillStyle="#05070d";
+  roundedRect(c,30,-62,35,12,5);
+
+  c.fillStyle=s.accent;
+  c.shadowBlur=shadow?12:0;
+  c.shadowColor=s.accent;
+
+  roundedRect(c,50,-59,9,4,2);
+
+  c.shadowBlur=0;
+
+  /* teeth */
+
+  c.fillStyle="#fff";
+
+  for(let i=0;i<4;i++){
+    c.fillRect(
+      54+i*5,
+      -34,
+      4,
+      7
+    );
+  }
+
+  /* skin-specific gear */
+
+  c.strokeStyle=s.accent;
+  c.fillStyle=s.primary;
+
+  switch(s.weapon){
+
+    case "sword":
+      c.fillStyle="#dce7ef";
+      c.beginPath();
+      c.moveTo(-50,-20);
+      c.lineTo(-68,-70);
+      c.lineTo(-59,-75);
+      c.lineTo(-39,-28);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      break;
+
+    case "ghost":
+      c.globalAlpha=.55;
+      c.strokeStyle=s.accent;
+      c.lineWidth=5;
+      c.beginPath();
+      c.arc(30,-50,36,0,Math.PI*2);
+      c.stroke();
+      c.globalAlpha=1;
+      break;
+
+    case "rifle":
+    case "pistol":
+      c.fillStyle="#111827";
+      roundedRect(c,-65,3,38,9,3);
+      c.fillStyle=s.accent;
+      c.fillRect(-61,5,30,3);
+      break;
+
+    case "katana":
+      c.strokeStyle="#eee";
+      c.lineWidth=5;
+      c.beginPath();
+      c.moveTo(-55,-35);
+      c.lineTo(-76,-72);
+      c.stroke();
+      break;
+
+    case "wing":
+      c.fillStyle=s.accent;
+      c.globalAlpha=.65;
+
+      for(let i=0;i<4;i++){
+        c.beginPath();
+        c.ellipse(
+          -40,
+          -10-i*8,
+          25,
+          8,
+          -.5,
+          0,
+          Math.PI*2
+        );
+        c.fill();
+      }
+
+      c.globalAlpha=1;
+      break;
+
+    case "dragon":
+    case "demon":
+      c.fillStyle=s.accent;
+
+      c.beginPath();
+      c.moveTo(5,-72);
+      c.lineTo(16,-98);
+      c.lineTo(26,-74);
+      c.lineTo(38,-100);
+      c.lineTo(48,-70);
+      c.closePath();
+      c.fill();
+      break;
+
+    case "ice":
+      c.fillStyle=s.accent;
+
+      for(let i=0;i<5;i++){
+
+        c.beginPath();
+        c.moveTo(-35+i*18,-73);
+        c.lineTo(-27+i*18,-98-(i%2)*10);
+        c.lineTo(-17+i*18,-73);
+        c.closePath();
+        c.fill();
+      }
+
+      break;
+
+    case "storm":
+
+      c.strokeStyle=s.accent;
+      c.lineWidth=5;
+
+      c.beginPath();
+      c.moveTo(-10,-80);
+      c.lineTo(10,-58);
+      c.lineTo(-2,-43);
+      c.stroke();
+
+      break;
+
+    case "void":
+
+      c.fillStyle=s.accent;
+      c.globalAlpha=.6;
+
+      c.beginPath();
+      c.arc(30,-50,42,0,Math.PI*2);
+      c.fill();
+
+      c.globalAlpha=1;
+      break;
+
+    case "crown":
+
+      c.fillStyle="#ffe05e";
+      c.beginPath();
+      c.moveTo(0,-78);
+      c.lineTo(15,-99);
+      c.lineTo(25,-80);
+      c.lineTo(42,-99);
+      c.lineTo(48,-75);
+      c.closePath();
+      c.fill();
+      c.stroke();
+      break;
+
+    case "neon":
+
+      c.strokeStyle=s.accent;
+      c.lineWidth=3;
+
+      c.beginPath();
+      c.arc(
+        0,
+        -20,
+        65,
+        Math.PI*.1,
+        Math.PI*1.5
+      );
+      c.stroke();
+
+      break;
+
+    case "moon":
+
+      c.fillStyle="#16070e";
+      c.beginPath();
+      c.arc(30,-50,39,0,Math.PI*2);
+      c.fill();
+
+      c.fillStyle=s.accent;
+      c.beginPath();
+      c.arc(45,-55,23,0,Math.PI*2);
+      c.fill();
+
+      break;
+
+    case "galaxy":
+
+      for(let i=0;i<8;i++){
+
+        c.fillStyle=
+          i%2?s.accent:"#fff";
+
+        c.beginPath();
+        c.arc(
+          -30+Math.random()*120,
+          -85+Math.random()*75,
+          2,
+          0,
+          Math.PI*2
+        );
+        c.fill();
+      }
+
+      break;
+
+    case "eternal":
+
+      c.strokeStyle=s.accent;
+      c.lineWidth=5;
+
+      c.beginPath();
+      c.arc(30,-50,43,0,Math.PI*2);
+      c.stroke();
+
+      c.fillStyle=s.accent;
+
+      c.beginPath();
+      c.moveTo(-55,-10);
+      c.lineTo(-72,-28);
+      c.lineTo(-57,-42);
+      c.fill();
+
+      break;
+  }
+
+  c.restore();
+}
+
+/* =========================================================
+   PREVIEW
+   ========================================================= */
+
+function drawPreview(){
+
+  previewCtx.clearRect(
+    0,
+    0,
+    previewCanvas.width,
+    previewCanvas.height
+  );
+
+  previewCtx.fillStyle="#050712";
+  previewCtx.fillRect(
+    0,
+    0,
+    previewCanvas.width,
+    previewCanvas.height
+  );
+
+  drawLegend(
+    previewCtx,
+    90,
+    125,
+    .95,
+    save.skin
+  );
+}
+
+function drawProfile(){
+
+  profileCtx.clearRect(
+    0,
+    0,
+    profileCanvas.width,
+    profileCanvas.height
+  );
+
+  profileCtx.fillStyle="#050712";
+  profileCtx.fillRect(
+    0,
+    0,
+    profileCanvas.width,
+    profileCanvas.height
+  );
+
+  drawLegend(
+    profileCtx,
+    90,
+    128,
+    1,
+    save.skin
+  );
+}
+
+/* =========================================================
+   SKIN PANEL
+   ========================================================= */
+
+function renderSkins(){
+
+  const grid=$("skinGrid");
+
+  if(!grid) return;
+
+  grid.innerHTML="";
+
+  SKINS.forEach((skin,index)=>{
+
+    const owned=save.owned.includes(index);
+
+    const article=document.createElement("article");
+
+    article.className="item";
+
+    const preview=document.createElement("canvas");
+
+    preview.width=360;
+    preview.height=170;
+    preview.className="skin-preview";
+
+    const pctx=preview.getContext("2d");
+
+    pctx.fillStyle="#050712";
+    pctx.fillRect(0,0,360,170);
+
+    drawLegend(
+      pctx,
+      175,
+      132,
+      .72,
+      index
+    );
+
+    article.appendChild(preview);
+
+    const title=document.createElement("h3");
+    title.textContent=skin.name;
+
+    const rarity=document.createElement("small");
+    rarity.textContent=skin.rarity;
+
+    const desc=document.createElement("p");
+
+    desc.textContent=owned
+      ? "Unlocked • Ready to equip"
+      : "Unlock this legendary character.";
+
+    const footer=document.createElement("footer");
+
+    const price=document.createElement("span");
+
+    price.className="price";
+
+    price.textContent=
+      owned
+      ? "✓ OWNED"
+      : "💎 "+skin.cost.toLocaleString();
+
+    const button=document.createElement("button");
+
+    button.className="action";
+
+    if(save.skin===index){
+
+      button.textContent="EQUIPPED";
+      button.disabled=true;
+
+    }else if(owned){
+
+      button.textContent="EQUIP";
+
+      button.onclick=()=>{
+
+        save.skin=index;
+        persist();
+
+        renderSkins();
+        updateUI();
+        drawPreview();
+      };
+
+    }else{
+
+      button.textContent="UNLOCK";
+
+      button.onclick=()=>{
+
+        if(save.gems<skin.cost){
+
+          showCodeMessage(
+            "NOT ENOUGH GEMS.",
+            "error"
+          );
+
+          return;
+        }
+
+        save.gems-=skin.cost;
+        save.owned.push(index);
+        save.skin=index;
+
+        persist();
+
+        renderSkins();
+        updateUI();
+        drawPreview();
+      };
+    }
+
+    footer.append(price,button);
+
+    article.append(
+      title,
+      rarity,
+      desc,
+      footer
+    );
+
+    grid.appendChild(article);
+  });
+}
+
+/* =========================================================
+   MISSIONS
+   ========================================================= */
+
+function renderMissions(){
+
+  const grid=$("missionGrid");
+
+  if(!grid) return;
+
+  const missions=[
+    {
+      id:"runs",
+      icon:"🏃",
+      name:"First Legend",
+      desc:"Complete 5 runs.",
+      target:5,
+      reward:2500
+    },
+    {
+      id:"gems",
+      icon:"💎",
+      name:"Gem Hunter",
+      desc:"Collect 500 gems.",
+      target:500,
+      reward:10000
+    },
+    {
+      id:"jumps",
+      icon:"🪽",
+      name:"Sky Master",
+      desc:"Perform 50 jumps.",
+      target:50,
+      reward:15000
+    },
+    {
+      id:"dash",
+      icon:"⚡",
+      name:"Speed Demon",
+      desc:"Perform 30 dashes.",
+      target:30,
+      reward:25000
+    },
+    {
+      id:"score",
+      icon:"🏆",
+      name:"Legendary Score",
+      desc:"Reach 10000 score.",
+      target:10000,
+      reward:50000
+    }
+  ];
+
+  grid.innerHTML="";
+
+  missions.forEach(m=>{
+
+    const value=save.missions[m.id]||0;
+    const completed=value>=m.target;
+
+    const article=document.createElement("article");
+
+    article.className="item";
+
+    article.innerHTML=`
+      <div class="icon" style="font-size:48px">${m.icon}</div>
+      <h3>${m.name}</h3>
+      <small>MISSION</small>
+      <p>
+        ${m.desc}<br>
+        <b>${Math.min(value,m.target).toLocaleString()} /
+        ${m.target.toLocaleString()}</b>
+      </p>
+      <footer>
+        <span class="price">
+          💎 ${m.reward.toLocaleString()}
+        </span>
+        <button class="action" ${completed?"disabled":""}>
+          ${completed?"COMPLETED":"IN PROGRESS"}
+        </button>
+      </footer>
+    `;
+
+    grid.appendChild(article);
+  });
+}
+
+/* =========================================================
+   WORLDS
+   ========================================================= */
+
+function renderWorlds(){
+
+  const grid=$("worldGrid");
+
+  if(!grid) return;
+
+  const worlds=[
+    {
+      id:"FOREST",
+      icon:"🌲",
+      name:"Enchanted Forest",
+      requirement:0
+    },
+    {
+      id:"RUINS",
+      icon:"🌙",
+      name:"Moonlit Ruins",
+      requirement:2500
+    },
+    {
+      id:"VOLCANO",
+      icon:"🔥",
+      name:"Dragon Volcano",
+      requirement:10000
+    },
+    {
+      id:"ICE",
+      icon:"❄️",
+      name:"Frozen Kingdom",
+      requirement:25000
+    },
+    {
+      id:"VOID",
+      icon:"🌌",
+      name:"Astral Void",
+      requirement:100000
+    }
+  ];
+
+  grid.innerHTML="";
+
+  worlds.forEach(world=>{
+
+    const unlocked=
+      save.best>=world.requirement;
+
+    const article=document.createElement("article");
+
+    article.className="item";
+
+    article.innerHTML=`
+      <div class="icon" style="font-size:55px">${world.icon}</div>
+      <h3>${world.name}</h3>
+      <small>
+        ${unlocked?"UNLOCKED":"REQUIRES "+world.requirement.toLocaleString()}
+      </small>
+      <p>
+        ${
+          unlocked
+          ? "Realm available for your next adventure."
+          : "Increase your best score to unlock this realm."
+        }
+      </p>
+      <footer>
+        <span class="price">
+          ${unlocked?"✓ AVAILABLE":"🔒 LOCKED"}
+        </span>
+        <button
+          class="action"
+          ${unlocked?"":"disabled"}
+        >
+          ${unlocked?"ENTER":"LOCKED"}
+        </button>
+      </footer>
+    `;
+
+    const button=article.querySelector("button");
+
+    if(unlocked){
+
+      button.onclick=()=>{
+
+        save.world=world.id;
+
+        persist();
+        updateUI();
+
+        showCodeMessage(
+          `WORLD SELECTED: ${world.name.toUpperCase()}`,
+          "success"
+        );
+      };
+    }
+
+    grid.appendChild(article);
+  });
+}
+
+/* =========================================================
+   UPGRADES
+   ========================================================= */
+
+const UPGRADE_DATA=[
+  {
+    id:"speed",
+    icon:"⚡",
+    name:"Velocity Core",
+    description:"Increase maximum running speed.",
+    base:1000
+  },
+  {
+    id:"jump",
+    icon:"🪽",
+    name:"Aerial Core",
+    description:"Improve double-jump strength.",
+    base:1500
+  },
+  {
+    id:"shield",
+    icon:"🛡",
+    name:"Shield Core",
+    description:"Increase maximum health.",
+    base:2500
+  },
+  {
+    id:"magnet",
+    icon:"🧲",
+    name:"Gem Magnet",
+    description:"Increase gem pickup radius.",
+    base:3000
+  }
 ];
 
-grid.innerHTML = "";
+function upgradeCost(data){
 
-worlds.forEach(w => {
-const unlocked = save.best >= w[2];
+  const level=save.upgrades[data.id]||0;
 
-```
-const card = document.createElement("article");
-card.className = `item world-card ${unlocked ? "unlocked" : ""}`;
+  return Math.floor(
+    data.base*Math.pow(1.55,level)
+  );
+}
 
-card.innerHTML = `
-  <div class="icon">${w[0]}</div>
-  <h3>${w[1]}</h3>
-  <small>${w[3]}</small>
-  <p>
-    ${
-      unlocked
-        ? "Realm unlocked. Ready for adventure."
-        : `Reach ${w[2].toLocaleString()} best score.`
-    }
-  </p>
+function renderShop(){
 
-  <footer>
-    <span class="price">
-      ${unlocked ? "✓ UNLOCKED" : "🔒 LOCKED"}
-    </span>
+  const grid=$("shopGrid");
 
-    <button class="action" ${unlocked ? "" : "disabled"}>
-      ${unlocked ? "ENTER" : "LOCKED"}
-    </button>
-  </footer>
-`;
+  if(!grid) return;
 
-grid.appendChild(card);
-```
+  grid.innerHTML="";
 
-});
+  UPGRADE_DATA.forEach(data=>{
+
+    const level=save.upgrades[data.id]||0;
+    const cost=upgradeCost(data);
+
+    const article=document.createElement("article");
+
+    article.className="item";
+
+    article.innerHTML=`
+      <div class="icon" style="font-size:50px">
+        ${data.icon}
+      </div>
+
+      <h3>${data.name}</h3>
+
+      <small>
+        UPGRADE LEVEL ${level}
+      </small>
+
+      <p>
+        ${data.description}
+      </p>
+
+      <footer>
+        <span class="price">
+          💎 ${cost.toLocaleString()}
+        </span>
+
+        <button class="action">
+          UPGRADE
+        </button>
+      </footer>
+    `;
+
+    article.querySelector("button").onclick=()=>{
+
+      if(save.gems<cost){
+
+        showCodeMessage(
+          "NOT ENOUGH GEMS.",
+          "error"
+        );
+
+        return;
+      }
+
+      save.gems-=cost;
+      save.upgrades[data.id]=level+1;
+
+      persist();
+
+      renderShop();
+      updateUI();
+    };
+
+    grid.appendChild(article);
+  });
 }
 
 /* =========================================================
-UPGRADES
-========================================================= */
+   TABS
+   ========================================================= */
 
-const upgradeInfo = {
-speed: {
-icon: "⚡",
-name: "Run Speed",
-desc: "Increase your maximum movement speed.",
-base: 1000
-},
-jump: {
-icon: "🪽",
-name: "Double Jump",
-desc: "Increase jump power and air control.",
-base: 1500
-},
-shield: {
-icon: "🛡️",
-name: "Shield Core",
-desc: "Start each run with additional health.",
-base: 2500
-},
-dash: {
-icon: "💨",
-name: "Dash Engine",
-desc: "Increase Dash duration and power.",
-base: 3500
-},
-magnet: {
-icon: "🧲",
-name: "Gem Magnet",
-desc: "Increase the range used to collect gems.",
-base: 4500
-},
-combo: {
-icon: "🔥",
-name: "Combo Core",
-desc: "Make combo chains last longer.",
-base: 6000
-}
-};
+function setupTabs(){
 
-function upgradeCost(key) {
-const level = Number(save.upgrades[key] || 0);
-return upgradeInfo[key].base * (level + 1);
-}
+  document.querySelectorAll(".tab")
+    .forEach(button=>{
 
-function buyUpgrade(key) {
-const current = Number(save.upgrades[key] || 0);
+      button.addEventListener("click",()=>{
 
-if (current >= 10) {
-showMessage("MAX LEVEL REACHED.", false);
-return;
-}
+        document
+          .querySelectorAll(".tab")
+          .forEach(x=>x.classList.remove("active"));
 
-const cost = upgradeCost(key);
+        document
+          .querySelectorAll(".panel")
+          .forEach(x=>x.classList.remove("active"));
 
-if (save.gems < cost) {
-showMessage(`❌ Need ${cost.toLocaleString()} gems.`, false);
-return;
-}
+        button.classList.add("active");
 
-save.gems -= cost;
-save.upgrades[key] = current + 1;
+        const panel=$(button.dataset.panel);
 
-persist();
-renderShop();
-updateUI();
-}
-
-function renderShop() {
-const grid = $("shopGrid");
-if (!grid) return;
-
-grid.innerHTML = "";
-
-Object.entries(upgradeInfo).forEach(([key, info]) => {
-const level = Number(save.upgrades[key] || 0);
-const maxed = level >= 10;
-const cost = upgradeCost(key);
-
-```
-const card = document.createElement("article");
-card.className = "item upgrade-card";
-
-let bars = "";
-
-for (let i = 0; i < 10; i++) {
-  bars += `<i class="${i < level ? "filled" : ""}"></i>`;
-}
-
-card.innerHTML = `
-  <div class="icon">${info.icon}</div>
-  <h3>${info.name}</h3>
-  <small>LEVEL ${level} / 10</small>
-  <p>${info.desc}</p>
-
-  <div class="upgradeBars">${bars}</div>
-
-  <footer>
-    <span class="price">
-      ${maxed ? "✓ MAXED" : `💎 ${cost.toLocaleString()}`}
-    </span>
-
-    <button class="action" ${maxed ? "disabled" : ""}>
-      ${maxed ? "MAX" : "UPGRADE"}
-    </button>
-  </footer>
-`;
-
-card.querySelector("button").onclick = () => buyUpgrade(key);
-grid.appendChild(card);
-```
-
-});
+        if(panel){
+          panel.classList.add("active");
+        }
+      });
+    });
 }
 
 /* =========================================================
-INPUT / TABS
-========================================================= */
+   GAME RESET
+   ========================================================= */
 
-function setupTabs() {
-document.querySelectorAll(".tab").forEach(button => {
-button.onclick = () => {
-document.querySelectorAll(".tab")
-.forEach(x => x.classList.remove("active"));
+function resetGame(){
 
-```
-  document.querySelectorAll(".panel")
-    .forEach(x => x.classList.remove("active"));
+  score=0;
 
-  button.classList.add("active");
+  speed=
+    7+
+    (save.upgrades.speed||0)*.45;
 
-  const panel = $(button.dataset.panel);
-  if (panel) panel.classList.add("active");
-};
-```
+  maxHealth=
+    3+
+    (save.upgrades.shield||0);
 
-});
+  health=maxHealth;
 
-document.querySelectorAll(".filter").forEach(button => {
-button.onclick = () => {
-document.querySelectorAll(".filter")
-.forEach(x => x.classList.remove("active"));
+  combo=1;
 
-```
-  button.classList.add("active");
-  activeRarity = button.dataset.rarity;
-  renderSkins();
-};
-```
+  dashTimer=0;
+  dashCooldown=0;
 
-});
+  shieldActive=false;
+
+  obstacles=[];
+  collectibles=[];
+  particles=[];
+
+  spawnTimer=0;
+  gemTimer=0;
+
+  player.x=160;
+  player.y=GROUND-player.h;
+  player.vy=0;
+  player.jumps=0;
+  player.grounded=true;
 }
 
 /* =========================================================
-GAME CONTROL
-========================================================= */
+   START / END
+   ========================================================= */
 
-function resetRun() {
-score = 0;
-speed = 7 + save.upgrades.speed * 0.45;
-health = 3 + Math.min(2, save.upgrades.shield);
-combo = 1;
-comboTimer = 0;
+function startGame(){
 
-obstacleTimer = 0;
-gemTimer = 0;
-powerTimer = 0;
+  resetGame();
 
-worldTime = 0;
+  running=true;
+  gameOver=false;
 
-obstacles = [];
-gems = [];
-particles = [];
-powerups = [];
+  save.runs++;
+  save.missions.runs++;
 
-shake = 0;
+  persist();
 
-player.x = 150;
-player.y = GROUND - player.h;
-player.vy = 0;
-player.jumps = 0;
-player.invincible = 0;
-player.dash = 0;
+  $("startScreen")?.classList.add("hidden");
+  $("gameOverScreen")?.classList.add("hidden");
+
+  lastTime=performance.now();
+
+  requestAnimationFrame(loop);
+
+  renderMissions();
+  updateUI();
 }
 
-function startGame() {
-resetRun();
+function endGame(){
 
-running = true;
-paused = false;
+  if(gameOver) return;
 
-save.runs++;
-missionProgress("run", 1);
+  gameOver=true;
+  running=false;
 
-$("startScreen")?.classList.add("hidden");
-$("gameOverScreen")?.classList.add("hidden");
-$("pauseScreen")?.classList.add("hidden");
-
-lastTime = performance.now();
-
-requestAnimationFrame(gameLoop);
-
-renderMissions();
-updateUI();
-}
-
-function endGame() {
-if (!running) return;
-
-running = false;
-paused = false;
-
-const final = Math.floor(score);
-
-save.best = Math.max(save.best, final);
-save.totalScore += final;
-
-const reward = Math.max(25, Math.floor(final / 100));
-
-save.gems += reward;
-save.totalGems += reward;
-
-missionProgress("score", final);
-
-persist();
-
-$("finalScore").textContent = final.toLocaleString();
-$("runReward").textContent = `+${reward.toLocaleString()} gems`;
-
-$("gameOverScreen")?.classList.remove("hidden");
-
-renderMissions();
-renderWorlds();
-renderShop();
-updateUI();
-}
-
-function togglePause() {
-if (!running) return;
-
-paused = !paused;
-
-$("pauseScreen")?.classList.toggle("hidden", !paused);
-
-if (!paused) {
-lastTime = performance.now();
-requestAnimationFrame(gameLoop);
-}
-}
-
-/* =========================================================
-PLAYER ACTIONS
-========================================================= */
-
-function jump() {
-if (!running || paused) return;
-
-if (player.jumps < 2) {
-const jumpPower = 15 + save.upgrades.jump * 0.65;
-
-```
-player.vy = -jumpPower;
-player.jumps++;
-
-missionProgress("jumps", missionValue("jumps") + 1);
-
-spawnBurst(
-  player.x + player.w / 2,
-  player.y + player.h,
-  "#62ecff",
-  7
-);
-```
-
-}
-}
-
-function dash() {
-if (!running || paused || player.dash > 0) return;
-
-player.dash = 30 + save.upgrades.dash * 4;
-player.invincible = Math.max(player.invincible, 28);
-
-score += 75;
-combo = Math.min(10, combo + 1);
-comboTimer = 100 + save.upgrades.combo * 10;
-
-missionProgress("dash", missionValue("dash") + 1);
-
-spawnBurst(
-player.x,
-player.y + player.h / 2,
-"#ffd866",
-18
-);
-}
-
-function shield() {
-if (!running || paused) return;
-
-if (health <= 0) return;
-
-player.invincible =
-player.invincible > 0 ? 0 : 100 + save.upgrades.shield * 25;
-
-spawnBurst(
-player.x + player.w / 2,
-player.y + player.h / 2,
-"#62ecff",
-12
-);
-}
-
-/* =========================================================
-SPAWNING
-========================================================= */
-
-function spawnObstacle() {
-const type = Math.random();
-
-if (type < 0.55) {
-obstacles.push({
-type: "spike",
-x: 1220,
-y: GROUND - 55,
-w: 58,
-h: 55,
-damage: 1
-});
-} else if (type < 0.8) {
-obstacles.push({
-type: "wall",
-x: 1220,
-y: GROUND - 90,
-w: 42,
-h: 90,
-damage: 1
-});
-} else {
-obstacles.push({
-type: "orb",
-x: 1220,
-y: GROUND - rand(130, 230),
-w: 46,
-h: 46,
-damage: 1
-});
-}
-}
-
-function spawnGem() {
-gems.push({
-x: 1220,
-y: rand(145, 355),
-r: 12,
-phase: rand(0, Math.PI * 2)
-});
-}
-
-function spawnPowerup() {
-const type = Math.random() < 0.5 ? "heart" : "shield";
-
-powerups.push({
-x: 1220,
-y: rand(180, 340),
-r: 17,
-type,
-phase: rand(0, Math.PI * 2)
-});
-}
-
-function spawnStuff(dt) {
-obstacleTimer += dt;
-gemTimer += dt;
-powerTimer += dt;
-
-const difficulty = clamp(score / 12000, 0, 1);
-
-const obstacleDelay =
-Math.max(38, 74 - difficulty * 27 - save.upgrades.speed * 0.5);
-
-if (obstacleTimer >= obstacleDelay) {
-spawnObstacle();
-obstacleTimer = 0;
-
-```
-if (Math.random() < 0.22 + difficulty * 0.25) {
-  setTimeout(() => {
-    if (running) spawnObstacle();
-  }, 250);
-}
-```
-
-}
-
-if (gemTimer >= 25) {
-spawnGem();
-gemTimer = 0;
-}
-
-if (powerTimer >= 420) {
-spawnPowerup();
-powerTimer = 0;
-}
-}
-
-/* =========================================================
-COLLISION
-========================================================= */
-
-function collide(a, b, padding = 7) {
-return (
-a.x + padding < b.x + b.w &&
-a.x + a.w - padding > b.x &&
-a.y + padding < b.y + b.h &&
-a.y + a.h - padding > b.y
-);
-}
-
-/* =========================================================
-GAME UPDATE
-========================================================= */
-
-function update(dt) {
-worldTime += dt;
-
-const difficulty = clamp(score / 15000, 0, 1);
-
-speed = Math.min(
-18 + save.upgrades.speed * 0.2,
-7 +
-score / 1700 +
-save.upgrades.speed * 0.45 +
-difficulty * 2
-);
-
-if (player.dash > 0) {
-player.dash -= dt;
-speed += 8 + save.upgrades.dash * 0.4;
-}
-
-if (player.invincible > 0) {
-player.invincible -= dt;
-}
-
-player.vy += 0.82 * dt;
-player.y += player.vy * dt;
-
-if (player.y >= GROUND - player.h) {
-player.y = GROUND - player.h;
-player.vy = 0;
-player.jumps = 0;
-}
-
-score += dt * (0.22 + speed * 0.018);
-
-if (comboTimer > 0) {
-comboTimer -= dt;
-} else if (combo > 1) {
-combo = Math.max(1, combo - dt * 0.025);
-}
-
-combo = clamp(combo, 1, 10);
-
-if (combo >= 10) {
-missionProgress("combo", 10);
-}
-
-spawnStuff(dt);
-
-/* obstacles */
-
-for (let i = obstacles.length - 1; i >= 0; i--) {
-const o = obstacles[i];
-
-```
-o.x -= speed * dt;
-
-if (collide(player, o)) {
-  if (player.invincible > 0 || player.dash > 0) {
-    obstacles.splice(i, 1);
-    score += 100;
-    combo = Math.min(10, combo + 1);
-    comboTimer = 110 + save.upgrades.combo * 10;
-
-    spawnBurst(
-      o.x + o.w / 2,
-      o.y + o.h / 2,
-      "#ffd866",
-      18
-    );
-
-    shake = 8;
-  } else {
-    health--;
-    combo = 1;
-    player.invincible = 65;
-
-    obstacles.splice(i, 1);
-    shake = 14;
-
-    spawnBurst(
-      player.x + player.w / 2,
-      player.y + player.h / 2,
-      "#ff4f8d",
-      20
-    );
-
-    if (health <= 0) {
-      endGame();
-      return;
-    }
-  }
-} else if (o.x < -100) {
-  obstacles.splice(i, 1);
-}
-```
-
-}
-
-/* gems */
-
-const magnetRange =
-65 + save.upgrades.magnet * 22;
-
-for (let i = gems.length - 1; i >= 0; i--) {
-const g = gems[i];
-
-```
-g.x -= speed * dt;
-g.phase += 0.08 * dt;
-
-const dx = g.x - (player.x + player.w / 2);
-const dy = g.y - (player.y + player.h / 2);
-
-if (Math.hypot(dx, dy) < magnetRange) {
-  const reward = 25 + save.upgrades.combo * 3;
-
-  save.gems += reward;
-  save.totalGems += reward;
-
-  score += 50 * combo;
-
-  combo = Math.min(10, combo + 0.35);
-  comboTimer = 120 + save.upgrades.combo * 12;
-
-  missionProgress(
-    "gems",
-    Math.min(100, missionValue("gems") + 1)
+  save.best=Math.max(
+    save.best,
+    Math.floor(score)
   );
 
-  spawnBurst(g.x, g.y, "#62ecff", 10);
+  save.missions.score=Math.max(
+    save.missions.score,
+    Math.floor(score)
+  );
 
-  gems.splice(i, 1);
-} else if (g.x < -50) {
-  gems.splice(i, 1);
-}
-```
+  persist();
 
-}
+  const final=$("finalScore");
 
-/* powerups */
-
-for (let i = powerups.length - 1; i >= 0; i--) {
-const p = powerups[i];
-
-```
-p.x -= speed * dt;
-p.phase += 0.07 * dt;
-
-const box = {
-  x: p.x - p.r,
-  y: p.y - p.r,
-  w: p.r * 2,
-  h: p.r * 2
-};
-
-if (collide(player, box, 2)) {
-  if (p.type === "heart") {
-    health = Math.min(5, health + 1);
-  } else {
-    player.invincible = 180;
+  if(final){
+    final.textContent=
+      Math.floor(score).toLocaleString();
   }
 
-  score += 250;
-  spawnBurst(p.x, p.y, "#67ffad", 20);
-  powerups.splice(i, 1);
-} else if (p.x < -60) {
-  powerups.splice(i, 1);
-}
-```
+  $("finalGems").textContent=
+    Math.floor(score/100).toLocaleString();
 
-}
+  $("gameOverScreen")?.classList.remove("hidden");
 
-updateParticles();
-
-if (shake > 0) shake -= dt;
-
-persist();
-updateUI();
+  renderWorlds();
+  renderMissions();
+  renderShop();
+  updateUI();
 }
 
 /* =========================================================
-PARTICLES
-========================================================= */
+   INPUT
+   ========================================================= */
 
-function spawnBurst(x, y, color, amount = 10) {
-for (let i = 0; i < amount; i++) {
-particles.push({
-x,
-y,
-vx: rand(-4, 4),
-vy: rand(-5, 1),
-life: rand(18, 45),
-max: 45,
-size: rand(2, 6),
-color
-});
+function jump(){
+
+  if(!running) return;
+
+  if(player.jumps>=2) return;
+
+  const power=
+    15+
+    (save.upgrades.jump||0)*.65;
+
+  player.vy=-power;
+
+  player.jumps++;
+  player.grounded=false;
+
+  save.missions.jumps++;
+
+  particle(
+    player.x+30,
+    player.y+70,
+    "#62ecff",
+    8
+  );
+
+  persist();
 }
+
+function dash(){
+
+  if(!running) return;
+  if(dashCooldown>0) return;
+
+  dashTimer=30;
+  dashCooldown=70;
+
+  score+=100;
+  combo=Math.min(12,combo+1);
+
+  save.missions.dash++;
+
+  particle(
+    player.x,
+    player.y+35,
+    "#ff62c7",
+    15
+  );
+
+  persist();
 }
 
-function updateParticles() {
-for (let i = particles.length - 1; i >= 0; i--) {
-const p = particles[i];
+function shield(){
 
-```
-p.x += p.vx;
-p.y += p.vy;
-p.vy += 0.15;
-p.life--;
+  if(!running) return;
 
-if (p.life <= 0) particles.splice(i, 1);
-```
+  shieldActive=!shieldActive;
 
-}
+  particle(
+    player.x+30,
+    player.y+30,
+    "#62ecff",
+    12
+  );
 }
 
 /* =========================================================
-DRAWING
-========================================================= */
+   SPAWNING
+   ========================================================= */
 
-function roundedRect(x, y, w, h, r) {
-ctx.beginPath();
-ctx.roundRect(x, y, w, h, r);
+function spawnObjects(dt){
+
+  spawnTimer+=dt;
+  gemTimer+=dt;
+
+  const difficulty=
+    Math.min(35,score/450);
+
+  const obstacleDelay=
+    Math.max(
+      38,
+      72-difficulty
+    );
+
+  if(spawnTimer>obstacleDelay){
+
+    const h=
+      45+
+      Math.random()*35;
+
+    obstacles.push({
+      x:W+80,
+      y:GROUND-h,
+      w:42+Math.random()*25,
+      h,
+      type:Math.random()>.7?"tall":"normal"
+    });
+
+    spawnTimer=0;
+  }
+
+  if(gemTimer>25){
+
+    collectibles.push({
+      x:W+40,
+      y:180+Math.random()*180,
+      r:12,
+      spin:Math.random()*Math.PI*2
+    });
+
+    gemTimer=0;
+  }
 }
 
-function drawBackground() {
-const gradient = ctx.createLinearGradient(0, 0, 0, 520);
+/* =========================================================
+   COLLISION
+   ========================================================= */
 
-gradient.addColorStop(0, "#06081d");
-gradient.addColorStop(0.45, "#180c32");
-gradient.addColorStop(1, "#061d24");
+function collide(a,b){
 
-ctx.fillStyle = gradient;
-ctx.fillRect(0, 0, 1200, 520);
-
-/* moon */
-
-ctx.fillStyle = "#d8f5ff22";
-ctx.beginPath();
-ctx.arc(970, 105, 72, 0, Math.PI * 2);
-ctx.fill();
-
-ctx.fillStyle = "#d8f5ff";
-ctx.shadowBlur = 25;
-ctx.shadowColor = "#b7eaff";
-ctx.beginPath();
-ctx.arc(950, 92, 48, 0, Math.PI * 2);
-ctx.fill();
-ctx.shadowBlur = 0;
-
-/* stars */
-
-for (let i = 0; i < 90; i++) {
-const x = (i * 173 - score * 0.05) % 1200;
-const y = 20 + ((i * 47) % 270);
-
-```
-ctx.fillStyle =
-  i % 5 === 0
-    ? "#62ecffaa"
-    : "#ffffff88";
-
-ctx.fillRect(x < 0 ? x + 1200 : x, y, 2, 2);
-```
-
+  return(
+    a.x+10<
+      b.x+b.w &&
+    a.x+a.w-10>
+      b.x &&
+    a.y+10<
+      b.y+b.h &&
+    a.y+a.h>
+      b.y
+  );
 }
 
-/* mountains */
+/* =========================================================
+   UPDATE
+   ========================================================= */
 
-for (let i = 0; i < 10; i++) {
-const x =
-i * 180 -
-((score * 0.025) % 180);
+function update(dt){
 
-```
-ctx.fillStyle =
-  i % 2
-    ? "#13294a"
-    : "#10253c";
+  score+=dt*.24;
 
-ctx.beginPath();
-ctx.moveTo(x, 430);
-ctx.lineTo(x + 85, 285 - (i % 3) * 30);
-ctx.lineTo(x + 180, 430);
-ctx.fill();
-```
+  speed=Math.min(
+    18,
+    7+
+    score/1700+
+    (save.upgrades.speed||0)*.45
+  );
 
+  if(dashTimer>0){
+
+    dashTimer-=dt;
+    speed+=9;
+  }
+
+  if(dashCooldown>0){
+    dashCooldown-=dt;
+  }
+
+  /* gravity */
+
+  player.vy+=.85*dt;
+  player.y+=player.vy*dt;
+
+  if(player.y>=GROUND-player.h){
+
+    player.y=GROUND-player.h;
+    player.vy=0;
+
+    player.jumps=0;
+    player.grounded=true;
+
+  }else{
+
+    player.grounded=false;
+  }
+
+  spawnObjects(dt);
+
+  /* obstacles */
+
+  for(let i=obstacles.length-1;i>=0;i--){
+
+    const o=obstacles[i];
+
+    o.x-=speed*dt;
+
+    if(collide(player,o)){
+
+      if(shieldActive){
+
+        shieldActive=false;
+
+        obstacles.splice(i,1);
+
+        combo=Math.min(
+          12,
+          combo+1
+        );
+
+        particle(
+          player.x+30,
+          player.y+35,
+          "#62ecff",
+          25
+        );
+
+      }else{
+
+        health--;
+
+        combo=1;
+
+        obstacles.splice(i,1);
+
+        particle(
+          player.x+30,
+          player.y+35,
+          "#ff5577",
+          18
+        );
+
+        if(health<=0){
+
+          endGame();
+          return;
+        }
+      }
+
+    }else if(o.x<-100){
+
+      obstacles.splice(i,1);
+    }
+  }
+
+  /* gems */
+
+  const magnetRadius=
+    60+
+    (save.upgrades.magnet||0)*25;
+
+  for(let i=collectibles.length-1;i>=0;i--){
+
+    const g=collectibles[i];
+
+    g.x-=speed*dt;
+    g.spin+=.1*dt;
+
+    const dx=
+      g.x-(player.x+player.w/2);
+
+    const dy=
+      g.y-(player.y+player.h/2);
+
+    if(Math.hypot(dx,dy)<magnetRadius){
+
+      save.gems+=25;
+      save.missions.gems+=25;
+
+      score+=50;
+
+      combo=Math.min(
+        12,
+        combo+1
+      );
+
+      particle(
+        g.x,
+        g.y,
+        "#61eaff",
+        10
+      );
+
+      collectibles.splice(i,1);
+
+      persist();
+
+    }else if(g.x<-50){
+
+      collectibles.splice(i,1);
+    }
+  }
+
+  updateParticles(dt);
+
+  updateUI();
 }
 
-/* ground */
+/* =========================================================
+   BACKGROUND
+   ========================================================= */
 
-ctx.fillStyle = "#0d3034";
-ctx.fillRect(0, GROUND, 1200, 90);
+function drawBackground(){
 
-ctx.strokeStyle = "#65f6ff";
-ctx.lineWidth = 2;
+  const gradient=
+    ctx.createLinearGradient(
+      0,
+      0,
+      0,
+      H
+    );
 
-ctx.beginPath();
-ctx.moveTo(0, GROUND);
-ctx.lineTo(1200, GROUND);
-ctx.stroke();
+  gradient.addColorStop(
+    0,
+    "#05071a"
+  );
 
-/* moving ground lights */
+  gradient.addColorStop(
+    .5,
+    "#121039"
+  );
 
-for (let i = 0; i < 30; i++) {
-const x =
-(i * 80 - score * 0.8) % 1250;
+  gradient.addColorStop(
+    1,
+    "#061c24"
+  );
 
-```
-ctx.fillStyle = "#62ecff44";
-ctx.fillRect(x < 0 ? x + 1250 : x, GROUND + 22, 28, 3);
-```
+  ctx.fillStyle=gradient;
+  ctx.fillRect(0,0,W,H);
 
-}
-}
+  /* stars */
 
-function drawObstacles() {
-obstacles.forEach(o => {
-if (o.type === "spike") {
-ctx.save();
+  for(let i=0;i<100;i++){
 
-```
-  ctx.shadowBlur = 18;
-  ctx.shadowColor = "#ff4f8d";
-  ctx.fillStyle = "#ff4f8d";
+    const x=
+      (i*173-score*.04)%W;
+
+    const y=
+      25+(i*47)%300;
+
+    ctx.fillStyle=
+      i%5===0
+      ?"#62ecff"
+      :"#ffffff88";
+
+    ctx.fillRect(
+      (x+W)%W,
+      y,
+      2,
+      2
+    );
+  }
+
+  /* mountains */
+
+  ctx.fillStyle="#111d3d";
+
+  for(let i=0;i<9;i++){
+
+    const x=
+      i*190-
+      (score*.025%190);
+
+    ctx.beginPath();
+
+    ctx.moveTo(x,GROUND);
+
+    ctx.lineTo(
+      x+95,
+      270-(i%2)*50
+    );
+
+    ctx.lineTo(
+      x+190,
+      GROUND
+    );
+
+    ctx.fill();
+  }
+
+  /* ground */
+
+  ctx.fillStyle="#071c26";
+
+  ctx.fillRect(
+    0,
+    GROUND,
+    W,
+    H-GROUND
+  );
+
+  ctx.strokeStyle="#62ecff";
+  ctx.lineWidth=2;
 
   ctx.beginPath();
-  ctx.moveTo(o.x, o.y + o.h);
-  ctx.lineTo(o.x + o.w / 2, o.y);
-  ctx.lineTo(o.x + o.w, o.y + o.h);
-  ctx.closePath();
-  ctx.fill();
 
-  ctx.shadowBlur = 0;
-  ctx.strokeStyle = "#ffb1d4";
+  ctx.moveTo(0,GROUND);
+  ctx.lineTo(W,GROUND);
+
   ctx.stroke();
 
-  ctx.restore();
+  /* ground lines */
+
+  ctx.strokeStyle="#ffffff12";
+
+  for(let x=0;x<W;x+=70){
+
+    const offset=
+      (score*.8)%70;
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      x-offset,
+      GROUND+25
+    );
+
+    ctx.lineTo(
+      x-offset-35,
+      GROUND+80
+    );
+
+    ctx.stroke();
+  }
 }
 
-if (o.type === "wall") {
+/* =========================================================
+   DRAW GAME OBJECTS
+   ========================================================= */
+
+function drawCollectibles(){
+
+  for(const g of collectibles){
+
+    ctx.save();
+
+    ctx.translate(
+      g.x,
+      g.y
+    );
+
+    ctx.rotate(
+      g.spin
+    );
+
+    ctx.shadowBlur=20;
+    ctx.shadowColor="#61eaff";
+
+    ctx.fillStyle="#61eaff";
+
+    ctx.beginPath();
+
+    ctx.moveTo(0,-15);
+    ctx.lineTo(12,0);
+    ctx.lineTo(0,15);
+    ctx.lineTo(-12,0);
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.restore();
+  }
+}
+
+function drawObstacles(){
+
+  for(const o of obstacles){
+
+    ctx.save();
+
+    ctx.translate(
+      o.x,
+      o.y
+    );
+
+    ctx.shadowBlur=15;
+    ctx.shadowColor="#ff5577";
+
+    ctx.fillStyle="#ff5577";
+
+    ctx.beginPath();
+
+    ctx.moveTo(
+      0,
+      o.h
+    );
+
+    ctx.lineTo(
+      o.w/2,
+      0
+    );
+
+    ctx.lineTo(
+      o.w,
+      o.h
+    );
+
+    ctx.closePath();
+
+    ctx.fill();
+
+    ctx.shadowBlur=0;
+
+    ctx.fillStyle="#ffd2df";
+
+    ctx.fillRect(
+      o.w/2-3,
+      10,
+      6,
+      o.h-20
+    );
+
+    ctx.restore();
+  }
+}
+
+function drawPlayer(){
+
   ctx.save();
 
-  ctx.fillStyle = "#8b4fff";
-  ctx.shadowBlur = 16;
-  ctx.shadowColor = "#8b4fff";
+  if(shieldActive){
 
-  roundedRect(o.x, o.y, o.w, o.h, 8);
-  ctx.fill();
+    ctx.strokeStyle="#62ecff";
+    ctx.lineWidth=4;
 
-  ctx.shadowBlur = 0;
+    ctx.shadowBlur=25;
+    ctx.shadowColor="#62ecff";
 
-  ctx.fillStyle = "#ffffff55";
-  ctx.fillRect(o.x + 8, o.y + 10, 6, o.h - 20);
+    ctx.beginPath();
+
+    ctx.arc(
+      player.x+35,
+      player.y+38,
+      55,
+      0,
+      Math.PI*2
+    );
+
+    ctx.stroke();
+
+    ctx.shadowBlur=0;
+  }
+
+  if(dashTimer>0){
+
+    ctx.globalAlpha=.25;
+
+    for(let i=1;i<6;i++){
+
+      drawLegend(
+        ctx,
+        player.x+35-i*18,
+        player.y+38,
+        .72,
+        save.skin,
+        false
+      );
+    }
+
+    ctx.globalAlpha=1;
+  }
+
+  drawLegend(
+    ctx,
+    player.x+35,
+    player.y+38,
+    .72,
+    save.skin,
+    true
+  );
 
   ctx.restore();
 }
 
-if (o.type === "orb") {
-  ctx.save();
+/* =========================================================
+   DRAW
+   ========================================================= */
 
-  ctx.fillStyle = "#ff5b9d";
-  ctx.shadowBlur = 25;
-  ctx.shadowColor = "#ff5b9d";
+function draw(){
 
-  ctx.beginPath();
-  ctx.arc(
-    o.x + o.w / 2,
-    o.y + o.h / 2,
-    o.w / 2,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
+  drawBackground();
 
-  ctx.fillStyle = "#190919";
-  ctx.beginPath();
-  ctx.arc(
-    o.x + o.w / 2,
-    o.y + o.h / 2,
-    10,
-    0,
-    Math.PI * 2
-  );
-  ctx.fill();
-
-  ctx.restore();
-}
-```
-
-});
-}
-
-function drawCollectibles() {
-gems.forEach(g => {
-const pulse = 1 + Math.sin(g.phase) * 0.12;
-
-```
-ctx.save();
-ctx.translate(g.x, g.y);
-ctx.scale(pulse, pulse);
-
-ctx.fillStyle = "#62eaff";
-ctx.shadowBlur = 22;
-ctx.shadowColor = "#62eaff";
-
-ctx.beginPath();
-ctx.moveTo(0, -15);
-ctx.lineTo(13, 0);
-ctx.lineTo(0, 15);
-ctx.lineTo(-13, 0);
-ctx.closePath();
-ctx.fill();
-
-ctx.fillStyle = "#ffffffaa";
-ctx.fillRect(-2, -9, 4, 9);
-
-ctx.restore();
-```
-
-});
-
-powerups.forEach(p => {
-const pulse = 1 + Math.sin(p.phase) * 0.1;
-
-```
-ctx.save();
-ctx.translate(p.x, p.y);
-ctx.scale(pulse, pulse);
-
-ctx.fillStyle =
-  p.type === "heart"
-    ? "#ff5d83"
-    : "#62ecff";
-
-ctx.shadowBlur = 24;
-ctx.shadowColor = ctx.fillStyle;
-
-ctx.beginPath();
-ctx.arc(0, 0, p.r, 0, Math.PI * 2);
-ctx.fill();
-
-ctx.shadowBlur = 0;
-ctx.fillStyle = "#08101c";
-ctx.font = "20px Arial";
-ctx.textAlign = "center";
-ctx.textBaseline = "middle";
-ctx.fillText(
-  p.type === "heart" ? "♥" : "S",
-  0,
-  1
-);
-
-ctx.restore();
-```
-
-});
-}
-
-function drawParticles() {
-particles.forEach(p => {
-ctx.globalAlpha = p.life / p.max;
-ctx.fillStyle = p.color;
-
-```
-ctx.beginPath();
-ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
-ctx.fill();
-```
-
-});
-
-ctx.globalAlpha = 1;
+  drawCollectibles();
+  drawObstacles();
+  drawParticles();
+  drawPlayer();
 }
 
 /* =========================================================
-CHARACTER RENDER
-========================================================= */
+   GAME LOOP
+   ========================================================= */
 
-function drawCharacter(x, y) {
-const skin = skins[save.skin] || skins[0];
-const id = skin.id;
+function loop(time){
 
-const accent = skin.color;
-const dark = "#10131d";
+  if(!running) return;
 
-ctx.save();
-ctx.translate(x, y);
+  const dt=
+    Math.min(
+      2,
+      (time-lastTime)/16.67
+    );
 
-ctx.lineCap = "round";
-ctx.lineJoin = "round";
+  lastTime=time;
 
-/* aura */
+  update(dt);
+  draw();
 
-if (["MYTHIC", "DIVINE"].includes(skin.rarity)) {
-ctx.globalAlpha = 0.2;
-ctx.strokeStyle = accent;
-ctx.lineWidth = 4;
-ctx.shadowBlur = 25;
-ctx.shadowColor = accent;
+  if(running){
 
-```
-ctx.beginPath();
-ctx.arc(5, -15, 64, 0, Math.PI * 2);
-ctx.stroke();
-
-ctx.shadowBlur = 0;
-ctx.globalAlpha = 1;
-```
-
-}
-
-/* shadow */
-
-ctx.fillStyle = "#00000055";
-ctx.beginPath();
-ctx.ellipse(0, 38, 43, 8, 0, 0, Math.PI * 2);
-ctx.fill();
-
-/* body palette */
-
-let body = "#536b4f";
-let base = "#748b68";
-
-if (skin.rarity === "EPIC") {
-body = "#3e4d65";
-base = "#8498b5";
-}
-
-if (skin.rarity === "LEGENDARY") {
-body = "#29354b";
-base = "#6682a8";
-}
-
-if (skin.rarity === "MYTHIC") {
-body = "#202343";
-base = "#635cff";
-}
-
-if (skin.rarity === "DIVINE") {
-body = "#332344";
-base = "#c58aff";
-}
-
-/* tail */
-
-ctx.fillStyle = base;
-ctx.beginPath();
-ctx.moveTo(-17, 5);
-ctx.quadraticCurveTo(-48, -5, -61, 14);
-ctx.quadraticCurveTo(-38, 21, -17, 15);
-ctx.fill();
-
-ctx.strokeStyle = dark;
-ctx.stroke();
-
-/* legs */
-
-ctx.fillStyle = body;
-
-roundedRect(-22, 18, 15, 35, 6);
-ctx.fill();
-
-roundedRect(8, 18, 15, 35, 6);
-ctx.fill();
-
-ctx.fillStyle = dark;
-roundedRect(-27, 45, 25, 9, 4);
-ctx.fill();
-
-roundedRect(4, 45, 25, 9, 4);
-ctx.fill();
-
-/* torso */
-
-ctx.fillStyle = body;
-ctx.strokeStyle = dark;
-ctx.lineWidth = 3;
-
-roundedRect(-27, -8, 54, 51, 15);
-ctx.fill();
-ctx.stroke();
-
-/* armor plate */
-
-ctx.fillStyle = accent;
-ctx.globalAlpha = 0.9;
-
-roundedRect(-21, 0, 42, 12, 5);
-ctx.fill();
-
-ctx.globalAlpha = 1;
-
-/* armor lines */
-
-ctx.strokeStyle = "#ffffff44";
-ctx.lineWidth = 2;
-
-for (let i = -12; i <= 12; i += 12) {
-ctx.beginPath();
-ctx.moveTo(i, 15);
-ctx.lineTo(i, 35);
-ctx.stroke();
-}
-
-/* neck */
-
-ctx.fillStyle = base;
-ctx.beginPath();
-ctx.arc(20, -16, 13, 0, Math.PI * 2);
-ctx.fill();
-ctx.strokeStyle = dark;
-ctx.stroke();
-
-/* head */
-
-ctx.fillStyle = base;
-ctx.beginPath();
-ctx.ellipse(26, -36, 26, 23, 0, 0, Math.PI * 2);
-ctx.fill();
-ctx.stroke();
-
-/* snout */
-
-ctx.fillStyle = base;
-roundedRect(39, -33, 22, 14, 6);
-ctx.fill();
-ctx.stroke();
-
-/* visor */
-
-ctx.fillStyle = "#080b13";
-roundedRect(24, -47, 28, 10, 4);
-ctx.fill();
-
-ctx.fillStyle = accent;
-ctx.shadowBlur = 12;
-ctx.shadowColor = accent;
-ctx.fillRect(40, -44, 8, 4);
-ctx.shadowBlur = 0;
-
-/* teeth */
-
-ctx.fillStyle = "#fff";
-
-for (let i = 0; i < 3; i++) {
-ctx.fillRect(48 + i * 4, -20, 3, 6);
-}
-
-/* helmet / crown */
-
-if (id === 0) {
-ctx.fillStyle = "#d8dce5";
-ctx.beginPath();
-ctx.moveTo(5, -48);
-ctx.lineTo(21, -66);
-ctx.lineTo(47, -49);
-ctx.lineTo(30, -43);
-ctx.closePath();
-ctx.fill();
-ctx.stroke();
-
-```
-ctx.strokeStyle = accent;
-ctx.lineWidth = 4;
-
-ctx.beginPath();
-ctx.moveTo(13, -59);
-ctx.lineTo(49, -55);
-ctx.stroke();
-```
-
-}
-
-if (skin.rarity === "EPIC") {
-ctx.strokeStyle = accent;
-ctx.lineWidth = 4;
-
-```
-ctx.beginPath();
-ctx.arc(26, -36, 29, Math.PI, Math.PI * 2);
-ctx.stroke();
-```
-
-}
-
-if (skin.rarity === "LEGENDARY") {
-ctx.fillStyle = "#101624";
-roundedRect(5, -56, 45, 13, 5);
-ctx.fill();
-
-```
-ctx.strokeStyle = accent;
-ctx.stroke();
-```
-
-}
-
-if (skin.rarity === "MYTHIC") {
-ctx.fillStyle = accent;
-
-```
-ctx.beginPath();
-ctx.moveTo(5, -50);
-ctx.lineTo(13, -70);
-ctx.lineTo(24, -52);
-ctx.lineTo(35, -72);
-ctx.lineTo(43, -49);
-ctx.closePath();
-ctx.fill();
-
-ctx.strokeStyle = "#fff8";
-ctx.stroke();
-```
-
-}
-
-if (skin.rarity === "DIVINE") {
-ctx.fillStyle = "#ffd866";
-ctx.strokeStyle = "#fff1a3";
-ctx.lineWidth = 2;
-
-```
-ctx.beginPath();
-
-for (let i = 0; i < 7; i++) {
-  const a = -Math.PI * 0.85 + i * Math.PI * 0.28;
-  ctx.lineTo(
-    26 + Math.cos(a) * 29,
-    -36 + Math.sin(a) * 29
-  );
-}
-
-ctx.closePath();
-ctx.fill();
-ctx.stroke();
-```
-
-}
-
-/* weapon */
-
-if (id % 3 === 0) {
-ctx.strokeStyle = accent;
-ctx.lineWidth = 5;
-
-```
-ctx.beginPath();
-ctx.moveTo(-25, -4);
-ctx.lineTo(-43, -33);
-ctx.stroke();
-
-ctx.strokeStyle = "#e7edf8";
-ctx.lineWidth = 2;
-
-ctx.beginPath();
-ctx.moveTo(-46, -37);
-ctx.lineTo(-31, -8);
-ctx.stroke();
-```
-
-} else if (id % 3 === 1) {
-ctx.fillStyle = dark;
-roundedRect(-44, -6, 12, 34, 4);
-ctx.fillStyle = accent;
-ctx.fillRect(-41, -2, 6, 18);
-} else {
-ctx.fillStyle = accent;
-ctx.beginPath();
-ctx.arc(-39, 8, 10, 0, Math.PI * 2);
-ctx.fill();
-
-```
-ctx.fillStyle = dark;
-ctx.beginPath();
-ctx.arc(-39, 8, 5, 0, Math.PI * 2);
-ctx.fill();
-```
-
-}
-
-/* arms */
-
-ctx.fillStyle = body;
-
-ctx.save();
-ctx.translate(-29, 5);
-ctx.rotate(-0.45);
-roundedRect(-6, -14, 12, 28, 6);
-ctx.fill();
-ctx.restore();
-
-ctx.save();
-ctx.translate(29, 5);
-ctx.rotate(0.45);
-roundedRect(-6, -14, 12, 28, 6);
-ctx.fill();
-ctx.restore();
-
-ctx.fillStyle = accent;
-
-ctx.beginPath();
-ctx.arc(-38, 16, 6, 0, Math.PI * 2);
-ctx.fill();
-
-ctx.beginPath();
-ctx.arc(38, 16, 6, 0, Math.PI * 2);
-ctx.fill();
-
-/* divine crown sparkle */
-
-if (skin.rarity === "DIVINE") {
-ctx.fillStyle = "#fff";
-for (let i = 0; i < 4; i++) {
-const a = worldTime * 0.03 + i * Math.PI / 2;
-const sx = Math.cos(a) * 55;
-const sy = -15 + Math.sin(a) * 55;
-
-```
-  ctx.fillRect(sx - 2, sy - 2, 4, 4);
-}
-```
-
-}
-
-ctx.restore();
+    requestAnimationFrame(loop);
+  }
 }
 
 /* =========================================================
-DRAW PLAYER / EFFECTS
-========================================================= */
+   EVENTS
+   ========================================================= */
 
-function drawPlayer() {
-ctx.save();
+document.addEventListener(
+  "keydown",
+  event=>{
 
-if (player.invincible > 0 && Math.floor(player.invincible / 5) % 2 === 0) {
-ctx.globalAlpha = 0.45;
-}
+    if(
+      event.code==="Space" ||
+      event.code==="ArrowUp"
+    ){
 
-if (player.invincible > 0) {
-ctx.strokeStyle = "#62ecff";
-ctx.lineWidth = 4;
-ctx.shadowBlur = 25;
-ctx.shadowColor = "#62ecff";
+      event.preventDefault();
+      jump();
+    }
 
-```
-ctx.beginPath();
-ctx.arc(
-  player.x + 30,
-  player.y + 36,
-  51 + Math.sin(worldTime * 0.12) * 3,
-  0,
-  Math.PI * 2
-);
-ctx.stroke();
+    if(event.code==="KeyD"){
 
-ctx.shadowBlur = 0;
-```
+      event.preventDefault();
+      dash();
+    }
 
-}
+    if(event.code==="KeyS"){
 
-drawCharacter(
-player.x + 30,
-player.y + 36
+      event.preventDefault();
+      shield();
+    }
+  }
 );
 
-if (player.dash > 0) {
-ctx.globalAlpha = 0.45;
-
-```
-for (let i = 1; i <= 5; i++) {
-  ctx.fillStyle = "#62ecff";
-  ctx.fillRect(
-    player.x - i * 25,
-    player.y + 28,
-    15,
-    4
-  );
-}
-```
-
-}
-
-ctx.restore();
-}
-
-function draw() {
-ctx.save();
-
-if (shake > 0) {
-ctx.translate(
-rand(-shake, shake),
-rand(-shake, shake)
-);
-}
-
-drawBackground();
-drawCollectibles();
-drawObstacles();
-drawPlayer();
-drawParticles();
-
-ctx.restore();
-
-/* combo indicator */
-
-if (combo >= 2 && running) {
-ctx.save();
-
-```
-ctx.textAlign = "center";
-ctx.font = "900 18px Orbitron";
-ctx.fillStyle =
-  combo >= 10 ? "#ffd866" :
-  combo >= 6 ? "#ff62c7" :
-  "#62ecff";
-
-ctx.shadowBlur = 15;
-ctx.shadowColor = ctx.fillStyle;
-
-ctx.fillText(
-  `COMBO x${Math.floor(combo)}`,
-  600,
-  55
+$("startButton")?.addEventListener(
+  "click",
+  startGame
 );
 
-ctx.restore();
-```
+$("restartButton")?.addEventListener(
+  "click",
+  startGame
+);
 
-}
-}
+$("jumpButton")?.addEventListener(
+  "click",
+  jump
+);
+
+$("dashButton")?.addEventListener(
+  "click",
+  dash
+);
+
+$("shieldButton")?.addEventListener(
+  "click",
+  shield
+);
+
+$("redeemButton")?.addEventListener(
+  "click",
+  redeem
+);
+
+$("codeInput")?.addEventListener(
+  "keydown",
+  event=>{
+
+    if(event.key==="Enter"){
+      redeem();
+    }
+  }
+);
 
 /* =========================================================
-LOOP
-========================================================= */
-
-function gameLoop(time) {
-if (!running || paused) return;
-
-const dt = Math.min(
-2.2,
-Math.max(0, (time - lastTime) / 16.67)
-);
-
-lastTime = time;
-
-update(dt);
-draw();
-
-if (running && !paused) {
-requestAnimationFrame(gameLoop);
-}
-}
-
-/* =========================================================
-EVENTS
-========================================================= */
-
-document.addEventListener("keydown", e => {
-if (e.code === "Space" || e.code === "ArrowUp") {
-e.preventDefault();
-jump();
-}
-
-if (e.code === "KeyD") {
-e.preventDefault();
-dash();
-}
-
-if (e.code === "KeyS") {
-e.preventDefault();
-shield();
-}
-
-if (e.code === "KeyP" || e.code === "Escape") {
-e.preventDefault();
-togglePause();
-}
-});
-
-$("startButton")?.addEventListener("click", startGame);
-$("restartButton")?.addEventListener("click", startGame);
-$("resumeButton")?.addEventListener("click", togglePause);
-
-$("jumpButton")?.addEventListener("pointerdown", e => {
-e.preventDefault();
-jump();
-});
-
-$("dashButton")?.addEventListener("pointerdown", e => {
-e.preventDefault();
-dash();
-});
-
-$("shieldButton")?.addEventListener("pointerdown", e => {
-e.preventDefault();
-shield();
-});
-
-$("redeemButton")?.addEventListener("click", redeem);
-
-$("codeInput")?.addEventListener("keydown", e => {
-if (e.key === "Enter") {
-e.preventDefault();
-redeem();
-}
-});
+   INIT
+   ========================================================= */
 
 setupTabs();
+
 renderSkins();
 renderMissions();
 renderWorlds();
 renderShop();
+
 updateUI();
-resetRun();
+drawPreview();
+
+resetGame();
 draw();
