@@ -1,55 +1,54 @@
 "use strict";
 
 /* =========================================================
-   DINO LEGENDS — ULTIMATE EDITION
-   Stable standalone game engine
-========================================================= */
-
-const canvas = document.getElementById("gameCanvas");
-const ctx = canvas.getContext("2d");
+   DINO LEGENDS — GAME ENGINE V20
+   ========================================================= */
 
 const $ = id => document.getElementById(id);
 
-const SAVE_KEY = "DINO_LEGENDS_ULTIMATE_V1";
+const canvas = $("gameCanvas");
+const ctx = canvas.getContext("2d");
+
+const SAVE = "DINO_LEGENDS_V20";
 
 /* =========================================================
-   DATA
-========================================================= */
+   SKINS
+   ========================================================= */
 
-const SKINS = [
-  ["Arthur Rex","⚔️",0,"LEGENDARY KNIGHT"],
-  ["Ghost Rex","👻",500000,"PHANTOM"],
-  ["Price Raptor","🎯",900000,"ELITE OPERATIVE"],
-  ["Leon Rex","🦁",1500000,"SURVIVOR"],
-  ["Agent Rex","🕶️",2500000,"STEALTH"],
-  ["Michael Rex","🚗",4000000,"OUTLAW"],
-  ["CJ Rex","🏙️",6500000,"STREET KING"],
-  ["Cyber Rex","🤖",10000000,"CYBER MYTHIC"],
-  ["Samurai Rex","🥷",16000000,"SHADOW WARRIOR"],
-  ["Valkyrie Rex","🪽",25000000,"SKY LEGEND"],
-  ["Dragon Lord","🐉",40000000,"ANCIENT"],
-  ["Demon Rex","😈",65000000,"INFERNAL"],
-  ["Ice Emperor","🧊",100000000,"FROSTBORN"],
-  ["Storm Emperor","⚡",150000000,"THUNDERBORN"],
-  ["Void Emperor","🌌",250000000,"COSMIC"],
-  ["Golden Titan","👑",400000000,"ROYAL"],
-  ["Neon Phantom","💠",650000000,"NEON"],
-  ["Blood Moon Rex","🌑",900000000,"NIGHTMARE"],
-  ["Galaxy Rex","🌠",1500000000,"GALACTIC"],
-  ["Eternal Dragon","♾️",3000000000,"ETERNAL"]
+const skins = [
+  ["Arthur Rex", "LEGENDARY KNIGHT", 0, "#d9b36c", "#536b4f", "#cbd5e1"],
+  ["Ghost Rex", "PHANTOM", 500000, "#aeb8c8", "#5b6575", "#d8e4ff"],
+  ["Price Raptor", "ELITE OPERATIVE", 900000, "#d94848", "#263244", "#ff4d72"],
+  ["Leon Rex", "SURVIVOR", 1500000, "#c79b72", "#65442e", "#e5bb80"],
+  ["Agent Rex", "STEALTH", 2500000, "#222b3a", "#111827", "#62ecff"],
+  ["Michael Rex", "OUTLAW", 4000000, "#9a6a38", "#4b2c1c", "#ffd866"],
+  ["CJ Rex", "STREET KING", 6500000, "#2d4a75", "#182338", "#ff62c7"],
+  ["Cyber Rex", "CYBER MYTHIC", 10000000, "#28d7ff", "#162d3a", "#62ecff"],
+  ["Samurai Rex", "SHADOW WARRIOR", 16000000, "#3b263b", "#201824", "#ff62c7"],
+  ["Valkyrie Rex", "SKY LEGEND", 25000000, "#f1e4c7", "#6d5941", "#ffffff"],
+  ["Dragon Lord", "ANCIENT", 40000000, "#7b4a2d", "#4b2c1c", "#ff8b45"],
+  ["Demon Rex", "INFERNAL", 65000000, "#6f1b2b", "#351521", "#ff315d"],
+  ["Ice Emperor", "FROSTBORN", 100000000, "#bfeaff", "#527b8d", "#62ecff"],
+  ["Storm Emperor", "THUNDERBORN", 150000000, "#4d8dff", "#1f3f78", "#b9d5ff"],
+  ["Void Emperor", "COSMIC", 250000000, "#8d5cff", "#241b45", "#c084ff"],
+  ["Golden Titan", "ROYAL", 400000000, "#e5b94f", "#9b6a22", "#ffe89a"],
+  ["Neon Phantom", "NEON", 650000000, "#18e5e5", "#162d3a", "#62ffff"],
+  ["Blood Moon Rex", "NIGHTMARE", 900000000, "#7d1525", "#35101b", "#ff355d"],
+  ["Galaxy Rex", "GALACTIC", 1500000000, "#b85cff", "#241b45", "#e2a7ff"],
+  ["Eternal Dragon", "ETERNAL", 3000000000, "#d8f5ff", "#385a63", "#ffffff"]
 ];
 
-const ICONS = [
+const iconSet = [
   "🐲","🦕","🦖","🐉","👾",
   "🤖","🦄","🌟","☄️","🪐",
   "💀","🪽","🔥","❄️","⚡",
   "🌌","👑","💎","🗿","🎭"
 ];
 
-while(SKINS.length < 100){
-  const i = SKINS.length;
+while (skins.length < 100) {
+  const i = skins.length;
 
-  const rarity =
+  const tier =
     i < 35 ? "EPIC" :
     i < 60 ? "LEGENDARY" :
     i < 80 ? "MYTHIC" :
@@ -58,37 +57,211 @@ while(SKINS.length < 100){
   const price =
     Math.floor(
       3000000000 *
-      Math.pow(1.045,i - 19)
+      Math.pow(1.045, i - 19)
     );
 
-  SKINS.push([
+  const hue = (i * 37) % 360;
+
+  skins.push([
     "Legendary Beast " + (i + 1),
-    ICONS[i % ICONS.length],
+    tier,
     price,
-    rarity
+    `hsl(${hue},85%,65%)`,
+    `hsl(${hue},45%,20%)`,
+    `hsl(${(hue + 50) % 360},100%,75%)`
   ]);
 }
 
-const DEFAULT_SAVE = {
+/* =========================================================
+   WORLDS
+   ========================================================= */
+
+const worlds = [
+  {
+    id:"forest",
+    name:"Enchanted Forest",
+    icon:"🌲",
+    requirement:0,
+    color:"#35d88b",
+    danger:1
+  },
+  {
+    id:"moon",
+    name:"Moonlit Ruins",
+    icon:"🌙",
+    requirement:2500,
+    color:"#8f7cff",
+    danger:1.25
+  },
+  {
+    id:"volcano",
+    name:"Dragon Volcano",
+    icon:"🔥",
+    requirement:10000,
+    color:"#ff684d",
+    danger:1.5
+  },
+  {
+    id:"ice",
+    name:"Frozen Kingdom",
+    icon:"❄️",
+    requirement:25000,
+    color:"#62ecff",
+    danger:1.8
+  },
+  {
+    id:"void",
+    name:"Astral Void",
+    icon:"🌌",
+    requirement:100000,
+    color:"#c05cff",
+    danger:2.2
+  }
+];
+
+/* =========================================================
+   MISSIONS
+   ========================================================= */
+
+const missionDefinitions = [
+  {
+    id:"run",
+    icon:"🏃",
+    name:"First Adventure",
+    desc:"Start an adventure",
+    target:1,
+    reward:500
+  },
+  {
+    id:"gems",
+    icon:"💎",
+    name:"Gem Hunter",
+    desc:"Collect 100 gems",
+    target:100,
+    reward:2500
+  },
+  {
+    id:"jumps",
+    icon:"🪽",
+    name:"Sky Master",
+    desc:"Make 25 jumps",
+    target:25,
+    reward:10000
+  },
+  {
+    id:"score",
+    icon:"🏆",
+    name:"Score Legend",
+    desc:"Reach 10,000 score",
+    target:10000,
+    reward:25000
+  },
+  {
+    id:"dash",
+    icon:"⚡",
+    name:"Lightning Dash",
+    desc:"Use Dash 20 times",
+    target:20,
+    reward:15000
+  }
+];
+
+/* =========================================================
+   SAVE DATA
+   ========================================================= */
+
+const base = {
   gems:2500,
   best:0,
   skin:0,
+  world:"forest",
+
   owned:[0],
   used:[],
+
   runs:0,
 
   upgrades:{
     speed:0,
     jump:0,
-    shield:0
+    shield:0,
+    magnet:0
   },
 
   missions:{
     run:0,
     gems:0,
-    jumps:0
-  }
+    jumps:0,
+    score:0,
+    dash:0
+  },
+
+  claimedMissions:[],
+
+  totalGems:0,
+  totalJumps:0,
+  totalDash:0
 };
+
+function cloneBase(){
+  return JSON.parse(JSON.stringify(base));
+}
+
+let save;
+
+try{
+  const raw =
+    JSON.parse(
+      localStorage.getItem(SAVE)
+    );
+
+  save = {
+    ...cloneBase(),
+    ...(raw || {})
+  };
+}catch{
+  save = cloneBase();
+}
+
+save.owned =
+  Array.isArray(save.owned)
+    ? save.owned
+    : [0];
+
+save.used =
+  Array.isArray(save.used)
+    ? save.used
+    : [];
+
+save.claimedMissions =
+  Array.isArray(save.claimedMissions)
+    ? save.claimedMissions
+    : [];
+
+save.upgrades = {
+  ...base.upgrades,
+  ...(save.upgrades || {})
+};
+
+save.missions = {
+  ...base.missions,
+  ...(save.missions || {})
+};
+
+function persist(){
+  try{
+    localStorage.setItem(
+      SAVE,
+      JSON.stringify(save)
+    );
+  }catch(e){
+    console.warn("Save failed",e);
+  }
+}
+
+/* =========================================================
+   REDEEM
+   ========================================================= */
 
 const REDEEM_CODES = Object.freeze({
   TRILLION1:1000000000000,
@@ -99,164 +272,81 @@ const REDEEM_CODES = Object.freeze({
   LEGENDARY1M:1000000
 });
 
-/* =========================================================
-   SAVE SYSTEM
-========================================================= */
+function msg(text, good=false){
+  const e = $("codeMessage");
 
-function cloneDefault(){
-  return JSON.parse(
-    JSON.stringify(DEFAULT_SAVE)
+  if(!e) return;
+
+  e.textContent = text;
+  e.style.color =
+    good
+      ? "#67ffad"
+      : "#ff7b9b";
+}
+
+function redeem(){
+
+  const input = $("codeInput");
+
+  if(!input) return;
+
+  const code =
+    String(input.value || "")
+      .trim()
+      .toUpperCase();
+
+  if(!code){
+    msg("ENTER A REWARD CODE");
+    return;
+  }
+
+  if(save.used.includes(code)){
+    msg("❌ THIS CODE WAS ALREADY USED");
+    return;
+  }
+
+  const reward =
+    REDEEM_CODES[code];
+
+  if(reward === undefined){
+    msg("❌ INVALID REDEEM CODE");
+    return;
+  }
+
+  save.gems += reward;
+  save.totalGems += reward;
+
+  save.used.push(code);
+
+  persist();
+  ui();
+
+  input.value = "";
+
+  msg(
+    "🎉 REDEEMED! +"+
+    reward.toLocaleString()+
+    " GEMS",
+    true
   );
 }
 
-function loadSave(){
-
-  try{
-
-    const raw =
-      localStorage.getItem(SAVE_KEY);
-
-    if(!raw){
-      return cloneDefault();
-    }
-
-    const parsed = JSON.parse(raw);
-
-    return {
-      ...cloneDefault(),
-      ...parsed,
-
-      upgrades:{
-        ...DEFAULT_SAVE.upgrades,
-        ...(parsed.upgrades || {})
-      },
-
-      missions:{
-        ...DEFAULT_SAVE.missions,
-        ...(parsed.missions || {})
-      },
-
-      owned:
-        Array.isArray(parsed.owned)
-          ? parsed.owned
-          : [0],
-
-      used:
-        Array.isArray(parsed.used)
-          ? parsed.used
-          : []
-    };
-
-  }catch(error){
-
-    console.warn(
-      "Save data reset:",
-      error
-    );
-
-    return cloneDefault();
-  }
-}
-
-let save = loadSave();
-
-function persist(){
-  try{
-    localStorage.setItem(
-      SAVE_KEY,
-      JSON.stringify(save)
-    );
-  }catch(error){
-    console.warn(
-      "Could not save:",
-      error
-    );
-  }
-}
-
 /* =========================================================
-   GAME STATE
-========================================================= */
+   LEVEL / RANK
+   ========================================================= */
 
-let running = false;
-let score = 0;
-let speed = 7;
-let health = 3;
-let combo = 1;
-
-let lastTime = 0;
-let obstacleTimer = 0;
-let gemTimer = 0;
-let dashTimer = 0;
-let shieldActive = false;
-
-let obstacles = [];
-let gems = [];
-
-const GROUND = 430;
-
-const PLAYER = {
-  x:150,
-  y:360,
-  w:58,
-  h:70,
-  vy:0,
-  jumps:0
-};
-
-/* =========================================================
-   CANVAS
-========================================================= */
-
-function resizeCanvas(){
-
-  const rect =
-    canvas.getBoundingClientRect();
-
-  const ratio =
-    window.devicePixelRatio || 1;
-
-  canvas.width =
-    Math.max(1,
-      Math.floor(rect.width * ratio)
-    );
-
-  canvas.height =
-    Math.max(1,
-      Math.floor(rect.height * ratio)
-    );
-
-  ctx.setTransform(
-    ratio,
-    0,
-    0,
-    ratio,
-    0,
-    0
-  );
-}
-
-window.addEventListener(
-  "resize",
-  resizeCanvas
-);
-
-/* =========================================================
-   PROFILE
-========================================================= */
-
-function getLevel(){
-
+function level(){
   return Math.max(
     1,
     Math.floor(save.best / 2500) + 1
   );
 }
 
-function getRank(){
+function rank(){
 
-  const l = getLevel();
+  const l = level();
 
+  if(l >= 60) return "DIVINE";
   if(l >= 40) return "MYTHIC";
   if(l >= 25) return "LEGEND";
   if(l >= 15) return "ELITE";
@@ -267,164 +357,158 @@ function getRank(){
 
 /* =========================================================
    UI
-========================================================= */
+   ========================================================= */
 
-function updateUI(){
+function ui(){
 
-  if($("gems"))
-    $("gems").textContent =
+  let e;
+
+  if(e=$("gems"))
+    e.textContent =
       save.gems.toLocaleString();
 
-  if($("bestScore"))
-    $("bestScore").textContent =
+  if(e=$("bestScore"))
+    e.textContent =
       Math.floor(save.best)
-        .toLocaleString();
+      .toLocaleString();
 
-  if($("level"))
-    $("level").textContent =
-      getLevel();
+  if(e=$("level"))
+    e.textContent = level();
 
-  if($("score"))
-    $("score").textContent =
+  if(e=$("score"))
+    e.textContent =
       Math.floor(score)
-        .toLocaleString();
+      .toLocaleString();
 
-  if($("combo"))
-    $("combo").textContent =
-      "x" + combo;
+  if(e=$("combo"))
+    e.textContent =
+      "x"+combo;
 
-  if($("health")){
+  if(e=$("health")){
 
     const full =
-      "❤️".repeat(
-        Math.max(0,Math.min(8,health))
-      );
-
-    const empty =
-      "🖤".repeat(
-        Math.max(
-          0,
-          Math.min(8,3-health)
+      Math.max(
+        0,
+        Math.min(
+          8,
+          health
         )
       );
 
-    $("health").textContent =
-      full + empty;
+    e.textContent =
+      "❤️".repeat(full)+
+      "🖤".repeat(
+        Math.max(
+          0,
+          Math.min(
+            8,
+            3-health
+          )
+        )
+      );
   }
 
-  if($("profileLevel"))
-    $("profileLevel").textContent =
-      getLevel();
+  if(e=$("profileLevel"))
+    e.textContent = level();
 
-  if($("profileBest"))
-    $("profileBest").textContent =
+  if(e=$("profileBest"))
+    e.textContent =
       Math.floor(save.best)
-        .toLocaleString();
+      .toLocaleString();
 
-  if($("avatar"))
-    $("avatar").textContent =
-      SKINS[save.skin]?.[1] || "🦖";
+  if(e=$("rank"))
+    e.textContent = rank();
 
-  if($("skinCount"))
-    $("skinCount").textContent =
-      save.owned.length + " / 100";
+  if(e=$("skinCount"))
+    e.textContent =
+      save.owned.length+
+      " / 100";
 
-  if($("rank"))
-    $("rank").textContent =
-      getRank();
+  const s =
+    skins[save.skin] ||
+    skins[0];
 
-  if($("xpBar")){
+  if(e=$("profileName"))
+    e.textContent = s[0];
 
-    const progress =
-      (save.best % 2500) / 25;
+  if(e=$("currentWorldHud")){
 
-    $("xpBar").style.width =
-      Math.min(100,progress) + "%";
+    const w =
+      worlds.find(
+        x => x.id === save.world
+      ) || worlds[0];
+
+    e.textContent =
+      w.name
+      .replace("Enchanted ","")
+      .replace("Moonlit ","")
+      .replace("Dragon ","")
+      .replace("Frozen ","")
+      .replace("Astral ","")
+      .toUpperCase();
   }
-}
 
-function showMessage(text,type="success"){
+  if(e=$("xpBar"))
+    e.style.width =
+      Math.min(
+        100,
+        (save.best % 2500) / 25
+      )+"%";
 
-  const element =
-    $("codeMessage");
-
-  if(!element) return;
-
-  element.textContent = text;
-
-  element.className =
-    "message " + type;
+  renderAvatar();
 }
 
 /* =========================================================
-   REDEEM
-========================================================= */
+   AVATAR
+   ========================================================= */
 
-function redeem(){
+function renderAvatar(){
 
-  const input =
-    $("codeInput");
+  const avatar =
+    $("avatar");
 
-  if(!input) return;
+  if(!avatar) return;
 
-  const code =
-    String(input.value || "")
-      .trim()
-      .toUpperCase();
+  const s =
+    skins[save.skin] ||
+    skins[0];
 
-  if(!code){
+  avatar.innerHTML = `
+    <div class="skin-preview">
+      <div
+        class="mini-dino"
+        style="
+          --skin-main:${s[3]};
+          --skin-dark:${s[4]};
+          --skin-accent:${s[5]};
+          --skin-glow:${s[5]}88;
+        "
+      ></div>
+    </div>
+  `;
 
-    showMessage(
-      "Enter a code first.",
-      "error"
-    );
+  const startAvatar =
+    $("startAvatar");
 
-    return;
-  }
-
-  if(save.used.includes(code)){
-
-    showMessage(
-      "❌ This code was already used.",
-      "error"
-    );
-
-    return;
-  }
-
-  const reward =
-    REDEEM_CODES[code];
-
-  if(reward === undefined){
-
-    showMessage(
-      "❌ Invalid redeem code.",
-      "error"
-    );
-
-    return;
-  }
-
-  save.gems += reward;
-
-  save.used.push(code);
-
-  persist();
-  updateUI();
-
-  input.value = "";
-
-  showMessage(
-    "🎉 Redeemed! +" +
-    reward.toLocaleString() +
-    " gems",
-    "success"
-  );
+  if(startAvatar)
+    startAvatar.innerHTML = `
+      <div class="skin-preview">
+        <div
+          class="mini-dino"
+          style="
+            --skin-main:${s[3]};
+            --skin-dark:${s[4]};
+            --skin-accent:${s[5]};
+            --skin-glow:${s[5]}88;
+          "
+        ></div>
+      </div>
+    `;
 }
 
 /* =========================================================
    SKINS
-========================================================= */
+   ========================================================= */
 
 function renderSkins(){
 
@@ -435,32 +519,59 @@ function renderSkins(){
 
   grid.innerHTML = "";
 
-  SKINS.forEach(
-    (skin,index)=>{
+  skins.forEach(
+    (s,i)=>{
 
-      const owned =
-        save.owned.includes(index);
+      const own =
+        save.owned.includes(i);
 
-      const card =
+      const equipped =
+        save.skin === i;
+
+      const d =
         document.createElement("article");
 
-      card.className =
-        "item";
+      d.className =
+        "item skin-card";
 
-      card.innerHTML = `
-        <div class="icon">
-          ${skin[1]}
+      d.style.setProperty(
+        "--glow",
+        s[5]
+      );
+
+      d.innerHTML = `
+        <div
+          class="icon skin-icon"
+          style="
+            --skin-glow:${s[5]}66;
+          "
+        >
+          <div class="skin-preview">
+            <div
+              class="mini-dino"
+              style="
+                --skin-main:${s[3]};
+                --skin-dark:${s[4]};
+                --skin-accent:${s[5]};
+                --skin-glow:${s[5]};
+              "
+            ></div>
+          </div>
         </div>
 
-        <h3>${skin[0]}</h3>
+        <h3>${s[0]}</h3>
 
-        <small>${skin[3]}</small>
+        <small>
+          ${s[1]}
+        </small>
 
         <p>
           ${
-            owned
-              ? "Owned • ready to equip"
-              : "Unlock this legendary champion"
+            equipped
+              ? "Currently equipped."
+              : own
+                ? "Owned • ready to equip."
+                : "Unlock this fantasy champion."
           }
         </p>
 
@@ -468,21 +579,18 @@ function renderSkins(){
 
           <span class="price">
             ${
-              owned
+              own
                 ? "✓ OWNED"
-                : "💎 " +
-                  skin[2].toLocaleString()
+                : "💎 "+
+                  s[2].toLocaleString()
             }
           </span>
 
-          <button
-            class="action"
-            type="button"
-          >
+          <button class="action">
             ${
-              save.skin === index
+              equipped
                 ? "EQUIPPED"
-                : owned
+                : own
                   ? "EQUIP"
                   : "UNLOCK"
             }
@@ -492,55 +600,58 @@ function renderSkins(){
       `;
 
       const button =
-        card.querySelector("button");
+        d.querySelector("button");
 
-      button.addEventListener(
-        "click",
-        ()=>{
+      button.onclick = ()=>{
 
-          if(owned){
+        if(own){
 
-            save.skin = index;
-
-            persist();
-
-            renderSkins();
-            updateUI();
-
-            return;
-          }
-
-          if(save.gems < skin[2]){
-
-            showMessage(
-              "❌ Not enough gems.",
-              "error"
-            );
-
-            return;
-          }
-
-          save.gems -= skin[2];
-
-          save.owned.push(index);
-
-          save.skin = index;
+          save.skin = i;
 
           persist();
 
           renderSkins();
-          updateUI();
-        }
-      );
+          ui();
 
-      grid.appendChild(card);
+          return;
+        }
+
+        if(save.gems < s[2]){
+
+          msg(
+            "❌ NOT ENOUGH GEMS"
+          );
+
+          return;
+        }
+
+        save.gems -= s[2];
+
+        save.owned.push(i);
+
+        save.skin = i;
+
+        persist();
+
+        renderSkins();
+        ui();
+      };
+
+      grid.appendChild(d);
     }
   );
 }
 
 /* =========================================================
    MISSIONS
-========================================================= */
+   ========================================================= */
+
+function missionValue(id){
+
+  return Number(
+    save.missions[id] || 0
+  );
+}
 
 function renderMissions(){
 
@@ -549,100 +660,108 @@ function renderMissions(){
 
   if(!grid) return;
 
-  const missions = [
-
-    {
-      id:"run",
-      icon:"🏃",
-      name:"First Adventure",
-      desc:"Start an adventure",
-      target:1,
-      reward:500
-    },
-
-    {
-      id:"gems",
-      icon:"💎",
-      name:"Gem Hunter",
-      desc:"Collect 100 gems",
-      target:100,
-      reward:2500
-    },
-
-    {
-      id:"jumps",
-      icon:"🪽",
-      name:"Sky Master",
-      desc:"Make 25 jumps",
-      target:25,
-      reward:10000
-    }
-  ];
-
   grid.innerHTML = "";
 
-  missions.forEach(
-    mission=>{
+  missionDefinitions.forEach(
+    m=>{
 
       const value =
-        save.missions[mission.id] || 0;
+        missionValue(m.id);
 
-      const completed =
-        value >= mission.target;
+      const complete =
+        value >= m.target;
 
-      const card =
+      const claimed =
+        save.claimedMissions
+          .includes(m.id);
+
+      const d =
         document.createElement("article");
 
-      card.className =
-        "item";
+      d.className = "item";
 
-      card.innerHTML = `
+      d.innerHTML = `
         <div class="icon">
-          ${mission.icon}
+          ${m.icon}
         </div>
 
-        <h3>${mission.name}</h3>
+        <h3>
+          ${m.name}
+        </h3>
 
-        <small>MISSION</small>
+        <small>
+          MISSION
+        </small>
 
         <p>
-          ${mission.desc}
+          ${m.desc}
           <br>
           <b>
-            ${Math.min(value,mission.target)}
+            ${Math.min(value,m.target)}
             /
-            ${mission.target}
+            ${m.target}
           </b>
         </p>
 
         <footer>
 
           <span class="price">
-            💎 ${mission.reward.toLocaleString()}
+            💎
+            ${m.reward.toLocaleString()}
           </span>
 
           <button
             class="action"
-            disabled
+            ${!complete || claimed ? "disabled":""}
           >
             ${
-              completed
-                ? "COMPLETED"
-                : "IN PROGRESS"
+              claimed
+                ? "CLAIMED"
+                : complete
+                  ? "CLAIM"
+                  : "IN PROGRESS"
             }
           </button>
 
         </footer>
       `;
 
-      grid.appendChild(card);
+      const button =
+        d.querySelector("button");
+
+      button.onclick = ()=>{
+
+        if(
+          complete &&
+          !claimed
+        ){
+
+          save.gems += m.reward;
+
+          save.claimedMissions.push(
+            m.id
+          );
+
+          persist();
+
+          renderMissions();
+          ui();
+
+          msg(
+            "🎉 MISSION REWARD CLAIMED!",
+            true
+          );
+        }
+      };
+
+      grid.appendChild(d);
     }
   );
 }
 
 /* =========================================================
    WORLDS
-========================================================= */
+   ========================================================= */
 
 function renderWorlds(){
 
@@ -651,307 +770,441 @@ function renderWorlds(){
 
   if(!grid) return;
 
-  const worlds = [
-
-    ["🌲","Enchanted Forest",0],
-    ["🌙","Moonlit Ruins",2500],
-    ["🔥","Dragon Volcano",10000],
-    ["❄️","Frozen Kingdom",25000],
-    ["🌌","Astral Void",100000],
-    ["☀️","Celestial Realm",250000]
-  ];
-
   grid.innerHTML = "";
 
   worlds.forEach(
-    world=>{
+    w=>{
 
       const unlocked =
-        save.best >= world[2];
+        save.best >=
+        w.requirement;
 
-      const card =
+      const active =
+        save.world === w.id;
+
+      const d =
         document.createElement("article");
 
-      card.className =
-        "item";
+      d.className = "item";
 
-      card.innerHTML = `
+      d.style.setProperty(
+        "--glow",
+        w.color
+      );
+
+      d.innerHTML = `
         <div class="icon">
-          ${world[0]}
+          ${w.icon}
         </div>
 
-        <h3>${world[1]}</h3>
+        <h3>
+          ${w.name}
+        </h3>
 
         <small>
-          ${unlocked
-            ? "UNLOCKED"
-            : "LOCKED"}
+          ${
+            w.requirement === 0
+              ? "STARTER REALM"
+              : "SCORE "+
+                w.requirement.toLocaleString()
+          }
         </small>
 
         <p>
           ${
-            unlocked
-              ? "Realm ready for adventure."
-              : "Reach " +
-                world[2].toLocaleString() +
-                " best score."
+            active
+              ? "Current active realm."
+              : unlocked
+                ? "Realm unlocked. Enter the adventure."
+                : "Reach "+
+                  w.requirement.toLocaleString()+
+                  " best score."
           }
         </p>
 
         <footer>
 
           <span class="price">
-            ${unlocked
-              ? "✓ READY"
-              : "🔒 LOCKED"}
+            ${
+              active
+                ? "✓ ACTIVE"
+                : unlocked
+                  ? "✓ UNLOCKED"
+                  : "🔒 LOCKED"
+            }
           </span>
 
           <button
             class="action"
-            ${unlocked ? "" : "disabled"}
+            ${unlocked && !active ? "":"disabled"}
           >
-            ${unlocked ? "ENTER" : "LOCKED"}
+            ${
+              active
+                ? "ACTIVE"
+                : unlocked
+                  ? "ENTER"
+                  : "LOCKED"
+            }
           </button>
 
         </footer>
       `;
 
-      grid.appendChild(card);
+      const button =
+        d.querySelector("button");
+
+      button.onclick = ()=>{
+
+        if(
+          unlocked &&
+          !active
+        ){
+
+          save.world =
+            w.id;
+
+          persist();
+
+          renderWorlds();
+          ui();
+        }
+      };
+
+      grid.appendChild(d);
     }
   );
 }
 
 /* =========================================================
    UPGRADES
-========================================================= */
+   ========================================================= */
 
-function renderUpgrades(){
+const upgradeInfo = {
+  speed:{
+    icon:"⚡",
+    name:"Run Speed",
+    desc:"Increase movement speed.",
+    base:1000,
+    max:20
+  },
+
+  jump:{
+    icon:"🪽",
+    name:"Double Jump+",
+    desc:"Increase jump power.",
+    base:1500,
+    max:20
+  },
+
+  shield:{
+    icon:"🛡️",
+    name:"Shield Core",
+    desc:"Start each run with more health.",
+    base:2500,
+    max:10
+  },
+
+  magnet:{
+    icon:"🧲",
+    name:"Gem Magnet",
+    desc:"Increase the collection radius.",
+    base:3500,
+    max:10
+  }
+};
+
+function upgradeCost(key){
+
+  const info =
+    upgradeInfo[key];
+
+  const level =
+    save.upgrades[key] || 0;
+
+  return Math.floor(
+    info.base *
+    Math.pow(1.55,level)
+  );
+}
+
+function buyUpgrade(key){
+
+  const info =
+    upgradeInfo[key];
+
+  const current =
+    save.upgrades[key] || 0;
+
+  if(current >= info.max){
+
+    msg(
+      "⭐ MAXIMUM UPGRADE REACHED"
+    );
+
+    return;
+  }
+
+  const cost =
+    upgradeCost(key);
+
+  if(save.gems < cost){
+
+    msg(
+      "❌ NOT ENOUGH GEMS"
+    );
+
+    return;
+  }
+
+  save.gems -= cost;
+
+  save.upgrades[key] =
+    current + 1;
+
+  persist();
+
+  renderShop();
+  ui();
+}
+
+function renderShop(){
 
   const grid =
-    $("upgradeGrid");
+    $("shopGrid");
 
   if(!grid) return;
 
-  const upgrades = [
-
-    [
-      "speed",
-      "⚡",
-      "Run Speed",
-      "Increase movement speed.",
-      1000
-    ],
-
-    [
-      "jump",
-      "🪽",
-      "Double Jump+",
-      "Increase jump power.",
-      1500
-    ],
-
-    [
-      "shield",
-      "🛡️",
-      "Shield Core",
-      "Increase maximum protection.",
-      2500
-    ]
-  ];
-
   grid.innerHTML = "";
 
-  upgrades.forEach(
-    upgrade=>{
+  Object.entries(
+    upgradeInfo
+  ).forEach(
+    ([key,info])=>{
 
       const level =
-        save.upgrades[upgrade[0]] || 0;
+        save.upgrades[key] || 0;
+
+      const maxed =
+        level >= info.max;
 
       const cost =
-        upgrade[4] * (level + 1);
+        upgradeCost(key);
 
-      const card =
+      const d =
         document.createElement("article");
 
-      card.className =
+      d.className =
         "item";
 
-      card.innerHTML = `
+      d.innerHTML = `
         <div class="icon">
-          ${upgrade[1]}
+          ${info.icon}
         </div>
 
-        <h3>${upgrade[2]}</h3>
+        <h3>
+          ${info.name}
+        </h3>
 
         <small>
-          LEVEL ${level}
+          LEVEL ${level} / ${info.max}
         </small>
 
         <p>
-          ${upgrade[3]}
+          ${info.desc}
         </p>
 
         <footer>
 
           <span class="price">
-            💎 ${cost.toLocaleString()}
+            ${
+              maxed
+                ? "⭐ MAX"
+                : "💎 "+
+                  cost.toLocaleString()
+            }
           </span>
 
           <button
             class="action"
-            type="button"
+            ${maxed ? "disabled":""}
           >
-            UPGRADE
+            ${maxed ? "MAXED":"UPGRADE"}
           </button>
 
         </footer>
       `;
 
-      card.querySelector("button")
-        .addEventListener(
-          "click",
-          ()=>{
+      d.querySelector("button")
+        .onclick =
+          ()=>buyUpgrade(key);
 
-            if(save.gems < cost){
-
-              showMessage(
-                "❌ Not enough gems.",
-                "error"
-              );
-
-              return;
-            }
-
-            save.gems -= cost;
-
-            save.upgrades[upgrade[0]] =
-              level + 1;
-
-            persist();
-
-            renderUpgrades();
-            updateUI();
-          }
-        );
-
-      grid.appendChild(card);
+      grid.appendChild(d);
     }
   );
 }
 
 /* =========================================================
-   TABS
-========================================================= */
+   GAME STATE
+   ========================================================= */
 
-function setupTabs(){
+let running = false;
+
+let score = 0;
+let speed = 7;
+let health = 3;
+
+let last = 0;
+let spawn = 0;
+let gemSpawn = 0;
+let powerSpawn = 0;
+
+let dashTimer = 0;
+let shieldActive = false;
+
+let combo = 1;
+
+let obs = [];
+let gems = [];
+let powers = [];
+let particles = [];
+
+let worldTime = 0;
+
+/* =========================================================
+   PLAYER
+   ========================================================= */
+
+const P = {
+  x:150,
+  y:360,
+  w:58,
+  h:70,
+  vy:0,
+  jumps:0
+};
+
+const G = 430;
+
+/* =========================================================
+   TABS
+   ========================================================= */
+
+function tabs(){
 
   document
     .querySelectorAll(".tab")
     .forEach(button=>{
 
-      button.addEventListener(
-        "click",
-        ()=>{
+      button.onclick = ()=>{
 
-          document
-            .querySelectorAll(".tab")
-            .forEach(
-              b=>b.classList.remove("active")
-            );
+        document
+          .querySelectorAll(".tab")
+          .forEach(
+            x=>x.classList.remove(
+              "active"
+            )
+          );
 
-          document
-            .querySelectorAll(".panel")
-            .forEach(
-              p=>p.classList.remove("active")
-            );
+        document
+          .querySelectorAll(".panel")
+          .forEach(
+            x=>x.classList.remove(
+              "active"
+            )
+          );
 
-          button.classList.add("active");
+        button.classList.add(
+          "active"
+        );
 
-          const panel =
-            $(button.dataset.panel);
+        const panel =
+          $(button.dataset.panel);
 
-          if(panel)
-            panel.classList.add("active");
-        }
-      );
+        if(panel)
+          panel.classList.add(
+            "active"
+          );
+      };
     });
 }
 
 /* =========================================================
-   GAME
-========================================================= */
+   RESET
+   ========================================================= */
 
-function resetGame(){
+function reset(){
 
   score = 0;
 
   speed =
     7 +
-    save.upgrades.speed * .5;
+    save.upgrades.speed *
+    .5;
 
   health =
     3 +
     save.upgrades.shield;
 
-  combo = 1;
+  spawn = 0;
+  gemSpawn = 0;
+  powerSpawn = 0;
 
-  obstacleTimer = 0;
-  gemTimer = 0;
   dashTimer = 0;
 
   shieldActive = false;
 
-  obstacles = [];
+  combo = 1;
+
+  obs = [];
   gems = [];
+  powers = [];
+  particles = [];
 
-  PLAYER.y =
-    GROUND - PLAYER.h;
+  worldTime = 0;
 
-  PLAYER.vy = 0;
-  PLAYER.jumps = 0;
+  P.y =
+    G - P.h;
+
+  P.vy = 0;
+  P.jumps = 0;
 }
 
-function startGame(){
+/* =========================================================
+   START / END
+   ========================================================= */
 
-  if(running)
-    return;
+function start(){
 
-  resetGame();
+  reset();
 
   running = true;
 
   save.runs++;
 
-  save.missions.run = 1;
+  save.missions.run =
+    Math.max(
+      save.missions.run,
+      1
+    );
 
   persist();
 
-  const start =
-    $("startScreen");
+  $("startScreen")
+    ?.classList.add("hidden");
 
-  const over =
-    $("gameOverScreen");
+  $("gameOverScreen")
+    ?.classList.add("hidden");
 
-  if(start)
-    start.classList.add("hidden");
-
-  if(over)
-    over.classList.add("hidden");
-
-  lastTime =
+  last =
     performance.now();
 
   renderMissions();
+  ui();
 
-  updateUI();
-
-  requestAnimationFrame(gameLoop);
+  requestAnimationFrame(loop);
 }
 
-function endGame(){
-
-  if(!running)
-    return;
+function end(){
 
   running = false;
 
@@ -961,44 +1214,94 @@ function endGame(){
       Math.floor(score)
     );
 
+  save.missions.score =
+    Math.max(
+      save.missions.score,
+      Math.floor(score)
+    );
+
   persist();
 
   if($("finalScore"))
-    $("finalScore").textContent =
-      Math.floor(score)
+    $("finalScore")
+      .textContent =
+        Math.floor(score)
         .toLocaleString();
 
   $("gameOverScreen")
-    ?.classList.remove("hidden");
+    ?.classList.remove(
+      "hidden"
+    );
 
   renderWorlds();
   renderMissions();
-  renderUpgrades();
-  updateUI();
+  renderShop();
+  ui();
 }
 
 /* =========================================================
-   CONTROLS
-========================================================= */
+   PLAYER ACTIONS
+   ========================================================= */
 
 function jump(){
 
   if(!running)
     return;
 
-  if(PLAYER.jumps >= 2)
+  const maxJumps =
+    2;
+
+  if(P.jumps < maxJumps){
+
+    P.vy =
+      -(
+        15 +
+        save.upgrades.jump *
+        .7
+      );
+
+    P.jumps++;
+
+    save.totalJumps++;
+
+    save.missions.jumps =
+      Math.min(
+        25,
+        save.missions.jumps + 1
+      );
+
+    persist();
+
+    renderMissions();
+  }
+}
+
+function dash(){
+
+  if(
+    !running ||
+    dashTimer > 0
+  )
     return;
 
-  PLAYER.vy =
-    -15 -
-    save.upgrades.jump * .7;
+  dashTimer = 32;
 
-  PLAYER.jumps++;
+  score +=
+    75 *
+    combo;
 
-  save.missions.jumps =
+  combo =
     Math.min(
-      25,
-      save.missions.jumps + 1
+      10,
+      combo + 1
+    );
+
+  save.totalDash++;
+
+  save.missions.dash =
+    Math.min(
+      20,
+      save.missions.dash + 1
     );
 
   persist();
@@ -1006,26 +1309,7 @@ function jump(){
   renderMissions();
 }
 
-function dash(){
-
-  if(!running)
-    return;
-
-  if(dashTimer > 0)
-    return;
-
-  dashTimer = 32;
-
-  score += 75;
-
-  combo =
-    Math.min(
-      10,
-      combo + 1
-    );
-}
-
-function toggleShield(){
+function shield(){
 
   if(!running)
     return;
@@ -1033,85 +1317,192 @@ function toggleShield(){
   shieldActive =
     !shieldActive;
 
-  updateUI();
+  ui();
 }
 
 /* =========================================================
-   SPAWNING
-========================================================= */
+   SPAWN
+   ========================================================= */
 
-function spawnObjects(dt){
+function spawnStuff(dt){
 
-  obstacleTimer += dt;
-  gemTimer += dt;
+  spawn += dt;
+  gemSpawn += dt;
+  powerSpawn += dt;
 
-  const obstacleDelay =
-    Math.max(
-      45,
-      70 - score / 1000
+  const difficulty =
+    Math.min(
+      28,
+      score / 1000
     );
 
-  if(obstacleTimer >= obstacleDelay){
+  if(
+    spawn >
+    Math.max(
+      35,
+      70 - difficulty * 1.5
+    )
+  ){
 
-    obstacles.push({
+    const type =
+      Math.random();
 
-      x:canvas.clientWidth + 100,
+    if(type < .18){
 
-      y:GROUND - 55,
+      obs.push({
+        x:1200,
+        y:300,
+        w:60,
+        h:130,
+        type:"tall"
+      });
 
-      w:55,
+    }else if(type < .35){
 
-      h:55
+      obs.push({
+        x:1200,
+        y:350,
+        w:100,
+        h:80,
+        type:"beast"
+      });
 
-    });
+    }else{
 
-    obstacleTimer = 0;
+      obs.push({
+        x:1200,
+        y:G-55,
+        w:55,
+        h:55,
+        type:"spike"
+      });
+    }
+
+    spawn = 0;
   }
 
-  if(gemTimer >= 28){
+  if(gemSpawn > 25){
 
     gems.push({
-
-      x:canvas.clientWidth + 100,
-
-      y:
-        150 +
-        Math.random() * 210
-
+      x:1200,
+      y:150 +
+        Math.random() *
+        220,
+      r:12
     });
 
-    gemTimer = 0;
+    gemSpawn = 0;
+  }
+
+  if(powerSpawn > 170){
+
+    const type =
+      Math.random() < .5
+        ? "gem"
+        : "heart";
+
+    powers.push({
+      x:1200,
+      y:190 +
+        Math.random() *
+        150,
+      type
+    });
+
+    powerSpawn = 0;
   }
 }
 
 /* =========================================================
    COLLISION
-========================================================= */
+   ========================================================= */
 
-function collision(a,b){
+function collide(a,b){
 
   return (
-    a.x + 8 < b.x + b.w &&
-    a.x + a.w - 8 > b.x &&
-    a.y + 8 < b.y + b.h &&
-    a.y + a.h > b.y
+    a.x + 8 <
+      b.x + b.w &&
+    a.x + a.w - 8 >
+      b.x &&
+    a.y + 8 <
+      b.y + b.h &&
+    a.y + a.h >
+      b.y
   );
 }
 
 /* =========================================================
+   PARTICLES
+   ========================================================= */
+
+function particle(
+  x,
+  y,
+  color,
+  amount=5
+){
+
+  for(
+    let i=0;
+    i<amount;
+    i++
+  ){
+
+    particles.push({
+      x,
+      y,
+      vx:
+        (Math.random()-.5)*5,
+      vy:
+        (Math.random()-.5)*5,
+      life:1,
+      color
+    });
+  }
+}
+
+function updateParticles(dt){
+
+  for(
+    let i=particles.length-1;
+    i>=0;
+    i--
+  ){
+
+    const p =
+      particles[i];
+
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+
+    p.vy += .1 * dt;
+
+    p.life -= .035 * dt;
+
+    if(p.life <= 0)
+      particles.splice(i,1);
+  }
+}
+
+/* =========================================================
    UPDATE
-========================================================= */
+   ========================================================= */
 
 function update(dt){
 
-  score += dt * .22;
+  worldTime += dt;
+
+  score +=
+    dt *
+    .22 *
+    (1 + combo*.04);
 
   speed =
     Math.min(
-      18,
+      19,
       7 +
-      score / 1800 +
-      save.upgrades.speed * .5
+      score/1800 +
+      save.upgrades.speed*.5
     );
 
   if(dashTimer > 0){
@@ -1121,54 +1512,59 @@ function update(dt){
     speed += 8;
   }
 
-  PLAYER.vy += .85 * dt;
+  P.vy +=
+    .85 * dt;
 
-  PLAYER.y +=
-    PLAYER.vy * dt;
+  P.y +=
+    P.vy * dt;
 
   if(
-    PLAYER.y >=
-    GROUND - PLAYER.h
+    P.y >=
+    G - P.h
   ){
 
-    PLAYER.y =
-      GROUND - PLAYER.h;
+    P.y =
+      G - P.h;
 
-    PLAYER.vy = 0;
-
-    PLAYER.jumps = 0;
+    P.vy = 0;
+    P.jumps = 0;
   }
 
-  spawnObjects(dt);
+  spawnStuff(dt);
 
   /* obstacles */
 
   for(
-    let i = obstacles.length - 1;
-    i >= 0;
+    let i=obs.length-1;
+    i>=0;
     i--
   ){
 
-    const obstacle =
-      obstacles[i];
+    const o =
+      obs[i];
 
-    obstacle.x -=
+    o.x -=
       speed * dt;
 
-    if(
-      collision(PLAYER,obstacle)
-    ){
+    if(collide(P,o)){
 
       if(shieldActive){
 
         shieldActive = false;
 
-        obstacles.splice(i,1);
+        particle(
+          P.x+30,
+          P.y+30,
+          "#62ecff",
+          15
+        );
+
+        obs.splice(i,1);
 
         combo =
           Math.min(
             10,
-            combo + 1
+            combo+1
           );
 
       }else{
@@ -1177,51 +1573,60 @@ function update(dt){
 
         combo = 1;
 
-        obstacles.splice(i,1);
+        particle(
+          P.x+30,
+          P.y+30,
+          "#ff557f",
+          20
+        );
+
+        obs.splice(i,1);
 
         if(health <= 0){
 
-          endGame();
-
+          end();
           return;
         }
       }
 
     }else if(
-      obstacle.x < -100
+      o.x < -150
     ){
 
-      obstacles.splice(i,1);
+      obs.splice(i,1);
     }
   }
 
   /* gems */
 
+  const magnet =
+    65 +
+    save.upgrades.magnet *
+    25;
+
   for(
-    let i = gems.length - 1;
-    i >= 0;
+    let i=gems.length-1;
+    i>=0;
     i--
   ){
 
-    const gem =
+    const g =
       gems[i];
 
-    gem.x -=
+    g.x -=
       speed * dt;
 
-    const dx =
-      gem.x -
-      (PLAYER.x + PLAYER.w / 2);
+    const distance =
+      Math.hypot(
+        g.x-(P.x+30),
+        g.y-(P.y+30)
+      );
 
-    const dy =
-      gem.y -
-      (PLAYER.y + PLAYER.h / 2);
-
-    if(
-      Math.hypot(dx,dy) < 65
-    ){
+    if(distance < magnet){
 
       save.gems += 25;
+
+      save.totalGems += 25;
 
       save.missions.gems =
         Math.min(
@@ -1229,13 +1634,21 @@ function update(dt){
           save.missions.gems + 25
         );
 
-      score += 50;
+      score +=
+        50 * combo;
 
       combo =
         Math.min(
           10,
           combo + 1
         );
+
+      particle(
+        g.x,
+        g.y,
+        "#62ecff",
+        8
+      );
 
       gems.splice(i,1);
 
@@ -1244,26 +1657,92 @@ function update(dt){
       renderMissions();
 
     }else if(
-      gem.x < -50
+      g.x < -50
     ){
 
       gems.splice(i,1);
     }
   }
 
-  updateUI();
+  /* powerups */
+
+  for(
+    let i=powers.length-1;
+    i>=0;
+    i--
+  ){
+
+    const p =
+      powers[i];
+
+    p.x -=
+      speed * dt;
+
+    const box = {
+      x:p.x-15,
+      y:p.y-15,
+      w:30,
+      h:30
+    };
+
+    if(collide(P,box)){
+
+      if(p.type === "heart"){
+
+        health =
+          Math.min(
+            3 +
+            save.upgrades.shield,
+            health + 1
+          );
+
+      }else{
+
+        save.gems += 100;
+
+        save.totalGems += 100;
+      }
+
+      score += 150;
+
+      combo =
+        Math.min(
+          10,
+          combo+2
+        );
+
+      particle(
+        p.x,
+        p.y,
+        p.type==="heart"
+          ? "#ff557f"
+          : "#62ecff",
+        15
+      );
+
+      powers.splice(i,1);
+
+      persist();
+
+    }else if(
+      p.x < -50
+    ){
+
+      powers.splice(i,1);
+    }
+  }
+
+  updateParticles(dt);
+
+  ui();
 }
 
 /* =========================================================
    DRAW HELPERS
-========================================================= */
+   ========================================================= */
 
-function roundedRect(
-  x,
-  y,
-  w,
-  h,
-  r
+function rr(
+  x,y,w,h,r
 ){
 
   ctx.beginPath();
@@ -1280,24 +1759,29 @@ function limb(
   y,
   w,
   h,
-  rotation,
-  color
+  rot,
+  fill,
+  stroke="#10151f"
 ){
 
   ctx.save();
 
-  ctx.translate(x,y);
+  ctx.translate(
+    x,
+    y
+  );
 
-  ctx.rotate(rotation);
+  ctx.rotate(rot);
 
-  ctx.fillStyle = color;
+  ctx.fillStyle =
+    fill;
 
   ctx.strokeStyle =
-    "#10151f";
+    stroke;
 
-  ctx.lineWidth = 3;
+  ctx.lineWidth=3;
 
-  roundedRect(
+  rr(
     -w/2,
     -h/2,
     w,
@@ -1312,115 +1796,53 @@ function limb(
 
 /* =========================================================
    CHARACTER
-========================================================= */
+   ========================================================= */
 
 function drawCharacter(
   x,
   y
 ){
 
-  const id =
-    save.skin % 20;
-
-  const colors = [
-
-    "#d9b36c",
-    "#aeb8c8",
-    "#d94848",
-    "#c79b72",
-    "#222b3a",
-    "#9a6a38",
-    "#2d4a75",
-    "#28d7ff",
-    "#3b263b",
-    "#f1e4c7",
-    "#7b4a2d",
-    "#6f1b2b",
-    "#bfeaff",
-    "#4d8dff",
-    "#8d5cff",
-    "#e5b94f",
-    "#18e5e5",
-    "#7d1525",
-    "#b85cff",
-    "#d8f5ff"
-  ];
+  const s =
+    skins[
+      save.skin % skins.length
+    ];
 
   const accent =
-    colors[id];
+    s[5];
 
-  let body =
-    "#536b4f";
+  const body =
+    s[4];
 
-  let skin =
-    "#748b68";
+  const skin =
+    s[3];
 
-  if(id===1){
-    body="#8795a8";
-    skin="#b7c1d0";
-  }
+  const dark =
+    "#10131e";
 
-  if(id===2||id===4){
-    body="#263244";
-    skin="#43536b";
-  }
-
-  if(id===7||id===16){
-    body="#162d3a";
-    skin="#2bdcff";
-  }
-
-  if(id===8){
-    body="#302b38";
-    skin="#6e596e";
-  }
-
-  if(id===10){
-    body="#4b2c1c";
-    skin="#a36a3f";
-  }
-
-  if(id===11||id===17){
-    body="#351521";
-    skin="#8b2635";
-  }
-
-  if(id===12){
-    body="#527b8d";
-    skin="#cceeff";
-  }
-
-  if(id===13){
-    body="#1f3f78";
-    skin="#5aa4ff";
-  }
-
-  if(id===14||id===18){
-    body="#241b45";
-    skin="#744cff";
-  }
-
-  if(id===15){
-    body="#9b6a22";
-    skin="#e6bd58";
-  }
-
-  if(id===19){
-    body="#385a63";
-    skin="#aee8ef";
-  }
+  const metal =
+    "#dbe7f5";
 
   ctx.save();
 
-  ctx.translate(x,y);
+  ctx.translate(
+    x,
+    y
+  );
 
-  ctx.lineCap="round";
-  ctx.lineJoin="round";
+  ctx.lineCap =
+    "round";
+
+  ctx.lineJoin =
+    "round";
+
+  const index =
+    save.skin;
 
   /* shadow */
 
   ctx.fillStyle =
-    "rgba(0,0,0,.28)";
+    "rgba(0,0,0,.3)";
 
   ctx.beginPath();
 
@@ -1436,87 +1858,138 @@ function drawCharacter(
 
   ctx.fill();
 
+  /* legendary aura */
+
+  if(index >= 14){
+
+    ctx.globalAlpha =
+      .13;
+
+    ctx.fillStyle =
+      accent;
+
+    ctx.beginPath();
+
+    ctx.arc(
+      5,
+      -12,
+      62 +
+      Math.sin(
+        worldTime*.1
+      )*5,
+      0,
+      Math.PI*2
+    );
+
+    ctx.fill();
+
+    ctx.globalAlpha=1;
+  }
+
   /* tail */
 
-  ctx.fillStyle = skin;
+  ctx.fillStyle =
+    skin;
 
   ctx.beginPath();
 
-  ctx.moveTo(-17,5);
-
-  ctx.quadraticCurveTo(
-    -48,-3,
-    -57,14
+  ctx.moveTo(
+    -17,
+    5
   );
 
   ctx.quadraticCurveTo(
-    -39,19,
-    -18,15
+    -48,
+    -3,
+    -57,
+    14
+  );
+
+  ctx.quadraticCurveTo(
+    -39,
+    19,
+    -18,
+    15
   );
 
   ctx.fill();
 
   ctx.strokeStyle =
-    "#10151f";
+    dark;
 
   ctx.stroke();
 
   /* legs */
 
   limb(
-    -15,24,
-    14,34,
+    -15,
+    24,
+    14,
+    34,
     .08,
     body
   );
 
   limb(
-    15,24,
-    14,34,
+    15,
+    24,
+    14,
+    34,
     -.08,
     body
   );
 
   ctx.fillStyle =
-    "#10151f";
+    dark;
 
-  roundedRect(
-    -25,38,
-    22,8,
+  rr(
+    -25,
+    38,
+    22,
+    8,
     4
   );
 
-  roundedRect(
-    5,38,
-    22,8,
+  rr(
+    5,
+    38,
+    22,
+    8,
     4
   );
 
   /* torso */
 
-  ctx.fillStyle = body;
-
-  roundedRect(
-    -26,-5,
-    52,48,
-    15
-  );
+  ctx.fillStyle =
+    body;
 
   ctx.strokeStyle =
-    "#10151f";
+    dark;
 
   ctx.lineWidth=3;
 
+  rr(
+    -26,
+    -5,
+    52,
+    48,
+    15
+  );
+
   ctx.stroke();
+
+  /* chest core */
 
   ctx.fillStyle =
     accent;
 
-  ctx.globalAlpha=.9;
+  ctx.globalAlpha=.85;
 
-  roundedRect(
-    -20,2,
-    40,12,
+  rr(
+    -20,
+    2,
+    40,
+    12,
     5
   );
 
@@ -1524,64 +1997,43 @@ function drawCharacter(
 
   /* armor */
 
-  if(
-    id===0 ||
-    id===8 ||
-    id===15
-  ){
+  if(index % 3 === 0){
 
-    ctx.fillStyle="#cbd5e1";
+    ctx.fillStyle =
+      metal;
 
-    roundedRect(
-      -22,-2,
-      10,35,
+    rr(
+      -22,
+      -2,
+      10,
+      35,
       4
     );
 
-    roundedRect(
-      12,-2,
-      10,35,
+    rr(
+      12,
+      -2,
+      10,
+      35,
       4
     );
   }
 
-  if(
-    id===2 ||
-    id===4 ||
-    id===5 ||
-    id===6
-  ){
+  if(index % 5 === 0){
 
-    ctx.fillStyle="#111827";
+    ctx.strokeStyle =
+      accent;
 
-    roundedRect(
-      -24,8,
-      48,20,
-      5
-    );
+    ctx.shadowBlur=15;
 
-    ctx.fillStyle=accent;
-
-    ctx.fillRect(
-      -24,8,
-      48,3
-    );
-  }
-
-  if(
-    id===7 ||
-    id===16
-  ){
-
-    ctx.shadowBlur=18;
-
-    ctx.shadowColor=accent;
-
-    ctx.strokeStyle=accent;
+    ctx.shadowColor =
+      accent;
 
     ctx.strokeRect(
-      -25,-4,
-      50,47
+      -25,
+      -4,
+      50,
+      43
     );
 
     ctx.shadowBlur=0;
@@ -1589,12 +2041,14 @@ function drawCharacter(
 
   /* neck */
 
-  ctx.fillStyle=skin;
+  ctx.fillStyle =
+    skin;
 
   ctx.beginPath();
 
   ctx.arc(
-    20,-15,
+    20,
+    -15,
     12,
     0,
     Math.PI*2
@@ -1602,16 +2056,21 @@ function drawCharacter(
 
   ctx.fill();
 
+  ctx.strokeStyle =
+    dark;
+
   ctx.stroke();
 
   /* head */
 
-  ctx.fillStyle=skin;
+  ctx.fillStyle =
+    skin;
 
   ctx.beginPath();
 
   ctx.ellipse(
-    25,-35,
+    25,
+    -35,
     25,
     22,
     0,
@@ -1625,13 +2084,13 @@ function drawCharacter(
 
   /* snout */
 
-  ctx.fillStyle=skin;
-
   ctx.beginPath();
 
   ctx.roundRect(
-    38,-32,
-    20,13,
+    38,
+    -32,
+    20,
+    13,
     6
   );
 
@@ -1641,22 +2100,28 @@ function drawCharacter(
 
   /* visor */
 
-  ctx.fillStyle="#0a0d14";
+  ctx.fillStyle =
+    "#070a11";
 
-  roundedRect(
-    25,-45,
-    25,9,
+  rr(
+    25,
+    -45,
+    25,
+    9,
     4
   );
 
-  ctx.fillStyle=accent;
+  ctx.fillStyle =
+    accent;
 
-  ctx.shadowBlur=8;
+  ctx.shadowBlur=10;
 
-  ctx.shadowColor=accent;
+  ctx.shadowColor =
+    accent;
 
   ctx.fillRect(
-    38,-43,
+    38,
+    -43,
     7,
     3
   );
@@ -1665,7 +2130,8 @@ function drawCharacter(
 
   /* teeth */
 
-  ctx.fillStyle="#fff";
+  ctx.fillStyle =
+    "#fff";
 
   for(
     let i=0;
@@ -1681,177 +2147,121 @@ function drawCharacter(
     );
   }
 
-  /* crown / helmet */
+  /* crown / horns */
 
-  if(id===0){
+  if(index >= 9){
 
-    ctx.fillStyle="#cbd5e1";
+    ctx.fillStyle =
+      accent;
 
     ctx.beginPath();
 
-    ctx.moveTo(5,-46);
-    ctx.lineTo(22,-63);
-    ctx.lineTo(45,-48);
-    ctx.lineTo(30,-43);
+    ctx.moveTo(
+      5,
+      -50
+    );
+
+    ctx.lineTo(
+      13,
+      -67
+    );
+
+    ctx.lineTo(
+      21,
+      -52
+    );
+
+    ctx.lineTo(
+      30,
+      -70
+    );
+
+    ctx.lineTo(
+      38,
+      -49
+    );
 
     ctx.closePath();
 
     ctx.fill();
 
-    ctx.stroke();
+    ctx.strokeStyle =
+      dark;
 
-    ctx.strokeStyle=accent;
+    ctx.stroke();
+  }
+
+  /* weapon */
+
+  if(index % 4 === 0){
+
+    ctx.strokeStyle =
+      metal;
+
     ctx.lineWidth=4;
 
     ctx.beginPath();
 
-    ctx.moveTo(15,-59);
-    ctx.lineTo(48,-55);
+    ctx.moveTo(
+      -28,
+      -4
+    );
 
-    ctx.stroke();
-  }
-
-  if(id===1){
-
-    ctx.strokeStyle="#d8e4ff";
-    ctx.lineWidth=4;
-
-    ctx.beginPath();
-
-    ctx.arc(
-      25,-35,
-      28,
-      0,
-      Math.PI*2
+    ctx.lineTo(
+      -45,
+      -36
     );
 
     ctx.stroke();
-  }
 
-  if(id===2||id===4){
+    ctx.strokeStyle =
+      accent;
 
-    ctx.fillStyle="#151b27";
-
-    roundedRect(
-      5,-54,
-      45,12,
-      5
-    );
-
-    ctx.fillStyle="#222";
-
-    ctx.fillRect(
-      18,-58,
-      20,6
-    );
-  }
-
-  if(
-    id===10 ||
-    id===11 ||
-    id===18 ||
-    id===19
-  ){
-
-    ctx.fillStyle=accent;
+    ctx.lineWidth=2;
 
     ctx.beginPath();
 
-    ctx.moveTo(5,-50);
-    ctx.lineTo(12,-67);
-    ctx.lineTo(20,-52);
-    ctx.lineTo(30,-70);
-    ctx.lineTo(37,-49);
-
-    ctx.fill();
-
-    ctx.strokeStyle="#10151f";
-    ctx.stroke();
-  }
-
-  if(
-    id===12 ||
-    id===13 ||
-    id===14
-  ){
-
-    ctx.fillStyle="#cbd5e1";
-
-    ctx.beginPath();
-
-    ctx.moveTo(3,-51);
-    ctx.lineTo(25,-66);
-    ctx.lineTo(49,-49);
-    ctx.lineTo(41,-43);
-    ctx.lineTo(8,-43);
-
-    ctx.closePath();
-
-    ctx.fill();
-
-    ctx.stroke();
-
-    ctx.fillStyle=accent;
-
-    ctx.fillRect(
-      22,-64,
-      6,
-      8
+    ctx.moveTo(
+      -49,
+      -40
     );
-  }
 
-  if(id===15){
+    ctx.lineTo(
+      -31,
+      -7
+    );
 
-    ctx.fillStyle="#e9c46a";
-
-    ctx.beginPath();
-
-    for(
-      let i=0;
-      i<7;
-      i++
-    ){
-
-      const a =
-        -Math.PI*.8 +
-        i*Math.PI*.26;
-
-      ctx.lineTo(
-        25 +
-        Math.cos(a)*25,
-        -35 +
-        Math.sin(a)*25
-      );
-    }
-
-    ctx.closePath();
-
-    ctx.fill();
     ctx.stroke();
   }
 
   /* arms */
 
   limb(
-    -29,4,
-    12,28,
+    -29,
+    4,
+    12,
+    28,
     -.45,
     body
   );
 
   limb(
-    29,4,
-    12,28,
+    29,
+    4,
+    12,
+    28,
     .45,
     body
   );
 
-  ctx.fillStyle=accent;
+  ctx.fillStyle =
+    accent;
 
   ctx.beginPath();
 
   ctx.arc(
-    -38,16,
+    -38,
+    16,
     6,
     0,
     Math.PI*2
@@ -1862,7 +2272,8 @@ function drawCharacter(
   ctx.beginPath();
 
   ctx.arc(
-    38,16,
+    38,
+    16,
     6,
     0,
     Math.PI*2
@@ -1870,21 +2281,27 @@ function drawCharacter(
 
   ctx.fill();
 
-  /* rarity aura */
+  /* aura ring */
 
-  if(id>=14){
+  if(index >= 14){
 
-    ctx.globalAlpha=.25;
+    ctx.globalAlpha =
+      .35;
 
-    ctx.strokeStyle=accent;
+    ctx.strokeStyle =
+      accent;
 
     ctx.lineWidth=3;
 
     ctx.beginPath();
 
     ctx.arc(
-      5,-12,
-      58,
+      5,
+      -12,
+      58 +
+      Math.sin(
+        worldTime*.12
+      )*4,
       0,
       Math.PI*2
     );
@@ -1899,76 +2316,73 @@ function drawCharacter(
 
 /* =========================================================
    DRAW WORLD
-========================================================= */
+   ========================================================= */
 
-function draw(){
+function drawBackground(){
 
-  const width =
-    canvas.clientWidth;
+  const world =
+    worlds.find(
+      w=>w.id===save.world
+    ) || worlds[0];
 
-  const height =
-    canvas.clientHeight;
+  const c =
+    world.color;
 
-  if(!width || !height)
-    return;
-
-  ctx.clearRect(
-    0,0,
-    width,
-    height
-  );
-
-  const gradient =
+  const grad =
     ctx.createLinearGradient(
-      0,0,
-      0,height
+      0,
+      0,
+      0,
+      520
     );
 
-  gradient.addColorStop(
+  grad.addColorStop(
     0,
-    "#080b24"
+    "#07091c"
   );
 
-  gradient.addColorStop(
+  grad.addColorStop(
     .55,
-    "#170d30"
+    "#140b2c"
   );
 
-  gradient.addColorStop(
+  grad.addColorStop(
     1,
-    "#071d22"
+    "#061820"
   );
 
   ctx.fillStyle =
-    gradient;
+    grad;
 
   ctx.fillRect(
-    0,0,
-    width,
-    height
+    0,
+    0,
+    1200,
+    520
   );
 
   /* stars */
 
   for(
     let i=0;
-    i<90;
+    i<100;
     i++
   ){
 
-    ctx.fillStyle =
-      i%5===0
-        ? "#62ecff99"
-        : "#ffffff88";
-
     const x =
-      ((i*173 - score*.05)
-        % width + width)
-      % width;
+      (
+        i*173 -
+        score*.05
+      ) % 1200;
 
     const y =
       25 +
       (i*47)%290;
+
+    ctx.fillStyle =
+      i%6===0
+        ? c+"bb"
+        : "#ffffff88";
 
     ctx.fillRect(
       x,
@@ -1981,7 +2395,7 @@ function draw(){
   /* mountains */
 
   ctx.fillStyle =
-    "#183b52";
+    "#15384b";
 
   for(
     let i=0;
@@ -1989,15 +2403,17 @@ function draw(){
     i++
   ){
 
-    let x =
+    const x =
       i*180 -
-      (score*.03%180);
+      (
+        score*.03%180
+      );
 
     ctx.beginPath();
 
     ctx.moveTo(
       x,
-      GROUND
+      430
     );
 
     ctx.lineTo(
@@ -2007,11 +2423,33 @@ function draw(){
 
     ctx.lineTo(
       x+160,
-      GROUND
+      430
     );
 
     ctx.fill();
   }
+
+  /* world-specific glow */
+
+  ctx.globalAlpha=.15;
+
+  ctx.fillStyle =
+    c;
+
+  ctx.beginPath();
+
+  ctx.arc(
+    930,
+    120,
+    100 +
+      Math.sin(worldTime*.03)*10,
+    0,
+    Math.PI*2
+  );
+
+  ctx.fill();
+
+  ctx.globalAlpha=1;
 
   /* ground */
 
@@ -2020,13 +2458,13 @@ function draw(){
 
   ctx.fillRect(
     0,
-    GROUND,
-    width,
-    height-GROUND
+    G,
+    1200,
+    90
   );
 
   ctx.strokeStyle =
-    "#65f6ff";
+    c;
 
   ctx.lineWidth=2;
 
@@ -2034,99 +2472,241 @@ function draw(){
 
   ctx.moveTo(
     0,
-    GROUND
+    G
   );
 
   ctx.lineTo(
-    width,
-    GROUND
+    1200,
+    G
   );
 
   ctx.stroke();
+}
+
+/* =========================================================
+   DRAW OBJECTS
+   ========================================================= */
+
+function drawObjects(){
 
   /* gems */
 
   gems.forEach(
-    gem=>{
+    z=>{
 
-      ctx.fillStyle="#61eaff";
+      ctx.save();
+
+      ctx.fillStyle =
+        "#61eaff";
 
       ctx.shadowBlur=20;
 
-      ctx.shadowColor="#61eaff";
+      ctx.shadowColor =
+        "#61eaff";
+
+      ctx.translate(
+        z.x,
+        z.y
+      );
+
+      ctx.rotate(
+        worldTime*.04
+      );
 
       ctx.beginPath();
 
       ctx.moveTo(
-        gem.x,
-        gem.y-14
+        0,
+        -14
       );
 
       ctx.lineTo(
-        gem.x+12,
-        gem.y
+        12,
+        0
       );
 
       ctx.lineTo(
-        gem.x,
-        gem.y+14
+        0,
+        14
       );
 
       ctx.lineTo(
-        gem.x-12,
-        gem.y
+        -12,
+        0
       );
 
       ctx.closePath();
 
       ctx.fill();
 
-      ctx.shadowBlur=0;
+      ctx.restore();
     }
   );
 
-  /* obstacles */
+  /* powerups */
 
-  obstacles.forEach(
-    obstacle=>{
+  powers.forEach(
+    p=>{
+
+      ctx.save();
 
       ctx.fillStyle =
-        "#ff4f8d";
+        p.type==="heart"
+          ? "#ff557f"
+          : "#62ecff";
 
-      ctx.shadowBlur=12;
+      ctx.shadowBlur=18;
+
+      ctx.shadowColor =
+        ctx.fillStyle;
+
+      ctx.beginPath();
+
+      ctx.arc(
+        p.x,
+        p.y,
+        15,
+        0,
+        Math.PI*2
+      );
+
+      ctx.fill();
+
+      ctx.fillStyle =
+        "#fff";
+
+      ctx.font =
+        "16px Arial";
+
+      ctx.textAlign =
+        "center";
+
+      ctx.textBaseline =
+        "middle";
+
+      ctx.fillText(
+        p.type==="heart"
+          ? "♥"
+          : "◆",
+        p.x,
+        p.y
+      );
+
+      ctx.restore();
+    }
+  );
+
+  /* enemies */
+
+  obs.forEach(
+    o=>{
+
+      ctx.save();
+
+      ctx.shadowBlur=14;
 
       ctx.shadowColor =
         "#ff4f8d";
 
-      ctx.beginPath();
+      ctx.fillStyle =
+        "#ff4f8d";
 
-      ctx.moveTo(
-        obstacle.x,
-        obstacle.y+obstacle.h
-      );
+      if(o.type==="tall"){
 
-      ctx.lineTo(
-        obstacle.x+
-        obstacle.w/2,
-        obstacle.y
-      );
+        ctx.beginPath();
 
-      ctx.lineTo(
-        obstacle.x+
-        obstacle.w,
-        obstacle.y+
-        obstacle.h
-      );
+        ctx.moveTo(
+          o.x,
+          o.y+o.h
+        );
 
-      ctx.closePath();
+        ctx.lineTo(
+          o.x+30,
+          o.y
+        );
 
-      ctx.fill();
+        ctx.lineTo(
+          o.x+o.w,
+          o.y+o.h
+        );
 
-      ctx.shadowBlur=0;
+        ctx.closePath();
+
+        ctx.fill();
+
+      }else{
+
+        ctx.beginPath();
+
+        ctx.roundRect(
+          o.x,
+          o.y,
+          o.w,
+          o.h,
+          12
+        );
+
+        ctx.fill();
+
+        ctx.fillStyle =
+          "#160d20";
+
+        ctx.fillRect(
+          o.x+12,
+          o.y+12,
+          8,
+          8
+        );
+
+        ctx.fillRect(
+          o.x+o.w-20,
+          o.y+12,
+          8,
+          8
+        );
+      }
+
+      ctx.restore();
     }
   );
 
-  /* shield */
+  /* particles */
+
+  particles.forEach(
+    p=>{
+
+      ctx.globalAlpha =
+        Math.max(
+          0,
+          p.life
+        );
+
+      ctx.fillStyle =
+        p.color;
+
+      ctx.fillRect(
+        p.x,
+        p.y,
+        4,
+        4
+      );
+    }
+  );
+
+  ctx.globalAlpha=1;
+}
+
+/* =========================================================
+   DRAW
+   ========================================================= */
+
+function draw(){
+
+  drawBackground();
+
+  drawObjects();
+
+  ctx.save();
 
   if(shieldActive){
 
@@ -2143,8 +2723,8 @@ function draw(){
     ctx.beginPath();
 
     ctx.arc(
-      PLAYER.x+29,
-      PLAYER.y+35,
+      P.x+29,
+      P.y+35,
       48,
       0,
       Math.PI*2
@@ -2156,11 +2736,11 @@ function draw(){
   }
 
   drawCharacter(
-    PLAYER.x+29,
-    PLAYER.y+35
+    P.x+29,
+    P.y+35
   );
 
-  /* dash trail */
+  ctx.restore();
 
   if(dashTimer>0){
 
@@ -2174,8 +2754,8 @@ function draw(){
     ){
 
       ctx.fillRect(
-        PLAYER.x-i*25,
-        PLAYER.y+25,
+        P.x-i*25,
+        P.y+25,
         14,
         4
       );
@@ -2185,155 +2765,120 @@ function draw(){
 
 /* =========================================================
    LOOP
-========================================================= */
+   ========================================================= */
 
-function gameLoop(time){
+function loop(t){
 
   if(!running)
     return;
 
-  let dt =
-    (time-lastTime)/16.67;
+  const dt =
+    Math.min(
+      2,
+      (t-last)/16.67
+    );
 
-  dt =
-    Math.min(2,Math.max(.1,dt));
-
-  lastTime = time;
+  last = t;
 
   update(dt);
+
   draw();
 
   if(running)
     requestAnimationFrame(
-      gameLoop
+      loop
     );
 }
 
 /* =========================================================
-   INPUT
-========================================================= */
+   CONTROLS
+   ========================================================= */
 
 document.addEventListener(
   "keydown",
-  event=>{
+  e=>{
 
     if(
-      event.code==="Space" ||
-      event.code==="ArrowUp"
+      e.code==="Space" ||
+      e.code==="ArrowUp"
     ){
 
-      event.preventDefault();
-
+      e.preventDefault();
       jump();
     }
 
-    if(event.code==="KeyD"){
+    if(e.code==="KeyD"){
 
-      event.preventDefault();
-
+      e.preventDefault();
       dash();
     }
 
-    if(event.code==="KeyS"){
+    if(e.code==="KeyS"){
 
-      event.preventDefault();
-
-      toggleShield();
+      e.preventDefault();
+      shield();
     }
   }
 );
 
-/* =========================================================
-   BUTTONS
-========================================================= */
-
-function bind(id,fn){
-
-  const element =
-    $(id);
-
-  if(element)
-    element.addEventListener(
-      "click",
-      fn
-    );
-}
-
-bind(
-  "startButton",
-  startGame
+$("startButton") &&
+(
+  $("startButton").onclick =
+    start
 );
 
-bind(
-  "restartButton",
-  startGame
+$("restartButton") &&
+(
+  $("restartButton").onclick =
+    start
 );
 
-bind(
-  "jumpButton",
-  jump
+$("jumpButton") &&
+(
+  $("jumpButton").onclick =
+    jump
 );
 
-bind(
-  "dashButton",
-  dash
+$("dashButton") &&
+(
+  $("dashButton").onclick =
+    dash
 );
 
-bind(
-  "shieldButton",
-  toggleShield
+$("shieldButton") &&
+(
+  $("shieldButton").onclick =
+    shield
 );
 
-bind(
-  "redeemButton",
-  redeem
+$("redeemButton") &&
+(
+  $("redeemButton").onclick =
+    redeem
 );
 
-const codeInput =
-  $("codeInput");
-
-if(codeInput){
-
-  codeInput.addEventListener(
-    "keydown",
-    event=>{
-
-      if(event.key==="Enter"){
-
-        event.preventDefault();
-
-        redeem();
-      }
-    }
-  );
-}
+$("codeInput") &&
+$("codeInput").addEventListener(
+  "keydown",
+  e=>{
+    if(e.key==="Enter")
+      redeem();
+  }
+);
 
 /* =========================================================
-   INIT
-========================================================= */
+   INITIALIZE
+   ========================================================= */
 
-function init(){
+tabs();
 
-  resizeCanvas();
+renderSkins();
+renderMissions();
+renderWorlds();
+renderShop();
 
-  setupTabs();
+ui();
 
-  renderSkins();
+reset();
 
-  renderMissions();
-
-  renderWorlds();
-
-  renderUpgrades();
-
-  updateUI();
-
-  resetGame();
-
-  draw();
-}
-
-window.addEventListener(
-  "load",
-  init
-);
+draw();
