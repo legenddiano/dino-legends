@@ -1,32 +1,61 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DINO LEGENDS</title><link rel="stylesheet" href="style.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DINO LEGENDS</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header><div class="brand"><span>DL</span><b>DINO LEGENDS</b></div><div class="hud"><div>HP <i id="health">●●●</i></div><div>ENERGY <i id="energyText">100</i></div><div>SCORE <i id="score">0</i></div><div>COMBO <i id="combo">x1.0</i></div><div>GEMS <i id="gems">0</i></div></div><button id="pauseBtn">Ⅱ</button></header>
-<main>
-<section class="stage"><canvas id="gameCanvas"></canvas><div class="scan"></div><div class="brand-water">ANCIENT JUNGLE / SEASON 01</div>
-<div id="startScreen" class="overlay"><div class="hero"><div class="crest">🦖</div><label>THE LAST HUNTER</label><h1>DINO<br><em>LEGENDS</em></h1><p>A cinematic skill-runner built for speed, combat and mastery.</p><button class="cta" id="startButton">ENTER THE JUNGLE <b>→</b></button><small>A/D or ←/→ Move · SPACE Jump · F Attack · SHIFT Dash · S Parry · R Rage</small></div></div>
-<div id="pauseScreen" class="overlay hidden"><div class="modal"><label>RUN STATE</label><h2>PAUSED</h2><button class="cta" id="resumeButton">RESUME</button></div></div>
-<div id="gameOverScreen" class="overlay hidden"><div class="modal"><label>EXPEDITION COMPLETE</label><h2>RUN ENDED</h2><strong id="finalScore">0</strong><p id="finalStats"></p><button class="cta" id="restartButton">RUN AGAIN</button></div></div>
-<div class="bars"><div><span>ENERGY</span><i><u id="energyBar"></u></i></div><div><span>RAGE</span><i><u id="rageBar"></u></i></div><div><span>GUARDIAN</span><i><u id="bossBar"></u></i></div></div>
-<div class="touch"><button data-action="left">◀</button><button data-action="jump">JUMP</button><button data-action="right">▶</button><button data-action="attack">ATTACK</button><button data-action="dash">DASH</button><button data-action="parry">PARRY</button></div>
+<div class="app">
+<header class="topbar">
+  <div class="brand"><div class="logo">🦖</div><div><h1>DINO <b>LEGENDS</b></h1><p>LEGENDARY RUNNER</p></div></div>
+  <div class="stats">
+    <div><span>RANK</span><b id="rank">ROOKIE</b><small>LEGEND RANK</small></div>
+    <div><span>SCORE</span><b id="score">0</b><small>BEST RUN</small></div>
+    <div><span>GEMS</span><b id="gems">0</b><small>CURRENCY</small></div>
+  </div>
+</header>
+
+<section class="game card">
+  <div class="hud"><div>HP<b id="health">●●●</b></div><div>ENERGY<b id="energyText">100</b></div><div>COMBO<b id="combo">x1.0</b></div><div>GUARDIAN<b id="guardianHud">0%</b></div></div>
+  <div class="stage">
+    <canvas id="gameCanvas" width="1200" height="520"></canvas>
+    <div class="overlay" id="startScreen">
+      <div class="big">🦖</div><div class="eyebrow">LEGENDARY RUNNER</div>
+      <h2>ENTER THE <b>FANTASY</b></h2>
+      <p>Run • Double Jump • Dash • Collect • Become a Legend</p>
+      <button class="primary" id="startButton" type="button">▶ START ADVENTURE</button>
+      <div class="keys"><i>SPACE / ↑ JUMP</i><i>DOUBLE JUMP</i><i>D DASH</i><i>S SHIELD</i></div>
+    </div>
+    <div class="overlay hidden" id="pauseScreen"><div class="modal"><div class="eyebrow">RUN STATE</div><h2>PAUSED</h2><button class="primary" id="resumeButton" type="button">RESUME</button></div></div>
+    <div class="overlay hidden" id="gameOverScreen">
+      <div class="big">💫</div><div class="eyebrow">RUN COMPLETE</div><h2>LEGEND <b>FINISHED</b></h2><p>FINAL SCORE</p><strong class="final" id="finalScore">0</strong><p id="finalStats"></p>
+      <button class="primary" id="restartButton" type="button">↻ PLAY AGAIN</button>
+    </div>
+    <div class="bars"><div><span>ENERGY</span><i><u id="energyBar"></u></i></div><div><span>RAGE</span><i><u id="rageBar"></u></i></div><div><span>GUARDIAN</span><i><u id="bossBar"></u></i></div></div>
+    <div class="touch"><button data-action="left">◀</button><button data-action="jump">JUMP</button><button data-action="right">▶</button><button data-action="attack">ATTACK</button><button data-action="dash">DASH</button><button data-action="parry">PARRY</button></div>
+  </div>
 </section>
-<nav><button class="active" data-panel="play">PLAY</button><button data-panel="skins">SKINS</button><button data-panel="abilities">ABILITIES</button><button data-panel="missions">MISSIONS</button><button data-panel="worlds">WORLDS</button><button data-panel="settings">OPTIONS</button></nav>
-<section class="panel active" id="play"><label>YOUR JOURNEY</label><h2>LEGEND RUN <small>BEST <b id="bestScore">0</b></small></h2><div class="cards"><article><b>PRECISION COMBAT</b><p>Attack, dodge and parry to build a devastating chain.</p></article><article><b>RISK / REWARD</b><p>Take the dangerous lane for rare gems and huge multipliers.</p></article><article><b>GUARDIAN HUNT</b><p>Master the run, trigger the Guardian and survive its phases.</p></article></div></section>
-<section class="panel" id="skins"><label>CUSTOMIZATION</label><h2>SKIN FORGE</h2><div class="cards"><article class="skin"><strong>🦖</strong><h3>ROOKIE REX</h3><p>Classic loadout</p><button>EQUIPPED</button></article><article class="skin neon"><strong>🤖</strong><h3>NEON REX</h3><p>Visor · Armor · Back · Boots · Plasma</p><button>5,000 GEMS</button></article><article class="skin void"><strong>🐲</strong><h3>VOID REX</h3><p>Halo · Astral Armor · Wings · Scythe · Aura</p><button>LOCKED</button></article></div></section>
-<section class="panel" id="abilities"><label>LOADOUT</label><h2>ABILITIES</h2><div class="cards"><article><b>⚡ DASH STRIKE</b><p>35 Energy · burst through danger.</p></article><article><b>🛡 PERFECT PARRY</b><p>20 Energy · counter attacks.</p></article><article><b>🔥 RAGE BURST</b><p>100 Rage · massive chain boost.</p></article><article><b>🌌 TIME BREAK</b><p>Legendary slot · coming soon.</p></article></div></section>
-<section class="panel" id="missions"><label>DAILY GOALS</label><h2>MISSIONS</h2><div class="mission"><span>PERFECT ×5</span><b>+500</b></div><div class="mission"><span>COMBO ×15</span><b>+1,000</b></div><div class="mission"><span>DEFEAT GUARDIAN</span><b>CHEST</b></div></section>
-<section class="panel" id="worlds"><label>EXPLORE</label><h2>WORLDS</h2><div class="cards"><article>🌴<h3>ANCIENT JUNGLE</h3><small>ACTIVE</small></article><article>🌋<h3>VOLCANIC WASTES</h3><small>LOCKED</small></article><article>❄️<h3>FROST REALM</h3><small>LOCKED</small></article><article>🌌<h3>VOID REALM</h3><small>LOCKED</small></article></div></section>
-<section class="panel" id="settings"><label>PERFORMANCE</label><h2>OPTIONS</h2><div class="settings">
-<label>Graphics <select id="quality"><option>ULTRA</option><option selected>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label>
-<label>Difficulty <select id="difficulty"><option>EASY</option><option selected>NORMAL</option><option>HARD</option><option>LEGENDARY</option></select></label>
-<label>Combo decay <input id="comboDecay" type="checkbox" checked></label>
-<label>Assist mode <input id="assistMode" type="checkbox"></label>
-<label>Auto pause on window loss <input id="autoPause" type="checkbox" checked></label>
-<label>Reduced effects <input id="reducedEffects" type="checkbox"></label>
-<label>Screen shake <input id="screenShake" type="checkbox" checked></label>
-<label>Touch controls <input id="touchToggle" type="checkbox" checked></label>
-</div></section>
-</main><script src="game.js"></script></body></html>
+
+<nav class="tabs">
+  <button class="tab active" data-panel="play">PLAY</button><button class="tab" data-panel="skins">SKINS</button><button class="tab" data-panel="abilities">ABILITIES</button><button class="tab" data-panel="missions">MISSIONS</button><button class="tab" data-panel="worlds">WORLDS</button><button class="tab" data-panel="redeem">REDEEM</button>
+</nav>
+
+<section class="panel active" id="play"><div class="heading"><div><small>YOUR JOURNEY</small><h2>LEGEND RUN</h2></div><b>BEST <span id="bestScore">0</span></b></div><div class="cards"><article><div class="icon">⚔️</div><h3>PRECISION COMBAT</h3><small>SKILL</small><p>Attack, dodge and parry to build a devastating chain.</p></article><article><div class="icon">💎</div><h3>RISK / REWARD</h3><small>REWARD</small><p>Take dangerous lanes for rare gems and bigger multipliers.</p></article><article><div class="icon">👑</div><h3>GUARDIAN HUNT</h3><small>BOSS</small><p>Master the run, trigger the Guardian and survive its phases.</p></article></div></section>
+
+<section class="panel" id="skins"><div class="heading"><div><small>CUSTOMIZATION</small><h2>SKIN FORGE</h2></div></div><div class="grid"><article class="item"><div class="icon">🦖</div><h3>ROOKIE REX</h3><small>CLASSIC LOADOUT</small><p>Balanced starter configuration.</p><footer><span class="price">EQUIPPED</span><button class="action" disabled>EQUIPPED</button></footer></article><article class="item"><div class="icon">🤖</div><h3>NEON REX</h3><small>VISOR · ARMOR · BACK · BOOTS · PLASMA</small><p>High-tech legendary loadout.</p><footer><span class="price">5,000 GEMS</span><button class="action">BUY</button></footer></article><article class="item"><div class="icon">🐲</div><h3>VOID REX</h3><small>HALO · ASTRAL ARMOR · WINGS · SCYTHE · AURA</small><p>Endgame cosmetic set.</p><footer><span class="price">LOCKED</span><button class="action" disabled>LOCKED</button></footer></article></div></section>
+
+<section class="panel" id="abilities"><div class="heading"><div><small>LOADOUT</small><h2>ABILITIES</h2></div></div><div class="grid"><article class="item"><div class="icon">⚡</div><h3>DASH STRIKE</h3><small>35 ENERGY</small><p>Burst through danger and punish targets.</p><footer><span class="price">READY</span></footer></article><article class="item"><div class="icon">🛡️</div><h3>PERFECT PARRY</h3><small>20 ENERGY</small><p>Counter attacks with a high-value timing window.</p><footer><span class="price">READY</span></footer></article><article class="item"><div class="icon">🔥</div><h3>RAGE BURST</h3><small>100 RAGE</small><p>Spend full Rage for a massive chain boost.</p><footer><span class="price">READY</span></footer></article></div></section>
+
+<section class="panel" id="missions"><div class="heading"><div><small>DAILY GOALS</small><h2>MISSIONS</h2></div></div><div class="mission"><span>PERFECT ×5</span><b>+500</b></div><div class="mission"><span>COMBO ×15</span><b>+1,000</b></div><div class="mission"><span>DEFEAT GUARDIAN</span><b>CHEST</b></div></section>
+
+<section class="panel" id="worlds"><div class="heading"><div><small>EXPLORE</small><h2>WORLDS</h2></div></div><div class="grid"><article class="item"><div class="icon">🌴</div><h3>ANCIENT JUNGLE</h3><small>ACTIVE</small><p>Original hunting ground.</p></article><article class="item"><div class="icon">🌋</div><h3>VOLCANIC WASTES</h3><small>LOCKED</small><p>Coming soon.</p></article><article class="item"><div class="icon">❄️</div><h3>FROST REALM</h3><small>LOCKED</small><p>Coming soon.</p></article><article class="item"><div class="icon">🌌</div><h3>VOID REALM</h3><small>LOCKED</small><p>Coming soon.</p></article></div></section>
+
+<section class="panel" id="redeem"><div class="redeem"><div class="redeemIcon">🎁</div><small>REWARDS</small><h2>REDEEM CENTER</h2><p>Enter a reward code to unlock exclusive gems.</p><div class="code"><input id="codeInput" type="text" placeholder="ENTER REWARD CODE" maxlength="40" autocomplete="off" spellcheck="false"><button id="redeemButton" type="button">REDEEM</button></div><p id="codeMessage" class="codeMessage" role="status" aria-live="polite"></p></div></section>
+
+<section class="panel" id="settings"><div class="heading"><div><small>PERFORMANCE</small><h2>OPTIONS</h2></div></div><div class="settings"><label>Graphics <select id="quality"><option>ULTRA</option><option selected>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label><label>Difficulty <select id="difficulty"><option>EASY</option><option selected>NORMAL</option><option>HARD</option><option>LEGENDARY</option></select></label><label>Combo decay <input id="comboDecay" type="checkbox" checked></label><label>Assist mode <input id="assistMode" type="checkbox"></label><label>Auto pause on window loss <input id="autoPause" type="checkbox" checked></label><label>Reduced effects <input id="reducedEffects" type="checkbox"></label><label>Screen shake <input id="screenShake" type="checkbox" checked></label><label>Touch controls <input id="touchToggle" type="checkbox" checked></label></div></section>
+</div>
+<script src="game.js"></script>
+</body>
+</html>
