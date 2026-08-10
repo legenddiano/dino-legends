@@ -1,0 +1,3 @@
+BACKUP MARKER — DINO LEGENDS V20
+Created before the V21/V22 large update.
+Original main snapshot is preserved in Git history and in the backup branch created for this upgrade.
