@@ -1,840 +1,324 @@
-(() => {
-  "use strict";
+// DINO LEGENDS v60 — FORMATTED
+// Readable development build. Gameplay logic preserved.
 
-  const canvas = document.getElementById("gameCanvas");
-  if (!canvas) return;
-
-  const ctx = canvas.getContext("2d");
-
-  const GAME_W = 1200;
-  const GAME_H = 520;
-  const LANES = [320, 600, 880];
-  const GROUND = 410;
-
-  let running = false;
-  let gameOver = false;
-  let lastTime = 0;
-
-  let score = 0;
-  let gems = 0;
-  let combo = 1;
-  let health = 3;
-  let energy = 100;
-
-  let lane = 1;
-  let playerY = 0;
-  let velocityY = 0;
-  let jumps = 0;
-  let shieldTime = 0;
-
-  let elapsed = 0;
-  let spawnTimer = 0;
-
-  let objects = [];
-  let particles = [];
-
-  let bestScore = Number(localStorage.getItem("DL_BEST") || 0);
-
-  const $ = (id) => document.getElementById(id);
-
-  function resizeCanvas() {
-    const rect = canvas.getBoundingClientRect();
-    const ratio = window.devicePixelRatio || 1;
-
-    canvas.width = Math.max(1, Math.floor(rect.width * ratio));
-    canvas.height = Math.max(1, Math.floor(rect.height * ratio));
-
-    ctx.setTransform(
-      canvas.width / GAME_W,
-      0,
-      0,
-      canvas.height / GAME_H,
-      0,
-      0
+(()=> {
+  const c=document.getElementById('game'),x=c.getContext('2d', {
+    alpha:false
+  }
+  ),W=1200,H=620,G=500,L=[300,600,900];
+  let run=0,last=0,t=0,sc=0,gm=0,co=1,hp=3,en=100,ln=1,px=600,py=0,vy=0,jp=0,atk=0,ds=0,sh=0,inv=0,sp=0,bm=0,kills=0,perfect=0,obs=[],ps=[],txt=[];
+  const $=i=>document.getElementById(i);
+  function size() {
+    let r=c.getBoundingClientRect(),d=Math.min(devicePixelRatio||1,2);
+    c.width=r.width*d;
+    c.height=r.height*d;
+    x.setTransform(c.width/W,0,0,c.height/H,0,0)
+  }
+  addEventListener('resize',size);
+  size();
+  function reset() {
+    run=1;
+    t=0;
+    sc=gm=0;
+    co=1;
+    hp=3;
+    en=100;
+    ln=1;
+    px=600;
+    py=vy=jp=atk=ds=sh=inv=0;
+    sp=.3;
+    bm=kills=perfect=0;
+    obs=[];
+    ps=[];
+    txt=[];
+    $('start').classList.add('hidden');
+    $('gameover').classList.add('hidden');
+    last=performance.now()
+  }
+  function end() {
+    run=0;
+    let b=Math.max(+(localStorage.DL_BEST||0),sc|0);
+    localStorage.DL_BEST=b;
+    $('finalScore').textContent=(sc|0).toLocaleString();
+    $('runStats').textContent=`Gems ${gm} · Kills ${kills} · Perfect ${perfect}`;
+    $('gameover').classList.remove('hidden')
+  }
+  function act(a) {
+    if(a==='left')ln=Math.max(0,ln-1);
+    if(a==='right')ln=Math.min(2,ln+1);
+    if(a==='jump'&&jp<2) {
+      vy=-850;
+      jp++
+    }
+    if(a==='attack')atk=.22;
+    if(a==='dash'&&en>=35) {
+      en-=35;
+      ds=.3;
+      inv=.35
+    }
+    if(a==='shield'&&en>=20) {
+      en-=20;
+      sh=2
+    }
+  }
+  function burst(a,b,n=10) {
+    for(let i=0;
+    i<n;
+    i++)ps.push( {
+      x:a,y:b,vx:(Math.random()-.5)*360,vy:(Math.random()-.8)*300,l:1
+    }
+    )
+  }
+  function spawn() {
+    let r=Math.random(),ty=r<.38?'rock':r<.57?'enemy':r<.72?'air':r<.84?'gem':'trap',l=Math.random()*3|0;
+    obs.push( {
+      ty,l,x:1320,y:ty==='air'?330:G-52,dead:0,hp:ty==='boss'?5:1
+    }
+    )
+  }
+  function boss() {
+    obs.push( {
+      ty:'boss',l:1,x:1450,y:G-130,dead:0,hp:5
+    }
     );
+    bm=0
   }
-
-  window.addEventListener("resize", resizeCanvas);
-  resizeCanvas();
-
-  function updateHUD() {
-    if ($("score")) $("score").textContent = Math.floor(score).toLocaleString();
-    if ($("gems")) $("gems").textContent = gems.toLocaleString();
-    if ($("combo")) $("combo").textContent = "x" + combo.toFixed(1);
-
-    if ($("health")) {
-      $("health").textContent =
-        "❤️".repeat(Math.max(0, health)) +
-        "🖤".repeat(Math.max(0, 3 - health));
+  function hit(o) {
+    if(o.dead)return;
+    if(sh) {
+      o.dead=1;
+      sh=.2;
+      sc+=150*co;
+      co=Math.min(25,co+1);
+      burst(o.x,o.y);
+      return
     }
-
-    if ($("bestScore")) {
-      $("bestScore").textContent = bestScore.toLocaleString();
-    }
+    if(inv)return;
+    o.dead=1;
+    hp--;
+    co=1;
+    inv=1;
+    burst(px,G-50,18);
+    if(hp<=0)end()
   }
-
-  function startGame() {
-    running = true;
-    gameOver = false;
-
-    score = 0;
-    gems = 0;
-    combo = 1;
-    health = 3;
-    energy = 100;
-
-    lane = 1;
-    playerY = 0;
-    velocityY = 0;
-    jumps = 0;
-
-    shieldTime = 0;
-
-    elapsed = 0;
-    spawnTimer = 0;
-
-    objects = [];
-    particles = [];
-
-    if ($("startScreen")) $("startScreen").classList.add("hidden");
-    if ($("gameOverScreen")) $("gameOverScreen").classList.add("hidden");
-
-    updateHUD();
-
-    lastTime = performance.now();
-  }
-
-  function endGame() {
-    running = false;
-    gameOver = true;
-
-    bestScore = Math.max(bestScore, Math.floor(score));
-    localStorage.setItem("DL_BEST", bestScore);
-
-    if ($("finalScore")) {
-      $("finalScore").textContent = Math.floor(score).toLocaleString();
+  function kill(o) {
+    if(o.dead)return;
+    o.hp--;
+    if(o.hp<=0) {
+      o.dead=1;
+      kills++;
+      bm+=4;
+      sc+=(atk?220:120)*co;
+      co=Math.min(25,co+(atk?.8:.35));
+      burst(o.x,o.y,14)
     }
-
-    if ($("gameOverScreen")) {
-      $("gameOverScreen").classList.remove("hidden");
-    }
-
-    updateHUD();
-  }
-
-  function moveLane(direction) {
-    if (!running) return;
-
-    lane += direction;
-    lane = Math.max(0, Math.min(2, lane));
-  }
-
-  function jump() {
-    if (!running) return;
-
-    if (jumps < 2) {
-      velocityY = -760;
-      jumps++;
-      return;
-    }
-
-    // Emergency jump using energy
-    if (energy >= 25) {
-      energy -= 25;
-      velocityY = -650;
-      jumps = 1;
+    else {
+      burst(o.x,o.y,5)
     }
   }
-
-  function dash() {
-    if (!running || energy < 35) return;
-
-    energy -= 35;
-
-    for (const object of objects) {
-      if (
-        object.lane === lane &&
-        object.x > 100 &&
-        object.x < 500 &&
-        object.type !== "gem"
-      ) {
-        object.x -= 300;
-      }
-    }
-
-    createParticles(LANES[lane], GROUND - 40, 18);
-  }
-
-  function activateShield() {
-    if (!running || energy < 20) return;
-
-    energy -= 20;
-    shieldTime = 2.5;
-  }
-
-  function createParticles(x, y, amount = 10) {
-    for (let i = 0; i < amount; i++) {
-      particles.push({
-        x,
-        y,
-        vx: (Math.random() - 0.5) * 280,
-        vy: (Math.random() - 0.8) * 240,
-        life: 1
-      });
-    }
-  }
-
-  function spawnObject() {
-    const random = Math.random();
-
-    let type;
-
-    if (random < 0.48) {
-      type = "rock";
-    } else if (random < 0.68) {
-      type = "enemy";
-    } else if (random < 0.83) {
-      type = "air";
-    } else {
-      type = "gem";
-    }
-
-    const objectLane = Math.floor(Math.random() * 3);
-
-    objects.push({
-      type,
-      lane: objectLane,
-      x: GAME_W + 80,
-
-      y:
-        type === "air"
-          ? 285
-          : type === "gem"
-            ? GROUND - 100
-            : GROUND - 55,
-
-      width: type === "enemy" ? 58 : 50,
-      height: type === "air" ? 32 : 55,
-
-      passed: false
-    });
-
-    // Occasionally create a second obstacle.
-    if (Math.random() < 0.18) {
-      const secondLane =
-        (objectLane + 1 + Math.floor(Math.random() * 2)) % 3;
-
-      objects.push({
-        type: "rock",
-        lane: secondLane,
-        x: GAME_W + 280,
-        y: GROUND - 55,
-        width: 50,
-        height: 55,
-        passed: false
-      });
-    }
-  }
-
-  function hitObstacle(object) {
-    if (object.passed) return;
-
-    object.passed = true;
-
-    if (shieldTime > 0) {
-      shieldTime = 0;
-      score += 100 * combo;
-      combo = Math.min(20, combo + 0.8);
-
-      createParticles(object.x, object.y, 15);
-      return;
-    }
-
-    health--;
-    combo = 1;
-
-    createParticles(LANES[lane], GROUND - 50, 20);
-
-    if (health <= 0) {
-      endGame();
-    }
-  }
-
-  function collectGem(object) {
-    if (object.passed) return;
-
-    object.passed = true;
-
-    gems++;
-    score += 300 * combo;
-
-    combo = Math.min(20, combo + 0.4);
-
-    createParticles(object.x, object.y, 8);
-  }
-
   function update(dt) {
-    elapsed += dt;
-
-    /*
-     * Difficulty grows gradually.
-     * The player should have time to learn the game first.
-     */
-    const speed = Math.min(900, 420 + elapsed * 6);
-
-    score += dt * speed * 0.012 * combo;
-
-    energy = Math.min(100, energy + dt * 7);
-
-    shieldTime = Math.max(0, shieldTime - dt);
-
-    /*
-     * Spawn rate increases slowly.
-     */
-    spawnTimer -= dt;
-
-    const spawnInterval = Math.max(
-      0.42,
-      0.95 - elapsed * 0.004
-    );
-
-    if (spawnTimer <= 0) {
-      spawnObject();
-      spawnTimer = spawnInterval;
+    t+=dt;
+    let speed=Math.min(1050,430+t*7+co*3);
+    en=Math.min(100,en+dt*8);
+    atk=Math.max(0,atk-dt);
+    ds=Math.max(0,ds-dt);
+    sh=Math.max(0,sh-dt);
+    inv=Math.max(0,inv-dt);
+    px+=(L[ln]-px)*Math.min(1,dt*14);
+    vy+=2100*dt;
+    py+=vy*dt;
+    if(py>=0) {
+      py=0;
+      vy=0;
+      jp=0
     }
-
-    /*
-     * Gravity
-     */
-    velocityY += 1900 * dt;
-    playerY += velocityY * dt;
-
-    if (playerY >= 0) {
-      playerY = 0;
-      velocityY = 0;
-      jumps = 0;
+    sp-=dt;
+    if(sp<=0) {
+      spawn();
+      sp=Math.max(.32,.88-t*.0035)
     }
-
-    /*
-     * Objects
-     */
-    for (let i = objects.length - 1; i >= 0; i--) {
-      const object = objects[i];
-
-      object.x -= speed * dt;
-
-      /*
-       * Player interaction zone
-       */
-      if (
-        object.lane === lane &&
-        object.x < 285 &&
-        object.x > 145
-      ) {
-        if (object.type === "gem") {
-          collectGem(object);
-          objects.splice(i, 1);
-          continue;
+    sc+=dt*speed*.008*(1+co*.12);
+    for(let i=obs.length-1;
+    i>=0;
+    i--) {
+      let o=obs[i];
+      o.x-=speed*dt;
+      if(o.dead) {
+        if(o.x<-150)obs.splice(i,1);
+        continue
+      }
+      if(o.l===ln&&o.x<px+75&&o.x>px-90) {
+        if(o.ty==='gem') {
+          o.dead=1;
+          gm++;
+          sc+=300*co;
+          co=Math.min(25,co+.35);
+          continue
         }
-
-        /*
-         * Air obstacles are avoided by jumping.
-         */
-        const playerIsAirborne = playerY > 65;
-
-        if (playerIsAirborne) {
-          if (!object.passed) {
-            object.passed = true;
-
-            score += 90 * combo;
-            combo = Math.min(20, combo + 0.25);
+        if(o.ty==='air') {
+          if(py>80) {
+            o.dead=1;
+            perfect++;
+            co=Math.min(25,co+.55);
+            sc+=180*co
           }
-        } else {
-          hitObstacle(object);
+          else hit(o)
         }
-      }
-
-      /*
-       * Passed obstacle successfully.
-       */
-      if (
-        !object.passed &&
-        object.x < 130
-      ) {
-        object.passed = true;
-
-        score += 70 * combo;
-        combo = Math.min(20, combo + 0.2);
-      }
-
-      if (object.x < -120) {
-        objects.splice(i, 1);
-      }
-    }
-
-    /*
-     * Particles
-     */
-    for (const particle of particles) {
-      particle.x += particle.vx * dt;
-      particle.y += particle.vy * dt;
-
-      particle.vy += 500 * dt;
-      particle.life -= dt * 2;
-    }
-
-    particles = particles.filter(
-      (particle) => particle.life > 0
-    );
-
-    updateHUD();
-  }
-
-  function drawBackground() {
-    const gradient = ctx.createLinearGradient(
-      0,
-      0,
-      0,
-      GAME_H
-    );
-
-    gradient.addColorStop(0, "#050714");
-    gradient.addColorStop(1, "#171b34");
-
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, GAME_W, GAME_H);
-
-    /*
-     * Distant stars
-     */
-    ctx.fillStyle = "#ffffff44";
-
-    for (let i = 0; i < 50; i++) {
-      const x = (i * 271) % GAME_W;
-      const y = (i * 97) % 240;
-
-      ctx.fillRect(x, y, 2, 2);
-    }
-
-    /*
-     * Ground
-     */
-    ctx.fillStyle = "#12182c";
-    ctx.fillRect(
-      0,
-      GROUND,
-      GAME_W,
-      GAME_H - GROUND
-    );
-
-    /*
-     * Lane separators
-     */
-    ctx.strokeStyle = "#62ecff25";
-    ctx.lineWidth = 3;
-
-    for (const x of LANES) {
-      ctx.beginPath();
-      ctx.moveTo(x - 80, GROUND);
-      ctx.lineTo(x - 150, GAME_H);
-
-      ctx.stroke();
-
-      ctx.beginPath();
-      ctx.moveTo(x + 80, GROUND);
-      ctx.lineTo(x + 150, GAME_H);
-
-      ctx.stroke();
-    }
-
-    /*
-     * Moving ground markings
-     */
-    ctx.strokeStyle = "#62ecff33";
-    ctx.lineWidth = 3;
-
-    const offset =
-      (elapsed * 420) % 90;
-
-    for (
-      let x = -offset;
-      x < GAME_W;
-      x += 90
-    ) {
-      ctx.beginPath();
-      ctx.moveTo(x, GROUND + 8);
-      ctx.lineTo(x + 45, GROUND + 8);
-      ctx.stroke();
-    }
-  }
-
-  function drawObjects() {
-    for (const object of objects) {
-      ctx.save();
-
-      ctx.translate(
-        object.x,
-        object.y
-      );
-
-      if (object.type === "gem") {
-        ctx.fillStyle = "#62ecff";
-        ctx.shadowBlur = 14;
-        ctx.shadowColor = "#62ecff";
-
-        ctx.beginPath();
-        ctx.moveTo(0, -18);
-        ctx.lineTo(15, 0);
-        ctx.lineTo(0, 18);
-        ctx.lineTo(-15, 0);
-        ctx.closePath();
-        ctx.fill();
-
-        ctx.restore();
-        continue;
-      }
-
-      if (object.type === "rock") {
-        ctx.fillStyle = "#778298";
-
-        ctx.beginPath();
-
-        ctx.moveTo(-25, 25);
-        ctx.lineTo(-20, -25);
-        ctx.lineTo(5, -40);
-        ctx.lineTo(25, -10);
-        ctx.lineTo(22, 25);
-
-        ctx.closePath();
-        ctx.fill();
-      }
-
-      if (object.type === "enemy") {
-        ctx.fillStyle = "#ff526d";
-
-        ctx.beginPath();
-        ctx.arc(
-          0,
-          -5,
-          28,
-          0,
-          Math.PI * 2
-        );
-
-        ctx.fill();
-
-        ctx.fillStyle = "#fff";
-
-        ctx.fillRect(
-          -13,
-          -14,
-          7,
-          7
-        );
-
-        ctx.fillRect(
-          6,
-          -14,
-          7,
-          7
-        );
-      }
-
-      if (object.type === "air") {
-        ctx.fillStyle = "#ffb34d";
-
-        ctx.fillRect(
-          -28,
-          -16,
-          56,
-          30
-        );
-
-        ctx.fillStyle = "#181b2d";
-
-        ctx.fillRect(
-          -9,
-          -8,
-          18,
-          7
-        );
-      }
-
-      ctx.restore();
-    }
-  }
-
-  function drawPlayer() {
-    ctx.save();
-
-    ctx.translate(
-      LANES[lane],
-      GROUND - playerY - 35
-    );
-
-    /*
-     * Shield
-     */
-    if (shieldTime > 0) {
-      ctx.strokeStyle = "#62ecff";
-      ctx.lineWidth = 5;
-
-      ctx.beginPath();
-
-      ctx.arc(
-        0,
-        -5,
-        54,
-        0,
-        Math.PI * 2
-      );
-
-      ctx.stroke();
-    }
-
-    ctx.font = "64px serif";
-    ctx.textAlign = "center";
-
-    /*
-     * Temporary character.
-     * Modular skins can replace this renderer later.
-     */
-    ctx.fillText(
-      "🦖",
-      0,
-      25
-    );
-
-    ctx.restore();
-  }
-
-  function drawParticles() {
-    for (const particle of particles) {
-      ctx.globalAlpha =
-        Math.max(0, particle.life);
-
-      ctx.fillStyle = "#62ecff";
-
-      ctx.fillRect(
-        particle.x,
-        particle.y,
-        4,
-        4
-      );
-    }
-
-    ctx.globalAlpha = 1;
-  }
-
-  function drawEnergy() {
-    ctx.fillStyle = "#fff";
-
-    ctx.font =
-      "bold 15px Arial";
-
-    ctx.fillText(
-      "ENERGY " +
-        Math.floor(energy),
-      24,
-      30
-    );
-
-    ctx.fillStyle =
-      "#ffffff22";
-
-    ctx.fillRect(
-      24,
-      42,
-      180,
-      8
-    );
-
-    ctx.fillStyle =
-      "#62ecff";
-
-    ctx.fillRect(
-      24,
-      42,
-      180 * (energy / 100),
-      8
-    );
-  }
-
-  function render() {
-    ctx.clearRect(
-      0,
-      0,
-      GAME_W,
-      GAME_H
-    );
-
-    drawBackground();
-    drawObjects();
-    drawPlayer();
-    drawParticles();
-    drawEnergy();
-  }
-
-  function gameLoop(time) {
-    if (!running) {
-      render();
-      requestAnimationFrame(gameLoop);
-      return;
-    }
-
-    const dt = Math.min(
-      0.033,
-      Math.max(
-        0,
-        (time - lastTime) / 1000
-      )
-    );
-
-    lastTime = time;
-
-    update(dt);
-    render();
-
-    requestAnimationFrame(gameLoop);
-  }
-
-  /*
-   * UI
-   */
-  $("startButton")?.addEventListener(
-    "click",
-    startGame
-  );
-
-  $("restartButton")?.addEventListener(
-    "click",
-    startGame
-  );
-
-  $("jumpButton")?.addEventListener(
-    "click",
-    jump
-  );
-
-  $("dashButton")?.addEventListener(
-    "click",
-    dash
-  );
-
-  $("shieldButton")?.addEventListener(
-    "click",
-    activateShield
-  );
-
-  /*
-   * Keyboard
-   */
-  window.addEventListener(
-    "keydown",
-    (event) => {
-      if (
-        event.code === "Space" ||
-        event.code === "ArrowUp"
-      ) {
-        event.preventDefault();
-        jump();
-      }
-
-      if (
-        event.code === "ArrowLeft" ||
-        event.code === "KeyA"
-      ) {
-        moveLane(-1);
-      }
-
-      if (
-        event.code === "ArrowRight" ||
-        event.code === "KeyD"
-      ) {
-        moveLane(1);
-      }
-
-      if (
-        event.code === "ShiftLeft" ||
-        event.code === "ShiftRight"
-      ) {
-        dash();
-      }
-
-      if (event.code === "KeyS") {
-        activateShield();
-      }
-    }
-  );
-
-  /*
-   * Mobile swipe
-   */
-  let touchStartX = 0;
-  let touchStartY = 0;
-
-  canvas.addEventListener(
-    "touchstart",
-    (event) => {
-      const touch =
-        event.changedTouches[0];
-
-      touchStartX =
-        touch.clientX;
-
-      touchStartY =
-        touch.clientY;
-    },
-    { passive: true }
-  );
-
-  canvas.addEventListener(
-    "touchend",
-    (event) => {
-      const touch =
-        event.changedTouches[0];
-
-      const dx =
-        touch.clientX -
-        touchStartX;
-
-      const dy =
-        touch.clientY -
-        touchStartY;
-
-      if (
-        Math.abs(dx) >
-        Math.abs(dy)
-      ) {
-        if (Math.abs(dx) > 40) {
-          moveLane(
-            dx > 0 ? 1 : -1
-          );
+        else if(o.ty==='enemy'||o.ty==='boss') {
+          if(atk||ds)kill(o);
+          else if(py>75) {
+            o.dead=1;
+            perfect++;
+            co=Math.min(25,co+.35);
+            sc+=110*co
+          }
+          else hit(o)
         }
-      } else if (
-        dy < -40
-      ) {
-        jump();
+        else if(py>75) {
+          o.dead=1;
+          perfect++;
+          co=Math.min(25,co+.3);
+          sc+=100*co
+        }
+        else hit(o)
       }
-    },
-    { passive: true }
+      if(!o.dead&&o.x<px-110) {
+        o.dead=1;
+        co=Math.min(25,co+.12);
+        sc+=50*co
+      }
+      if(o.x<-150)obs.splice(i,1)
+    }
+    if(bm>=100)boss();
+    for(let p of ps) {
+      p.x+=p.vx*dt;
+      p.y+=p.vy*dt;
+      p.vy+=700*dt;
+      p.l-=dt*2
+    }
+    ps=ps.filter(p=>p.l>0);
+    $('hp').textContent='❤️'.repeat(hp)+'🖤'.repeat(3-hp);
+    $('energy').textContent=en|0;
+    $('score').textContent=(sc|0).toLocaleString();
+    $('combo').textContent='x'+co.toFixed(1);
+    $('gems').textContent=gm
+  }
+  function draw() {
+    let g=x.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,'#08112a');
+    g.addColorStop(1,'#12172b');
+    x.fillStyle=g;
+    x.fillRect(0,0,W,H);
+    x.fillStyle='#111a2e';
+    x.fillRect(0,G,W,H-G);
+    x.strokeStyle='#294263';
+    for(let a of L) {
+      x.beginPath();
+      x.moveTo(a-70,G);
+      x.lineTo(a-150,H);
+      x.stroke();
+      x.beginPath();
+      x.moveTo(a+70,G);
+      x.lineTo(a+150,H);
+      x.stroke()
+    }
+    for(let o of obs) {
+      if(o.dead)continue;
+      x.save();
+      x.translate(o.x,o.y);
+      if(o.ty==='gem') {
+        x.fillStyle='#62ecff';
+        x.beginPath();
+        x.moveTo(0,-18);
+        x.lineTo(15,0);
+        x.lineTo(0,18);
+        x.lineTo(-15,0);
+        x.closePath();
+        x.fill()
+      }
+      else if(o.ty==='boss') {
+        x.fillStyle='#9b55ff';
+        x.beginPath();
+        x.arc(0,-40,70,0,7);
+        x.fill()
+      }
+      else if(o.ty==='enemy') {
+        x.fillStyle='#ff4f69';
+        x.beginPath();
+        x.arc(0,-20,28,0,7);
+        x.fill()
+      }
+      else if(o.ty==='air') {
+        x.fillStyle='#ffb84d';
+        x.fillRect(-30,-15,60,28)
+      }
+      else {
+        x.fillStyle=o.ty==='trap'?'#ff5470':'#74829a';
+        x.fillRect(-28,-35,56,60)
+      }
+      x.restore()
+    }
+    x.save();
+    x.translate(px,G-py-45);
+    x.font='70px serif';
+    x.textAlign='center';
+    x.fillText('🦖',0,28);
+    if(sh) {
+      x.strokeStyle='#62ecff';
+      x.lineWidth=6;
+      x.beginPath();
+      x.arc(0,-5,58,0,7);
+      x.stroke()
+    }
+    if(atk) {
+      x.strokeStyle='#fff';
+      x.lineWidth=8;
+      x.beginPath();
+      x.arc(35,-20,55,-1.2,1.2);
+      x.stroke()
+    }
+    x.restore();
+    for(let p of ps) {
+      x.globalAlpha=p.l;
+      x.fillStyle='#62ecff';
+      x.fillRect(p.x,p.y,5,5)
+    }
+    x.globalAlpha=1;
+    x.fillStyle='#ffffff22';
+    x.fillRect(24,42,220,8);
+    x.fillStyle='#62ecff';
+    x.fillRect(24,42,220*en/100,8)
+  }
+  function loop(now) {
+    let dt=Math.min(.032,(now-last)/1000||0);
+    last=now;
+    if(run)update(dt);
+    draw();
+    requestAnimationFrame(loop)
+  }
+  $('startBtn').onclick=reset;
+  $('againBtn').onclick=reset;
+  document.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>act(b.dataset.a));
+  addEventListener('keydown',e=> {
+    if(e.code==='ArrowLeft'||e.code==='KeyA')act('left');
+    else if(e.code==='ArrowRight'||e.code==='KeyD')act('right');
+    else if(e.code==='Space'||e.code==='ArrowUp') {
+      e.preventDefault();
+      act('jump')
+    }
+    else if(e.code.startsWith('Shift'))act('dash');
+    else if(e.code==='KeyS')act('shield');
+    else if(e.code==='KeyF')act('attack')
+  }
   );
-
-  /*
-   * Public API
-   */
-  window.DINO_GAME = {
-    start: startGame,
-    jump,
-    dash,
-    shield: activateShield,
-    move: moveLane
-  };
-
-  updateHUD();
-  render();
-
-  requestAnimationFrame(
-    gameLoop
+  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=> {
+    document.querySelectorAll('nav button').forEach(z=>z.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(z=>z.classList.remove('active'));
+    b.classList.add('active');
+    $(b.dataset.p).classList.add('active')
+  }
   );
-})();
+  draw();
+  requestAnimationFrame(loop)
+}
+)();
