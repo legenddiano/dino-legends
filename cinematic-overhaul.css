@@ -1,0 +1,12 @@
+/* DINO LEGENDS — mature cinematic gameplay layer. UI chrome remains untouched. */
+.stage{background:#02060d url('assets/cinematic-dino-bg-v3.svg') center/cover no-repeat;isolation:isolate}
+.stage canvas{filter:contrast(1.08) saturate(.82) brightness(.92);image-rendering:auto}
+.stage:after{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;background:radial-gradient(ellipse at 50% 58%,transparent 30%,rgba(0,0,0,.28) 72%,rgba(0,0,0,.72) 100%),linear-gradient(90deg,rgba(0,0,0,.16),transparent 24%,transparent 76%,rgba(0,0,0,.22));mix-blend-mode:multiply}
+.stage .overlay{background:radial-gradient(circle at 50% 44%,rgba(15,40,63,.18),rgba(1,3,9,.72) 72%)}
+.skinPreview{background:radial-gradient(circle at 50% 55%,color-mix(in srgb,var(--glow) 16%,transparent),transparent 62%),url('assets/legend-skin.svg') center/cover no-repeat,#040810;box-shadow:inset 0 0 70px #000d,0 18px 45px #0008}
+.skinPreview .aura{opacity:.42;mix-blend-mode:screen}
+.item .icon,.worldIcon{filter:drop-shadow(0 0 12px var(--glow,var(--cyan))) saturate(.72);text-shadow:0 0 18px var(--glow,var(--cyan))}
+.cards article .icon{font-size:44px;opacity:.82}
+.worldIcon{opacity:.82}
+.skinTags span{backdrop-filter:blur(8px)}
+@media(max-width:600px){.stage canvas{filter:contrast(1.05) saturate(.84) brightness(.94)}}
