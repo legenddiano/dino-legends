@@ -1,464 +1,162 @@
+<!-- index.html -->
+
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>DINO LEGENDS: NIGHTMARE</title>
-
+    <title>DINO LEGENDS — Fantasy Runner</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
-
-<div class="ambient ambient-1"></div>
-<div class="ambient ambient-2"></div>
-<div class="noise"></div>
 
 <div class="app">
 
-    <!-- HEADER -->
-    <header class="topbar">
+```
+<header class="topbar">
+    <div class="brand">
+        <div class="brand-icon">🦖</div>
+        <div>
+            <h1>DINO <span>LEGENDS</span></h1>
+            <p>FANTASY ADVENTURE RUNNER</p>
+        </div>
+    </div>
 
-        <div class="brand">
-            <div class="brand-icon">🦖</div>
+    <div class="stats">
+        <div class="stat">
+            <span>💎</span>
+            <strong id="gems">0</strong>
+            <small>GEMS</small>
+        </div>
+        <div class="stat">
+            <span>🏆</span>
+            <strong id="bestScore">0</strong>
+            <small>BEST</small>
+        </div>
+        <div class="stat">
+            <span>⭐</span>
+            <strong id="level">1</strong>
+            <small>LEVEL</small>
+        </div>
+    </div>
+</header>
 
-            <div class="brand-text">
-                <div class="eyebrow">NIGHTMARE RUNNER</div>
-                <h1>DINO <span>LEGENDS</span></h1>
-                <p>ENTER THE DARK. SURVIVE THE LEGEND.</p>
+<main>
+
+    <section class="game-card">
+        <div class="game-top">
+            <div class="hud-item">
+                <span>SCORE</span>
+                <strong id="score">0</strong>
+            </div>
+
+            <div class="hud-item">
+                <span>COMBO</span>
+                <strong id="combo">x1</strong>
+            </div>
+
+            <div class="hud-item">
+                <span>HEALTH</span>
+                <strong id="health">❤️❤️❤️</strong>
             </div>
         </div>
 
-        <div class="profile-bar">
+        <div class="canvas-wrap">
+            <canvas id="gameCanvas" width="1200" height="500"></canvas>
 
-            <div class="profile-avatar" id="profileAvatar">🦖</div>
+            <div class="overlay" id="startScreen">
+                <div class="hero-dino">🦖</div>
+                <h2>DINO <span>LEGENDS</span></h2>
+                <p>ENTER THE FANTASY WORLD</p>
+                <button class="primary-btn" id="startButton">▶ START ADVENTURE</button>
 
-            <div class="profile-info">
-                <strong id="playerName">LEGEND PLAYER</strong>
-
-                <div class="xp-row">
-                    <div class="xp-bar">
-                        <div class="xp-fill" id="xpFill"></div>
-                    </div>
-
-                    <span id="xpText">LVL 1</span>
+                <div class="controls-info">
+                    <span>SPACE / ↑ JUMP</span>
+                    <span>DOUBLE JUMP</span>
+                    <span>D DASH</span>
+                    <span>S SHIELD</span>
                 </div>
             </div>
 
+            <div class="overlay hidden" id="gameOverScreen">
+                <div class="hero-dino">💀</div>
+                <h2>ADVENTURE OVER</h2>
+                <p>FINAL SCORE</p>
+                <strong class="final-score" id="finalScore">0</strong>
+                <button class="primary-btn" id="restartButton">↻ PLAY AGAIN</button>
+            </div>
         </div>
 
-        <div class="stats">
+        <div class="mobile-controls">
+            <button id="jumpButton">⬆ JUMP</button>
+            <button id="dashButton">⚡ DASH</button>
+            <button id="shieldButton">🛡 SHIELD</button>
+        </div>
+    </section>
 
-            <div class="stat gems-stat">
-                <span class="stat-icon">💎</span>
-                <strong id="gems">0</strong>
-                <small>GEMS</small>
+    <nav class="tabs">
+        <button class="tab active" data-panel="characters">🦖 SKINS</button>
+        <button class="tab" data-panel="upgrades">⚡ POWERS</button>
+        <button class="tab" data-panel="worlds">🌎 WORLDS</button>
+        <button class="tab" data-panel="codes">🎁 REDEEM</button>
+    </nav>
+
+    <section class="panel active-panel" id="characters">
+        <div class="section-heading">
+            <div>
+                <small>LEGENDARY COLLECTION</small>
+                <h2>FANTASY SKINS</h2>
             </div>
+            <strong id="characterCount">1 / 12</strong>
+        </div>
+        <div class="grid characters-grid" id="characterGrid"></div>
+    </section>
 
-            <div class="stat">
-                <span class="stat-icon">🏆</span>
-                <strong id="bestScore">0</strong>
-                <small>BEST SCORE</small>
+    <section class="panel" id="upgrades">
+        <div class="section-heading">
+            <div>
+                <small>MAKE YOUR LEGEND STRONGER</small>
+                <h2>POWERS</h2>
             </div>
+        </div>
+        <div class="grid upgrades-grid" id="upgradeGrid"></div>
+    </section>
 
-            <div class="stat">
-                <span class="stat-icon">⭐</span>
-                <strong id="level">1</strong>
-                <small>LEVEL</small>
+    <section class="panel" id="worlds">
+        <div class="section-heading">
+            <div>
+                <small>CHOOSE YOUR ADVENTURE</small>
+                <h2>FANTASY WORLDS</h2>
             </div>
+        </div>
+        <div class="grid worlds-grid" id="worldGrid"></div>
+    </section>
 
+    <section class="panel" id="codes">
+        <div class="section-heading">
+            <div>
+                <small>SPECIAL REWARDS</small>
+                <h2>REDEEM CODE</h2>
+            </div>
         </div>
 
-    </header>
+        <div class="codes-box">
+            <p>Enter your special reward code 💎</p>
 
-
-    <main>
-
-        <!-- GAME -->
-        <section class="game-card">
-
-            <div class="game-top">
-
-                <div class="hud-item">
-                    <span>☠ SCORE</span>
-                    <strong id="score">0</strong>
-                </div>
-
-                <div class="hud-item">
-                    <span>🔥 COMBO</span>
-                    <strong id="combo">x1</strong>
-                </div>
-
-                <div class="hud-item center-hud">
-                    <span>⚡ POWER</span>
-                    <strong id="powerStatus">READY</strong>
-                </div>
-
-                <div class="hud-item health-hud">
-                    <span>❤️ HEALTH</span>
-                    <strong id="health">❤️❤️❤️</strong>
-                </div>
-
+            <div class="code-row">
+                <input id="codeInput" type="text" placeholder="ENTER SECRET CODE" autocomplete="off">
+                <button id="redeemButton">REDEEM</button>
             </div>
 
-
-            <div class="canvas-wrap">
-
-                <canvas id="gameCanvas" width="1200" height="500"></canvas>
-
-                <div class="cinema-label">
-                    <span class="live-dot"></span>
-                    NIGHTMARE WORLD ONLINE
-                </div>
-
-
-                <!-- START -->
-                <div class="overlay" id="startScreen">
-
-                    <div class="start-glow"></div>
-
-                    <div class="big-dino">🦖</div>
-
-                    <div class="danger-title">THE HUNT BEGINS</div>
-
-                    <h2>DINO <span>LEGENDS</span></h2>
-
-                    <p>
-                        RUN THROUGH THE DARKNESS • COLLECT GEMS • SURVIVE
-                    </p>
-
-                    <button id="startButton" class="primary-btn" type="button">
-                        <span>▶</span>
-                        START NIGHTMARE RUN
-                    </button>
-
-                    <div class="controls-info">
-                        <span>SPACE / ↑ : JUMP</span>
-                        <span>DOUBLE JUMP</span>
-                        <span>D : DASH</span>
-                        <span>S : SHIELD</span>
-                    </div>
-
-                </div>
-
-
-                <!-- PAUSE -->
-                <div class="overlay hidden" id="pauseScreen">
-
-                    <div class="big-dino">⏸️</div>
-
-                    <h2>GAME PAUSED</h2>
-
-                    <p>PRESS ESC TO CONTINUE</p>
-
-                    <button id="resumeButton" class="primary-btn" type="button">
-                        ▶ RESUME
-                    </button>
-
-                </div>
-
-
-                <!-- GAME OVER -->
-                <div class="overlay hidden" id="gameOverScreen">
-
-                    <div class="big-dino">💀</div>
-
-                    <div class="danger-title">YOU WERE HUNTED</div>
-
-                    <h2>RUN OVER</h2>
-
-                    <p>FINAL SCORE</p>
-
-                    <strong class="final-score" id="finalScore">0</strong>
-
-                    <div class="run-rewards">
-                        <div>
-                            <small>💎 GEMS</small>
-                            <strong id="runGems">0</strong>
-                        </div>
-
-                        <div>
-                            <small>🔥 MAX COMBO</small>
-                            <strong id="maxCombo">x1</strong>
-                        </div>
-
-                        <div>
-                            <small>📏 DISTANCE</small>
-                            <strong id="runDistance">0m</strong>
-                        </div>
-                    </div>
-
-                    <button id="restartButton" class="primary-btn" type="button">
-                        ↻ RUN AGAIN
-                    </button>
-
-                </div>
-
-            </div>
-
-
-            <!-- CONTROLS -->
-            <div class="mobile-controls">
-
-                <button id="jumpButton" type="button">
-                    <b>⬆</b>
-                    <span>JUMP</span>
-                </button>
-
-                <button id="dashButton" type="button">
-                    <b>⚡</b>
-                    <span>DASH</span>
-                </button>
-
-                <button id="shieldButton" type="button">
-                    <b>🛡</b>
-                    <span>SHIELD</span>
-                </button>
-
-            </div>
-
-        </section>
-
-
-        <!-- TABS -->
-        <nav class="tabs">
-
-            <button class="tab active" data-panel="characters" type="button">
-                <span>👹</span>
-                <small>SKINS</small>
-            </button>
-
-            <button class="tab" data-panel="upgrades" type="button">
-                <span>⚡</span>
-                <small>UPGRADES</small>
-            </button>
-
-            <button class="tab" data-panel="worlds" type="button">
-                <span>🌍</span>
-                <small>WORLDS</small>
-            </button>
-
-            <button class="tab" data-panel="missions" type="button">
-                <span>🎯</span>
-                <small>MISSIONS</small>
-            </button>
-
-            <button class="tab" data-panel="codes" type="button">
-                <span>🎁</span>
-                <small>REDEEM</small>
-            </button>
-
-        </nav>
-
-
-        <!-- SKINS -->
-        <section class="panel active-panel" id="characters">
-
-            <div class="section-heading">
-
-                <div>
-                    <small>LEGENDS COLLECTION</small>
-                    <h2>⚔️ CHARACTER SKINS</h2>
-                    <p>هر اسکین قدرت و ظاهر مخصوص خودش را دارد.</p>
-                </div>
-
-                <div class="panel-badge">
-                    <strong id="characterCount">1 / 100</strong>
-                    <span>UNLOCKED</span>
-                </div>
-
-            </div>
-
-            <div class="skin-tools">
-
-                <input
-                    id="skinSearch"
-                    type="text"
-                    placeholder="SEARCH SKINS...">
-
-                <select id="rarityFilter">
-                    <option value="ALL">ALL RARITIES</option>
-                    <option value="COMMON">COMMON</option>
-                    <option value="RARE">RARE</option>
-                    <option value="EPIC">EPIC</option>
-                    <option value="LEGENDARY">LEGENDARY</option>
-                    <option value="MYTHIC">MYTHIC</option>
-                </select>
-
-            </div>
-
-            <div class="grid characters-grid" id="characterGrid"></div>
-
-        </section>
-
-
-        <!-- UPGRADES -->
-        <section class="panel" id="upgrades">
-
-            <div class="section-heading">
-
-                <div>
-                    <small>POWER SYSTEM</small>
-                    <h2>⚡ UPGRADES</h2>
-                    <p>قدرت‌های خودت را تا بالاترین سطح ارتقا بده.</p>
-                </div>
-
-                <div class="panel-badge">
-                    <strong>MAX 10</strong>
-                    <span>LEVELS</span>
-                </div>
-
-            </div>
-
-            <div class="grid upgrades-grid" id="upgradeGrid"></div>
-
-        </section>
-
-
-        <!-- WORLDS -->
-        <section class="panel" id="worlds">
-
-            <div class="section-heading">
-
-                <div>
-                    <small>ENTER THE UNKNOWN</small>
-                    <h2>🌑 NIGHTMARE WORLDS</h2>
-                    <p>هر دنیا دشمن‌ها و فضای مخصوص خودش را دارد.</p>
-                </div>
-
-                <div class="panel-badge">
-                    <strong id="worldCount">1 / 5</strong>
-                    <span>DISCOVERED</span>
-                </div>
-
-            </div>
-
-            <div class="grid worlds-grid" id="worldGrid"></div>
-
-        </section>
-
-
-        <!-- MISSIONS -->
-        <section class="panel" id="missions">
-
-            <div class="section-heading">
-
-                <div>
-                    <small>DAILY HUNT</small>
-                    <h2>🎯 MISSIONS</h2>
-                    <p>ماموریت انجام بده و جوایز بزرگ بگیر.</p>
-                </div>
-
-                <div class="panel-badge">
-                    <strong id="missionCount">0 / 3</strong>
-                    <span>COMPLETED</span>
-                </div>
-
-            </div>
-
-            <div class="missions-grid" id="missionGrid"></div>
-
-        </section>
-
-
-        <!-- REDEEM -->
-        <section class="panel" id="codes">
-
-            <div class="section-heading">
-
-                <div>
-                    <small>REWARD TERMINAL</small>
-                    <h2>🎁 REDEEM CODE</h2>
-                    <p>کد جایزه خود را وارد کن.</p>
-                </div>
-
-            </div>
-
-            <div class="redeem-terminal">
-
-                <div class="terminal-icon">⌘</div>
-
-                <h3>SECURE REWARD TERMINAL</h3>
-
-                <p>
-                    کدهای ویژه را وارد کن و جوایز داخل بازی بگیر.
-                </p>
-
-                <div class="code-row">
-
-                    <input
-                        type="text"
-                        id="codeInput"
-                        placeholder="ENTER REWARD CODE"
-                        autocomplete="off"
-                        spellcheck="false">
-
-                    <button id="redeemButton" type="button">
-                        REDEEM
-                    </button>
-
-                </div>
-
-                <p id="codeMessage"></p>
-
-                <div class="terminal-status">
-                    <span class="status-dot"></span>
-                    SECURE SYSTEM ONLINE
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- INFO -->
-        <section class="bottom-dashboard">
-
-            <div class="dashboard-card">
-                <span>📊</span>
-
-                <div>
-                    <small>TOTAL GAMES</small>
-                    <strong id="totalGames">0</strong>
-                </div>
-            </div>
-
-            <div class="dashboard-card">
-                <span>💎</span>
-
-                <div>
-                    <small>TOTAL GEMS</small>
-                    <strong id="totalGems">0</strong>
-                </div>
-            </div>
-
-            <div class="dashboard-card">
-                <span>🔥</span>
-
-                <div>
-                    <small>HIGH COMBO</small>
-                    <strong id="highCombo">x1</strong>
-                </div>
-            </div>
-
-            <div class="dashboard-card">
-                <span>👹</span>
-
-                <div>
-                    <small>SELECTED SKIN</small>
-                    <strong id="selectedSkinName">REX</strong>
-                </div>
-            </div>
-
-        </section>
-
-    </main>
+            <p id="codeMessage"></p>
+        </div>
+    </section>
+
+</main>
+```
 
 </div>
-
-
-<div id="toastContainer" class="toast-container"></div>
 
 <script src="game.js"></script>
 
