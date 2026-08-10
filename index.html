@@ -4,50 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="theme-color" content="#03040a">
-<title>DINO LEGENDS</title>
+<title>DINO LEGENDS V22</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 <div class="app">
-<header class="topbar">
-  <div class="brand"><div class="logo">🦖</div><div><h1>DINO <b>LEGENDS</b></h1><p>LEGENDARY RUNNER</p></div></div>
-  <div class="stats">
-    <div><span>RANK</span><b id="rank">ROOKIE</b><small>LEGEND RANK</small></div>
-    <div><span>SCORE</span><b id="score">0</b><small>RUN SCORE</small></div>
-    <div><span>GEMS</span><b id="gems">2,500</b><small>WALLET + RUN</small></div>
-  </div>
-</header>
-<section class="game card">
-  <div class="hud"><div>HP<b id="health">●●●</b></div><div>ENERGY<b id="energyText">100</b></div><div>COMBO<b id="combo">x1.0</b></div><div>GUARDIAN<b id="guardianHud">0%</b></div></div>
-  <div class="stage">
-    <canvas id="gameCanvas" width="1200" height="520" aria-label="Dino Legends game"></canvas>
-    <div class="overlay" id="startScreen">
-      <div class="big">🦖</div><div class="eyebrow">LEGENDARY RUNNER</div>
-      <h2>ENTER THE <b>FANTASY</b></h2>
-      <p>Run • Double Jump • Attack • Dash • Parry • Collect</p>
-      <button class="primary" id="startButton" type="button">▶ START ADVENTURE</button>
-      <div class="keys"><i>SPACE / ↑ JUMP</i><i>A / ← · D / → LANE</i><i>SHIFT DASH</i><i>F ATTACK</i><i>S PARRY</i><i>R RAGE</i></div>
-    </div>
-    <div class="overlay hidden" id="pauseScreen"><div class="modal"><div class="eyebrow">RUN STATE</div><h2>PAUSED</h2><button class="primary" id="resumeButton" type="button">RESUME</button></div></div>
-    <div class="overlay hidden" id="gameOverScreen">
-      <div class="big">💫</div><div class="eyebrow">RUN COMPLETE</div><h2>LEGEND <b>FINISHED</b></h2><p>FINAL SCORE</p><strong class="final" id="finalScore">0</strong><p id="finalStats"></p>
-      <button class="primary" id="restartButton" type="button">↻ PLAY AGAIN</button>
-    </div>
-    <div class="bars"><div><span>ENERGY</span><i><u id="energyBar"></u></i></div><div><span>RAGE</span><i><u id="rageBar"></u></i></div><div><span>GUARDIAN</span><i><u id="bossBar"></u></i></div></div>
-    <div class="touch"><button data-action="left" type="button">◀</button><button data-action="jump" type="button">JUMP</button><button data-action="right" type="button">▶</button><button data-action="attack" type="button">ATTACK</button><button data-action="dash" type="button">DASH</button><button data-action="parry" type="button">PARRY</button></div>
-  </div>
-</section>
-<nav class="tabs" aria-label="Game sections">
-  <button class="tab active" data-panel="play" type="button">PLAY</button><button class="tab" data-panel="skins" type="button">SKINS</button><button class="tab" data-panel="abilities" type="button">ABILITIES</button><button class="tab" data-panel="missions" type="button">MISSIONS</button><button class="tab" data-panel="worlds" type="button">WORLDS</button><button class="tab" data-panel="redeem" type="button">REDEEM</button>
-</nav>
-<section class="panel active" id="play"><div class="heading"><div><small>YOUR JOURNEY</small><h2>LEGEND RUN</h2></div><b>BEST <span id="bestScore">0</span></b></div><div class="cards"><article><div class="icon">⚔️</div><h3>PRECISION COMBAT</h3><small>SKILL</small><p>Attack, dodge and parry to build a devastating chain.</p></article><article><div class="icon">💎</div><h3>RISK / REWARD</h3><small>REWARD</small><p>Take dangerous lanes for rare gems and bigger multipliers.</p></article><article><div class="icon">👑</div><h3>GUARDIAN HUNT</h3><small>BOSS</small><p>Fill the Guardian meter, then defeat the Jungle Guardian.</p></article></div></section>
-<section class="panel" id="skins"><div class="heading"><div><small>CUSTOMIZATION</small><h2>SKIN FORGE</h2></div></div><div class="grid"><article class="item"><div class="icon">🦖</div><h3>ROOKIE REX</h3><small>CLASSIC LOADOUT</small><p>Balanced starter configuration.</p><footer><span class="price">EQUIPPED</span><button class="action" disabled>EQUIPPED</button></footer></article><article class="item"><div class="icon">🤖</div><h3>NEON REX</h3><small>VISOR · ARMOR · PLASMA</small><p>High-tech cosmetic loadout.</p><footer><span class="price">5,000 GEMS</span><button class="action" type="button">BUY</button></footer></article><article class="item"><div class="icon">🐲</div><h3>VOID REX</h3><small>HALO · ASTRAL ARMOR · WINGS</small><p>Endgame cosmetic set.</p><footer><span class="price">LOCKED</span><button class="action" disabled>LOCKED</button></footer></article></div></section>
-<section class="panel" id="abilities"><div class="heading"><div><small>LOADOUT</small><h2>ABILITIES</h2></div></div><div class="grid"><article class="item"><div class="icon">⚡</div><h3>DASH STRIKE</h3><small>35 ENERGY</small><p>Burst through danger and punish targets.</p><footer><span class="price">SHIFT / DASH</span></footer></article><article class="item"><div class="icon">🛡️</div><h3>PERFECT PARRY</h3><small>20 ENERGY</small><p>Counter an incoming hit with precise timing.</p><footer><span class="price">S / PARRY</span></footer></article><article class="item"><div class="icon">🔥</div><h3>RAGE BURST</h3><small>100 RAGE</small><p>Spend full Rage for a massive chain boost.</p><footer><span class="price">R / RAGE</span></footer></article></div></section>
-<section class="panel" id="missions"><div class="heading"><div><small>CHALLENGES</small><h2>MISSIONS</h2></div></div><div class="mission"><span>BUILD A HIGH COMBO</span><b>CHAIN REWARD</b></div><div class="mission"><span>COLLECT GEMS</span><b>WALLET</b></div><div class="mission"><span>DEFEAT GUARDIAN</span><b>+25 GEMS</b></div></section>
-<section class="panel" id="worlds"><div class="heading"><div><small>EXPLORE</small><h2>WORLDS</h2></div></div><div class="grid"><article class="item"><div class="icon">🌴</div><h3>ANCIENT JUNGLE</h3><small>ACTIVE</small><p>Original hunting ground.</p></article><article class="item"><div class="icon">🌋</div><h3>VOLCANIC WASTES</h3><small>LOCKED</small><p>Coming soon.</p></article><article class="item"><div class="icon">❄️</div><h3>FROST REALM</h3><small>LOCKED</small><p>Coming soon.</p></article><article class="item"><div class="icon">🌌</div><h3>VOID REALM</h3><small>LOCKED</small><p>Coming soon.</p></article></div></section>
+<header class="topbar"><div class="brand"><div class="logo">🦖</div><div><h1>DINO <b>LEGENDS</b></h1><p>LEGENDARY RUNNER · V22</p></div></div><div class="stats"><div><span>RANK</span><b id="rank">ROOKIE</b><small>LEGEND RANK</small></div><div><span>SCORE</span><b id="score">0</b><small>RUN SCORE</small></div><div><span>GEMS</span><b id="gems">2,500</b><small>WALLET + RUN</small></div></div></header>
+<section class="game card"><div class="hud"><div>HP<b id="health">●●●</b></div><div>ENERGY<b id="energyText">100</b></div><div>COMBO<b id="combo">x1.0</b></div><div>GUARDIAN<b id="guardianHud">RUN</b></div></div><div class="stage"><canvas id="gameCanvas" width="1200" height="520" aria-label="Dino Legends game"></canvas><div class="overlay" id="startScreen"><div class="big">🦖</div><div class="eyebrow">V22 · FIVE WORLDS · 12 SKINS</div><h2>ENTER THE <b>LEGEND</b></h2><p>Double Jump · Attack · Dash · Parry · Rage · Bosses · Rare Events</p><button class="primary" id="startButton" type="button">▶ START ADVENTURE</button><div class="keys"><i>SPACE / ↑ JUMP</i><i>A / ← · D / → LANE</i><i>SHIFT DASH</i><i>F ATTACK</i><i>S PARRY</i><i>R RAGE</i></div></div><div class="overlay hidden" id="pauseScreen"><div class="modal"><div class="eyebrow">RUN STATE</div><h2>PAUSED</h2><button class="primary" id="resumeButton" type="button">RESUME</button></div></div><div class="overlay hidden" id="gameOverScreen"><div class="big">💫</div><div class="eyebrow">RUN COMPLETE</div><h2>LEGEND <b>FINISHED</b></h2><p>FINAL SCORE</p><strong class="final" id="finalScore">0</strong><p id="finalStats"></p><button class="primary" id="restartButton" type="button">↻ PLAY AGAIN</button></div><div class="bars"><div><span>ENERGY</span><i><u id="energyBar"></u></i></div><div><span>RAGE</span><i><u id="rageBar"></u></i></div><div><span>GUARDIAN</span><i><u id="bossBar"></u></i></div></div><div class="touch"><button data-action="left" type="button">◀</button><button data-action="jump" type="button">JUMP</button><button data-action="right" type="button">▶</button><button data-action="attack" type="button">ATTACK</button><button data-action="dash" type="button">DASH</button><button data-action="parry" type="button">PARRY</button></div></div></section>
+<nav class="tabs" aria-label="Game sections"><button class="tab active" data-panel="play" type="button">PLAY</button><button class="tab" data-panel="skins" type="button">SKINS</button><button class="tab" data-panel="abilities" type="button">UPGRADES</button><button class="tab" data-panel="missions" type="button">MISSIONS</button><button class="tab" data-panel="worlds" type="button">WORLDS</button><button class="tab" data-panel="redeem" type="button">REDEEM</button></nav>
+<section class="panel active" id="play"><div class="heading"><div><small>YOUR JOURNEY</small><h2>LEGEND RUN</h2></div><b>BEST <span id="bestScore">0</span></b></div><div class="cards"><article><div class="icon">⚔️</div><h3>COMBAT CHAINS</h3><small>SKILL</small><p>Mix attacks, jumps, dashes and perfect parries to push the combo higher.</p></article><article><div class="icon">🌋</div><h3>WORLD HAZARDS</h3><small>GAMEPLAY</small><p>Every world changes speed, visuals, hazards and enemy patterns.</p></article><article><div class="icon">👑</div><h3>GUARDIAN BATTLES</h3><small>BOSS</small><p>Survive rare events, trigger guardians and earn huge gem rewards.</p></article></div></section>
+<section class="panel" id="skins"></section><section class="panel" id="abilities"></section><section class="panel" id="missions"></section><section class="panel" id="worlds"></section>
 <section class="panel" id="redeem"><div class="redeem"><div class="redeemIcon">🎁</div><small>REWARDS</small><h2>REDEEM CENTER</h2><p>Enter a reward code to unlock exclusive gems.</p><div class="code"><input id="codeInput" type="text" placeholder="ENTER REWARD CODE" maxlength="40" autocomplete="off" spellcheck="false"><button id="redeemButton" type="button">REDEEM</button></div><p id="codeMessage" class="codeMessage" role="status" aria-live="polite"></p></div></section>
-<section class="panel" id="settings"><div class="heading"><div><small>PERFORMANCE</small><h2>OPTIONS</h2></div></div><div class="settings"><label>Graphics <select id="quality"><option>ULTRA</option><option selected>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label><label>Difficulty <select id="difficulty"><option>EASY</option><option selected>NORMAL</option><option>HARD</option><option>LEGENDARY</option></select></label><label>Combo decay <input id="comboDecay" type="checkbox" checked></label><label>Assist mode <input id="assistMode" type="checkbox"></label><label>Auto pause on window loss <input id="autoPause" type="checkbox" checked></label><label>Reduced effects <input id="reducedEffects" type="checkbox"></label><label>Screen shake <input id="screenShake" type="checkbox" checked></label><label>Touch controls <input id="touchToggle" type="checkbox" checked></label></div></section>
-</div>
-<script src="game.js"></script>
-</body>
-</html>
+</div><script src="game-v22.js"></script></body></html>
