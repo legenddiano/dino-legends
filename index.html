@@ -1,40 +1,36 @@
 <!doctype html>
-
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="theme-color" content="#050713">
-  <title>DINO LEGENDS</title>
+  <meta name="theme-color" content="#050611">
+  <title>DINO LEGENDS — Ultimate Edition</title>
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 <div class="app">
 
-  <header class="topbar">
-    <div class="brand">
-      <div class="logo">🦖</div>
-      <div>
-        <h1>DINO <b>LEGENDS</b></h1>
-        <p>FANTASY REALMS • SEASON 01</p>
-      </div>
+<header class="topbar">
+  <div class="brand">
+    <div class="logo">🦖</div>
+    <div>
+      <h1>DINO <b>LEGENDS</b></h1>
+      <p>ULTIMATE FANTASY REALMS</p>
     </div>
+  </div>
 
-```
-<div class="stats">
-  <div><span>💎</span><b id="gems">2,500</b><small>GEMS</small></div>
-  <div><span>🏆</span><b id="bestScore">0</b><small>BEST</small></div>
-  <div><span>⭐</span><b id="level">1</b><small>LEVEL</small></div>
-</div>
-```
+  <div class="stats">
+    <div><span>💎</span><b id="gems">0</b><small>GEMS</small></div>
+    <div><span>🏆</span><b id="bestScore">0</b><small>BEST</small></div>
+    <div><span>⭐</span><b id="level">1</b><small>LEVEL</small></div>
+  </div>
+</header>
 
-  </header>
+<main>
 
-  <main>
-
-```
 <section class="game card">
+
   <div class="hud">
     <div>SCORE <b id="score">0</b></div>
     <div>COMBO <b id="combo">x1</b></div>
@@ -42,30 +38,30 @@
   </div>
 
   <div class="stage">
-    <canvas id="gameCanvas" width="1200" height="520"></canvas>
+    <canvas id="gameCanvas"></canvas>
 
     <div class="overlay" id="startScreen">
       <div class="big">🦖</div>
-      <div class="eyebrow">LEGENDARY RUNNER</div>
+      <div class="eyebrow">ULTIMATE LEGENDARY RUNNER</div>
       <h2>ENTER THE <b>FANTASY</b></h2>
-      <p>Run • Double Jump • Dash • Collect • Become a Legend</p>
+      <p>Run • Double Jump • Dash • Shield • Collect • Survive</p>
 
       <button class="primary" id="startButton" type="button">
         ▶ START ADVENTURE
       </button>
 
       <div class="keys">
-        <i>SPACE / ↑ JUMP</i>
+        <i>SPACE / ↑ — JUMP</i>
         <i>DOUBLE JUMP</i>
-        <i>D DASH</i>
-        <i>S SHIELD</i>
+        <i>D — DASH</i>
+        <i>S — SHIELD</i>
       </div>
     </div>
 
     <div class="overlay hidden" id="gameOverScreen">
-      <div class="big">💫</div>
+      <div class="big">💀</div>
       <div class="eyebrow">RUN COMPLETE</div>
-      <h2>LEGEND <b>FINISHED</b></h2>
+      <h2>LEGEND <b>FALLEN</b></h2>
       <p>FINAL SCORE</p>
       <strong class="final" id="finalScore">0</strong>
 
@@ -80,6 +76,7 @@
     <button id="dashButton" type="button">⚡ DASH</button>
     <button id="shieldButton" type="button">🛡 SHIELD</button>
   </div>
+
 </section>
 
 <nav class="tabs">
@@ -87,19 +84,20 @@
   <button class="tab" data-panel="skins">🦖 SKINS</button>
   <button class="tab" data-panel="missions">🎯 MISSIONS</button>
   <button class="tab" data-panel="worlds">🌌 WORLDS</button>
-  <button class="tab" data-panel="shop">⚡ UPGRADES</button>
+  <button class="tab" data-panel="upgrades">⚡ UPGRADES</button>
   <button class="tab" data-panel="redeem">🎁 REDEEM</button>
 </nav>
 
 <section id="profile" class="panel active">
   <div class="heroPanel">
     <div class="avatar" id="avatar">🦖</div>
+
     <div>
       <small>LEGEND PROFILE</small>
-      <h2>Rookie Rex</h2>
+      <h2 id="profileName">Rookie Rex</h2>
       <p>
         Level <b id="profileLevel">1</b>
-        • Best score <b id="profileBest">0</b>
+        • Best <b id="profileBest">0</b>
       </p>
     </div>
   </div>
@@ -120,11 +118,12 @@
 <section id="skins" class="panel">
   <div class="heading">
     <div>
-      <small>FANTASY CREATURES</small>
+      <small>LEGENDARY COLLECTION</small>
       <h2>SKIN VAULT</h2>
     </div>
-    <b id="skinCount">1 / 20</b>
+    <b id="skinCount">1 / 100</b>
   </div>
+
   <div class="grid" id="skinGrid"></div>
 </section>
 
@@ -134,8 +133,8 @@
       <small>PLAY TO EARN</small>
       <h2>MISSIONS</h2>
     </div>
-    <b>REWARDS</b>
   </div>
+
   <div class="grid" id="missionGrid"></div>
 </section>
 
@@ -145,20 +144,20 @@
       <small>FANTASY REALMS</small>
       <h2>WORLDS</h2>
     </div>
-    <b>EXPLORE</b>
   </div>
+
   <div class="grid" id="worldGrid"></div>
 </section>
 
-<section id="shop" class="panel">
+<section id="upgrades" class="panel">
   <div class="heading">
     <div>
       <small>PERMANENT POWER</small>
       <h2>UPGRADE LAB</h2>
     </div>
-    <b>LVL UP</b>
   </div>
-  <div class="grid" id="shopGrid"></div>
+
+  <div class="grid" id="upgradeGrid"></div>
 </section>
 
 <section id="redeem" class="panel">
@@ -166,28 +165,30 @@
     <div class="redeemIcon">🎁</div>
     <small>SECRET REWARDS</small>
     <h2>REDEEM CENTER</h2>
-    <p>Enter a reward code to add gems to your profile.</p>
+
+    <p>Enter a reward code to receive gems.</p>
 
     <div class="code">
       <input
         id="codeInput"
-        placeholder="ENTER REWARD CODE"
         maxlength="40"
+        placeholder="ENTER REWARD CODE"
         autocomplete="off"
         spellcheck="false"
       >
-      <button id="redeemButton" type="button">REDEEM</button>
+
+      <button id="redeemButton" type="button">
+        REDEEM
+      </button>
     </div>
 
-    <p id="codeMessage" role="status"></p>
+    <p id="codeMessage" class="message"></p>
   </div>
 </section>
-```
 
-  </main>
+</main>
 </div>
 
 <script src="game.js"></script>
-
 </body>
 </html>
