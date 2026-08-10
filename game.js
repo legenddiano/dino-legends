@@ -1,545 +1,1002 @@
-// DINO LEGENDS v61 — gameplay rebuild
 (() => {
   "use strict";
 
+  // ============================================================
+  // DINO LEGENDS v61 — NEW GAMEPLAY ENGINE
+  // Skill-first combat runner with lane movement, air control,
+  // attacks, dash, parry, combo decay, rage, bosses and events.
+  // ============================================================
+
   const canvas = document.getElementById("gameCanvas");
   const ctx = canvas.getContext("2d", { alpha: false });
-  const W = 1280, H = 520, GROUND = 410;
-  const LANES = [300, 640, 980];
-  const BEST_KEY = "DINO_LEGENDS_BEST";
+  const stage = document.getElementById("gameStage");
 
-  let dpr = 1, last = 0, running = false, elapsed = 0;
-  let score = 0, gems = 0, combo = 1, health = 3, energy = 100;
-  let lane = 1, playerX = LANES[1], playerY = 0, velocityY = 0, jumps = 0;
-  let attackTimer = 0, dashTimer = 0, shieldTimer = 0, invincible = 0;
-  let rage = 0, bossCharge = 0, spawnTimer = 0, kills = 0, perfects = 0;
-  let shake = 0, objects = [], particles = [], texts = [], trail = [];
-  let best = Number(localStorage.getItem(BEST_KEY) || 0);
+  const W = 1280;
+  const H = 520;
+  const GROUND = 408;
+  const LANES = [330, 640, 950];
 
-  const $ = id => document.getElementById(id);
+  let dpr = 1;
+  let running = false;
+  let lastTime = 0;
+  let elapsed = 0;
+  let score = 0;
+  let gems = 0;
+  let best = Number(localStorage.getItem("DL_BEST") || 0);
+  let combo = 1;
+  let comboTimer = 0;
+  let health = 3;
+  let energy = 100;
+  let rage = 0;
+  let bossProgress = 0;
+  let kills = 0;
+  let perfects = 0;
+  let distance = 0;
 
-  function resize() {
+  const player = {
+    lane: 1,
+    x: LANES[1],
+    y: 0,
+    vy: 0,
+    jumps: 0,
+    attack: 0,
+    dash: 0,
+    parry: 0,
+    invulnerable: 0,
+    hurt: 0,
+    squash: 0,
+    facing: 1
+  };
+
+  const objects = [];
+  const particles = [];
+  const texts = [];
+  const trails = [];
+  const clouds = [];
+  const trees = [];
+
+  let spawnTimer = 0.8;
+  let shake = 0;
+  let shakeX = 0;
+  let shakeY = 0;
+  let eventTimer = 8;
+  let bossActive = false;
+  let bossSpawned = false;
+  let reducedEffects = false;
+  let screenShake = true;
+  let quality = "HIGH";
+
+  const $ = (id) => document.getElementById(id);
+
+  // ------------------------------------------------------------
+  // RESOLUTION / PERFORMANCE
+  // ------------------------------------------------------------
+
+  function resizeCanvas() {
     const rect = canvas.getBoundingClientRect();
-    dpr = Math.min(window.devicePixelRatio || 1, 2);
-    canvas.width = Math.max(1, Math.floor(rect.width * dpr));
-    canvas.height = Math.max(1, Math.floor(rect.height * dpr));
+    dpr = Math.min(window.devicePixelRatio || 1, quality === "LOW" ? 1 : 1.75);
+    canvas.width = Math.floor(rect.width * dpr);
+    canvas.height = Math.floor(rect.height * dpr);
     ctx.setTransform(canvas.width / W, 0, 0, canvas.height / H, 0, 0);
   }
 
-  window.addEventListener("resize", resize);
-  resize();
+  window.addEventListener("resize", resizeCanvas);
 
-  function reset() {
-    running = true;
-    elapsed = score = gems = 0;
-    combo = 1;
-    health = 3;
-    energy = 100;
-    lane = 1;
-    playerX = LANES[1];
-    playerY = velocityY = jumps = 0;
-    attackTimer = dashTimer = shieldTimer = invincible = 0;
-    rage = bossCharge = 0;
-    spawnTimer = 0.5;
-    kills = perfects = 0;
-    shake = 0;
-    objects = [];
-    particles = [];
-    texts = [];
-    trail = [];
-    $("startScreen").classList.add("hidden");
-    $("gameOverScreen").classList.add("hidden");
-    last = performance.now();
-  }
+  // ------------------------------------------------------------
+  // WORLD DECORATION
+  // ------------------------------------------------------------
 
-  function gameOver() {
-    running = false;
-    best = Math.max(best, Math.floor(score));
-    localStorage.setItem(BEST_KEY, String(best));
-    $("finalScore").textContent = Math.floor(score).toLocaleString();
-    $("bestScore").textContent = best.toLocaleString();
-    $("bestCard").textContent = best.toLocaleString();
-    $("gemCard").textContent = gems.toLocaleString();
-    $("gameOverScreen").classList.remove("hidden");
-  }
+  function seedWorld() {
+    clouds.length = 0;
+    trees.length = 0;
 
-  function addText(x, y, text, color = "#ffffff") {
-    texts.push({ x, y, text, color, life: 1 });
-  }
+    for (let i = 0; i < 14; i += 1) {
+      clouds.push({
+        x: Math.random() * W,
+        y: 55 + Math.random() * 145,
+        size: 35 + Math.random() * 80,
+        speed: 8 + Math.random() * 15
+      });
+    }
 
-  function burst(x, y, color = "#62ecff", count = 12) {
-    for (let i = 0; i < count; i++) {
-      const angle = Math.random() * Math.PI * 2;
-      const speed = 80 + Math.random() * 300;
-      particles.push({ x, y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed, life: 1, color });
+    for (let i = 0; i < 26; i += 1) {
+      trees.push({
+        x: Math.random() * W,
+        depth: Math.random(),
+        scale: 0.5 + Math.random() * 0.9
+      });
     }
   }
 
-  function move(dir) {
-    lane = Math.max(0, Math.min(2, lane + dir));
+  // ------------------------------------------------------------
+  // EFFECTS
+  // ------------------------------------------------------------
+
+  function burst(x, y, count = 12, type = "cyan") {
+    if (reducedEffects) count = Math.min(count, 5);
+
+    for (let i = 0; i < count; i += 1) {
+      particles.push({
+        x,
+        y,
+        vx: (Math.random() - 0.5) * 420,
+        vy: (Math.random() - 0.8) * 360,
+        life: 0.45 + Math.random() * 0.5,
+        size: 2 + Math.random() * 4,
+        type
+      });
+    }
+  }
+
+  function addText(x, y, text, type = "normal") {
+    texts.push({ x, y, text, type, life: 1 });
+  }
+
+  function addTrail() {
+    if (reducedEffects) return;
+    trails.push({
+      x: player.x,
+      y: GROUND - player.y - 46,
+      life: 0.22,
+      scale: player.dash > 0 ? 1.3 : 0.8
+    });
+  }
+
+  function screenImpact(amount = 7) {
+    if (screenShake && !reducedEffects) shake = Math.max(shake, amount);
+  }
+
+  // ------------------------------------------------------------
+  // RUN STATE
+  // ------------------------------------------------------------
+
+  function resetRun() {
+    running = true;
+    elapsed = 0;
+    score = 0;
+    gems = 0;
+    combo = 1;
+    comboTimer = 0;
+    health = 3;
+    energy = 100;
+    rage = 0;
+    bossProgress = 0;
+    kills = 0;
+    perfects = 0;
+    distance = 0;
+    spawnTimer = 0.7;
+    eventTimer = 8;
+    bossActive = false;
+    bossSpawned = false;
+    objects.length = 0;
+    particles.length = 0;
+    texts.length = 0;
+    trails.length = 0;
+
+    Object.assign(player, {
+      lane: 1,
+      x: LANES[1],
+      y: 0,
+      vy: 0,
+      jumps: 0,
+      attack: 0,
+      dash: 0,
+      parry: 0,
+      invulnerable: 0,
+      hurt: 0,
+      squash: 0,
+      facing: 1
+    });
+
+    $("startScreen").classList.add("hidden");
+    $("gameOverScreen").classList.add("hidden");
+    $("runState").textContent = "RUNNING";
+    lastTime = performance.now();
+  }
+
+  function finishRun() {
+    if (!running) return;
+
+    running = false;
+    best = Math.max(best, Math.floor(score));
+    localStorage.setItem("DL_BEST", String(best));
+
+    $("finalScore").textContent = Math.floor(score).toLocaleString();
+    $("finalStats").textContent = `${kills} KILLS · ${perfects} PERFECT · ${gems} GEMS`;
+    $("gameOverScreen").classList.remove("hidden");
+    $("runState").textContent = "ENDED";
+    updateHud();
+  }
+
+  // ------------------------------------------------------------
+  // INPUT / ABILITIES
+  // ------------------------------------------------------------
+
+  function moveLane(direction) {
+    player.lane = Math.max(0, Math.min(2, player.lane + direction));
+    player.facing = direction || player.facing;
+    player.squash = 0.08;
   }
 
   function jump() {
-    if (jumps >= 2) return;
-    velocityY = jumps === 0 ? -790 : -650;
-    jumps++;
-    burst(playerX, GROUND - 12, "#ffffff", 5);
+    if (!running) return;
+    if (player.jumps >= 2) return;
+
+    player.vy = player.jumps === 0 ? -850 : -720;
+    player.jumps += 1;
+    burst(player.x, GROUND - player.y - 12, 5, "dust");
   }
 
   function attack() {
-    attackTimer = 0.24;
-    energy = Math.min(100, energy + 2);
+    if (!running) return;
+    player.attack = 0.23;
   }
 
   function dash() {
-    if (energy < 32 || dashTimer > 0) return;
-    energy -= 32;
-    dashTimer = 0.30;
-    invincible = Math.max(invincible, 0.34);
-    playerX += lane === 0 ? -100 : lane === 2 ? 100 : 0;
-    playerX = Math.max(150, Math.min(W - 150, playerX));
-    burst(playerX, GROUND - 45, "#ffb84d", 18);
-    shake = Math.max(shake, 5);
+    if (!running || energy < 35) return;
+
+    energy -= 35;
+    player.dash = 0.34;
+    player.invulnerable = 0.38;
+    player.x = LANES[player.lane];
+    addText(player.x, GROUND - player.y - 85, "DASH!", "cyan");
+    burst(player.x, GROUND - player.y - 42, 12, "orange");
+    screenImpact(4);
   }
 
-  function shield() {
-    if (energy < 22) return;
-    energy -= 22;
-    shieldTimer = 1.25;
+  function parry() {
+    if (!running || energy < 20) return;
+
+    energy -= 20;
+    player.parry = 0.28;
   }
 
-  function spawn(type, laneIndex, x = W + 120) {
+  function handleAction(action) {
+    if (action === "left") moveLane(-1);
+    if (action === "right") moveLane(1);
+    if (action === "jump") jump();
+    if (action === "attack") attack();
+    if (action === "dash") dash();
+    if (action === "parry") parry();
+  }
+
+  document.querySelectorAll("[data-action]").forEach((button) => {
+    button.addEventListener("pointerdown", (event) => {
+      event.preventDefault();
+      handleAction(button.dataset.action);
+    });
+  });
+
+  window.addEventListener("keydown", (event) => {
+    if (["Space", "ArrowUp", "ArrowLeft", "ArrowRight"].includes(event.code)) event.preventDefault();
+
+    if (event.code === "ArrowLeft" || event.code === "KeyA") moveLane(-1);
+    else if (event.code === "ArrowRight" || event.code === "KeyD") moveLane(1);
+    else if (event.code === "Space" || event.code === "ArrowUp") jump();
+    else if (event.code === "KeyF") attack();
+    else if (event.code === "ShiftLeft" || event.code === "ShiftRight") dash();
+    else if (event.code === "KeyS") parry();
+    else if (event.code === "Enter" && !running) resetRun();
+  });
+
+  // ------------------------------------------------------------
+  // SPAWNING
+  // ------------------------------------------------------------
+
+  function spawn(type, lane = Math.floor(Math.random() * 3), x = W + 80) {
+    const data = {
+      rock: { w: 54, h: 52, y: GROUND - 48, hp: 1 },
+      enemy: { w: 58, h: 70, y: GROUND - 62, hp: 1 },
+      elite: { w: 72, h: 84, y: GROUND - 72, hp: 2 },
+      air: { w: 70, h: 42, y: 305, hp: 1 },
+      trap: { w: 64, h: 50, y: GROUND - 42, hp: 1 },
+      gem: { w: 30, h: 30, y: GROUND - 90, hp: 1 }
+    }[type];
+
+    if (!data) return;
+
     objects.push({
       type,
-      lane: laneIndex,
+      lane,
       x,
-      y: type === "drone" ? 285 : GROUND - 52,
-      hp: type === "boss" ? 7 : type === "elite" ? 2 : 1,
+      y: data.y,
+      w: data.w,
+      h: data.h,
+      hp: data.hp,
+      maxHp: data.hp,
       dead: false,
+      passed: false,
+      hitCooldown: 0,
       phase: Math.random() * Math.PI * 2
     });
   }
 
-  function spawnPattern() {
-    const r = Math.random();
-    const l = Math.floor(Math.random() * 3);
-    if (r < 0.20) spawn("gem", l);
-    else if (r < 0.42) spawn("rock", l);
-    else if (r < 0.60) spawn("enemy", l);
-    else if (r < 0.72) spawn("drone", l);
-    else if (r < 0.88) {
-      spawn("rock", l);
-      spawn("gem", (l + 1) % 3, W + 280);
-    } else {
-      spawn("elite", l);
-      spawn("gem", (l + 2) % 3, W + 220);
-    }
-  }
-
   function spawnBoss() {
-    spawn("boss", 1, W + 260);
-    addText(W * 0.5, 120, "MINI BOSS INCOMING", "#ff8df5");
-    burst(W * 0.65, 160, "#9b55ff", 30);
-    bossCharge = -1;
+    if (bossActive || bossSpawned) return;
+
+    bossActive = true;
+    bossSpawned = true;
+    objects.push({
+      type: "boss",
+      lane: 1,
+      x: W + 200,
+      y: GROUND - 120,
+      w: 150,
+      h: 130,
+      hp: 12,
+      maxHp: 12,
+      dead: false,
+      phase: 0,
+      hitCooldown: 0
+    });
+
+    addText(W * 0.5, 150, "JUNGLE GUARDIAN", "boss");
+    screenImpact(10);
   }
 
-  function destroy(o, critical = false) {
-    if (o.dead) return;
-    o.hp--;
-    burst(o.x, o.y, critical ? "#fff" : "#62ecff", critical ? 20 : 10);
-    if (o.hp > 0) return;
-    o.dead = true;
-    kills++;
-    bossCharge = Math.max(0, bossCharge) + (o.type === "boss" ? 100 : 5);
-    rage = Math.min(100, rage + (o.type === "boss" ? 30 : 7));
-    combo = Math.min(30, combo + (critical ? 1.2 : 0.55));
-    score += (o.type === "boss" ? 5000 : o.type === "elite" ? 650 : 220) * combo;
-    addText(o.x, o.y - 35, critical ? "CRITICAL KO" : "KO", critical ? "#ffe27a" : "#62ecff");
-    shake = Math.max(shake, o.type === "boss" ? 14 : 5);
-  }
+  function spawnPattern() {
+    const roll = Math.random();
+    const lane = Math.floor(Math.random() * 3);
 
-  function collect(o) {
-    o.dead = true;
-    gems++;
-    combo = Math.min(30, combo + 0.25);
-    score += 300 * combo;
-    rage = Math.min(100, rage + 3);
-    burst(o.x, o.y, "#62ecff", 8);
-  }
-
-  function hit() {
-    if (invincible > 0) return;
-    if (shieldTimer > 0) {
-      shieldTimer = 0;
-      combo = Math.min(30, combo + 1.5);
-      score += 500 * combo;
-      rage = Math.min(100, rage + 12);
-      addText(playerX, GROUND - 110, "PERFECT PARRY", "#8d7dff");
-      burst(playerX, GROUND - 55, "#8d7dff", 24);
-      shake = 8;
+    if (roll < 0.22) {
+      spawn("gem", lane);
+      spawn("rock", (lane + 1) % 3, W + 180);
       return;
     }
-    health--;
-    combo = 1;
-    invincible = 1.15;
-    shake = 12;
-    burst(playerX, GROUND - 45, "#ff6175", 22);
-    addText(playerX, GROUND - 100, "HIT!", "#ff6175");
-    if (health <= 0) gameOver();
+
+    if (roll < 0.43) {
+      spawn("enemy", lane);
+      spawn("air", (lane + 1) % 3, W + 250);
+      return;
+    }
+
+    if (roll < 0.62) {
+      spawn("rock", lane);
+      spawn("rock", (lane + 1) % 3, W + 220);
+      return;
+    }
+
+    if (roll < 0.78 && elapsed > 12) {
+      spawn("elite", lane);
+      return;
+    }
+
+    spawn("trap", lane);
   }
+
+  // ------------------------------------------------------------
+  // COMBAT / SCORING
+  // ------------------------------------------------------------
+
+  function increaseCombo(amount, bonus = 0) {
+    combo = Math.min(25, combo + amount);
+    comboTimer = 3.2;
+    score += bonus * combo;
+    rage = Math.min(100, rage + amount * 5);
+  }
+
+  function breakCombo() {
+    combo = 1;
+    comboTimer = 0;
+  }
+
+  function defeat(object, perfect = false) {
+    if (object.dead) return;
+
+    object.hp -= 1;
+
+    if (object.hp > 0) {
+      burst(object.x, object.y, 7, "orange");
+      screenImpact(3);
+      return;
+    }
+
+    object.dead = true;
+    kills += object.type === "boss" ? 5 : 1;
+    bossProgress = Math.min(100, bossProgress + (object.type === "boss" ? 100 : 5));
+
+    const base = object.type === "boss" ? 5000 : object.type === "elite" ? 600 : 180;
+    score += base * combo;
+    increaseCombo(perfect ? 1.25 : 0.65);
+    gems += object.type === "boss" ? 25 : object.type === "elite" ? 3 : 1;
+    rage = Math.min(100, rage + (object.type === "boss" ? 40 : 10));
+
+    burst(object.x, object.y, object.type === "boss" ? 40 : 18, object.type === "boss" ? "boss" : "orange");
+    addText(object.x, object.y - 40, perfect ? "CRITICAL KO" : "KO", perfect ? "gold" : "cyan");
+    screenImpact(object.type === "boss" ? 14 : 6);
+
+    if (object.type === "boss") {
+      bossActive = false;
+      bossProgress = 0;
+      bossSpawned = false;
+      addText(W / 2, 115, "GUARDIAN DEFEATED", "boss");
+    }
+  }
+
+  function collectGem(object) {
+    if (object.dead) return;
+    object.dead = true;
+    gems += 1;
+    score += 300 * combo;
+    increaseCombo(0.3);
+    burst(object.x, object.y, 8, "gem");
+    addText(object.x, object.y - 20, "+ GEM", "cyan");
+  }
+
+  function takeHit(object) {
+    if (object.dead || player.invulnerable > 0) return;
+
+    if (player.parry > 0) {
+      object.dead = true;
+      perfects += 1;
+      score += 450 * combo;
+      increaseCombo(1.4);
+      rage = Math.min(100, rage + 20);
+      burst(object.x, object.y, 24, "parry");
+      addText(object.x, object.y - 35, "PERFECT PARRY", "gold");
+      screenImpact(8);
+      return;
+    }
+
+    health -= 1;
+    player.hurt = 0.55;
+    player.invulnerable = 1.0;
+    breakCombo();
+    burst(player.x, GROUND - 55, 18, "red");
+    addText(player.x, GROUND - 90, "HIT", "red");
+    screenImpact(11);
+
+    if (health <= 0) finishRun();
+  }
+
+  function resolveCollision(object) {
+    if (object.dead || object.hitCooldown > 0) return;
+    if (object.lane !== player.lane) return;
+
+    const playerGround = GROUND - player.y - 48;
+    const objectTop = object.y - object.h;
+    const horizontal = Math.abs(object.x - player.x) < (object.w * 0.55 + 38);
+    const vertical = Math.abs(playerGround - objectTop) < 72 || object.type === "air";
+
+    if (!horizontal || !vertical) return;
+
+    object.hitCooldown = 0.25;
+
+    if (object.type === "gem") {
+      collectGem(object);
+      return;
+    }
+
+    if (object.type === "air") {
+      if (player.y > 70 || player.dash > 0) {
+        object.dead = true;
+        perfects += 1;
+        score += 260 * combo;
+        increaseCombo(0.8);
+        rage = Math.min(100, rage + 7);
+        burst(object.x, object.y, 10, "cyan");
+        addText(object.x, object.y - 20, "PERFECT", "gold");
+      } else {
+        takeHit(object);
+      }
+      return;
+    }
+
+    if (player.attack > 0 || player.dash > 0) {
+      defeat(object, player.attack > 0 && player.dash <= 0);
+      return;
+    }
+
+    if (player.y > 75) {
+      object.dead = true;
+      perfects += 1;
+      score += 160 * combo;
+      increaseCombo(0.5);
+      rage = Math.min(100, rage + 6);
+      burst(object.x, object.y, 9, "cyan");
+      addText(object.x, object.y - 25, "PERFECT DODGE", "gold");
+      return;
+    }
+
+    takeHit(object);
+  }
+
+  // ------------------------------------------------------------
+  // UPDATE
+  // ------------------------------------------------------------
 
   function update(dt) {
     elapsed += dt;
-    const speed = Math.min(1050, 430 + elapsed * 8 + combo * 4);
+    const speed = Math.min(1080, 440 + elapsed * 9 + combo * 5);
 
-    energy = Math.min(100, energy + dt * 7.5);
-    attackTimer = Math.max(0, attackTimer - dt);
-    dashTimer = Math.max(0, dashTimer - dt);
-    shieldTimer = Math.max(0, shieldTimer - dt);
-    invincible = Math.max(0, invincible - dt);
-    shake = Math.max(0, shake - dt * 25);
+    distance += speed * dt * 0.08;
+    score += speed * dt * 0.012;
 
-    playerX += (LANES[lane] - playerX) * Math.min(1, dt * 13);
-    velocityY += 2050 * dt;
-    playerY += velocityY * dt;
-    if (playerY >= 0) {
-      playerY = 0;
-      velocityY = 0;
-      jumps = 0;
+    energy = Math.min(100, energy + dt * 10);
+    player.attack = Math.max(0, player.attack - dt);
+    player.dash = Math.max(0, player.dash - dt);
+    player.parry = Math.max(0, player.parry - dt);
+    player.invulnerable = Math.max(0, player.invulnerable - dt);
+    player.hurt = Math.max(0, player.hurt - dt);
+    player.squash = Math.max(0, player.squash - dt);
+
+    if (comboTimer > 0) {
+      comboTimer -= dt;
+      if (comboTimer <= 0) breakCombo();
     }
 
-    spawnTimer -= dt;
-    const interval = Math.max(0.38, 0.90 - elapsed * 0.003);
-    if (spawnTimer <= 0) {
-      spawnPattern();
-      spawnTimer = interval;
+    if (rage >= 100) {
+      rage = 0;
+      score += 1500 * combo;
+      increaseCombo(1.5);
+      addText(player.x, 155, "RAGE BURST", "boss");
+      burst(player.x, GROUND - 70, 35, "rage");
+      screenImpact(10);
     }
 
-    if (bossCharge >= 100) spawnBoss();
-    score += dt * speed * 0.012 * (1 + combo * 0.16);
+    // Smooth lane movement.
+    const targetX = LANES[player.lane];
+    player.x += (targetX - player.x) * Math.min(1, dt * 15);
 
-    for (let i = objects.length - 1; i >= 0; i--) {
-      const o = objects[i];
-      if (!o.dead) o.x -= speed * dt;
-      o.phase += dt * 5;
+    // Jump physics.
+    player.vy += 2200 * dt;
+    player.y += player.vy * dt;
+    if (player.y <= 0) {
+      player.y = 0;
+      player.vy = 0;
+      player.jumps = 0;
+    }
 
-      if (o.dead) {
-        if (o.x < -180) objects.splice(i, 1);
-        continue;
+    // Spawning becomes faster, but never so fast that the player loses control.
+    if (!bossActive) {
+      spawnTimer -= dt;
+      if (spawnTimer <= 0) {
+        spawnPattern();
+        const difficulty = Math.min(0.42, elapsed * 0.0035);
+        spawnTimer = Math.max(0.42, 0.92 - difficulty);
+      }
+    }
+
+    bossProgress = Math.min(100, bossProgress + dt * (elapsed > 18 ? 0.7 : 0.25));
+    if (bossProgress >= 100 && !bossActive) spawnBoss();
+
+    // Moving world objects.
+    for (let i = objects.length - 1; i >= 0; i -= 1) {
+      const object = objects[i];
+      object.x -= speed * dt;
+      object.phase += dt * 3;
+      object.hitCooldown = Math.max(0, object.hitCooldown - dt);
+
+      if (object.type === "boss") {
+        // Boss stays visible and drifts toward the combat zone.
+        object.x = Math.max(850, object.x);
+        object.y = GROUND - 120 + Math.sin(object.phase) * 14;
+      } else if (object.type === "air") {
+        object.y += Math.sin(object.phase) * 0.7;
       }
 
-      const sameLane = o.lane === lane;
-      const close = sameLane && o.x < playerX + 78 && o.x > playerX - 95;
+      resolveCollision(object);
 
-      if (close) {
-        if (o.type === "gem") {
-          collect(o);
-        } else if (o.type === "drone") {
-          if (playerY > 90) {
-            o.dead = true;
-            perfects++;
-            combo = Math.min(30, combo + 0.8);
-            score += 450 * combo;
-            addText(o.x, o.y - 25, "PERFECT DODGE", "#62ecff");
-            burst(o.x, o.y, "#62ecff", 12);
-          } else if (attackTimer > 0 || dashTimer > 0) {
-            destroy(o, true);
-          } else {
-            hit();
-          }
-        } else if (o.type === "enemy" || o.type === "elite" || o.type === "boss") {
-          if (attackTimer > 0 || dashTimer > 0) destroy(o, attackTimer > 0);
-          else if (playerY > 85) {
-            o.dead = true;
-            perfects++;
-            combo = Math.min(30, combo + 0.5);
-            score += 250 * combo;
-            addText(o.x, o.y - 25, "NEAR MISS", "#ffe27a");
-          } else {
-            hit();
-          }
-        } else {
-          if (playerY > 90) {
-            o.dead = true;
-            perfects++;
-            combo = Math.min(30, combo + 0.35);
-            score += 180 * combo;
-            addText(o.x, o.y - 25, "PERFECT", "#62ecff");
-          } else if (dashTimer > 0) {
-            destroy(o, true);
-          } else {
-            hit();
-          }
+      if (!object.dead && !object.passed && object.x < player.x - 110) {
+        object.passed = true;
+        if (object.type !== "gem") {
+          // Passing an obstacle cleanly gives a small skill reward,
+          // but not enough to inflate score by simply waiting.
+          score += 15 * combo;
+          comboTimer = Math.max(comboTimer, 0.8);
         }
       }
 
-      if (!o.dead && o.x < playerX - 130) {
-        o.dead = true;
-        combo = Math.min(30, combo + 0.08);
-        score += 45 * combo;
-      }
-      if (o.x < -180) objects.splice(i, 1);
+      if (object.dead || object.x < -220) objects.splice(i, 1);
     }
 
-    trail.push({ x: playerX, y: playerY, life: 1 });
-    if (trail.length > 14) trail.shift();
-    for (const t of trail) t.life -= dt * 5;
-    trail = trail.filter(t => t.life > 0);
+    // Random jungle events keep runs from becoming predictable.
+    eventTimer -= dt;
+    if (eventTimer <= 0 && !bossActive) {
+      const lane = Math.floor(Math.random() * 3);
+      spawn("gem", lane, W + 100);
+      spawn("rock", (lane + 2) % 3, W + 230);
+      eventTimer = 7 + Math.random() * 5;
+    }
 
-    for (const p of particles) {
+    // Particles.
+    for (let i = particles.length - 1; i >= 0; i -= 1) {
+      const p = particles[i];
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vy += 700 * dt;
-      p.life -= dt * 2.2;
+      p.vy += 760 * dt;
+      p.life -= dt;
+      if (p.life <= 0) particles.splice(i, 1);
     }
-    particles = particles.filter(p => p.life > 0);
 
-    for (const t of texts) {
-      t.y -= 28 * dt;
-      t.life -= dt;
+    // Floating text.
+    for (let i = texts.length - 1; i >= 0; i -= 1) {
+      const text = texts[i];
+      text.y -= 28 * dt;
+      text.life -= dt;
+      if (text.life <= 0) texts.splice(i, 1);
     }
-    texts = texts.filter(t => t.life > 0);
 
-    updateHUD();
+    // Dash trail.
+    if (player.dash > 0 || player.attack > 0) addTrail();
+    for (let i = trails.length - 1; i >= 0; i -= 1) {
+      trails[i].life -= dt;
+      if (trails[i].life <= 0) trails.splice(i, 1);
+    }
+
+    shake = Math.max(0, shake - dt * 28);
+    shakeX = (Math.random() - 0.5) * shake;
+    shakeY = (Math.random() - 0.5) * shake;
+
+    updateHud();
   }
 
-  function updateHUD() {
+  // ------------------------------------------------------------
+  // HUD
+  // ------------------------------------------------------------
+
+  function updateHud() {
     $("score").textContent = Math.floor(score).toLocaleString();
-    $("gems").textContent = gems.toLocaleString();
     $("combo").textContent = `x${combo.toFixed(1)}`;
+    $("gems").textContent = gems.toLocaleString();
     $("bestScore").textContent = best.toLocaleString();
-    $("health").textContent = "❤️".repeat(health) + "🖤".repeat(3 - health);
-    if ($("gemCard")) $("gemCard").textContent = gems.toLocaleString();
+    $("bestCard").textContent = best.toLocaleString();
+    $("health").textContent = "●".repeat(Math.max(0, health)) + "○".repeat(3 - Math.max(0, health));
+    $("energyBar").style.width = `${energy}%`;
+    $("rageBar").style.width = `${rage}%`;
+    $("bossBar").style.width = `${bossActive ? bossHealthPercent() : bossProgress}%`;
   }
+
+  function bossHealthPercent() {
+    const boss = objects.find((object) => object.type === "boss" && !object.dead);
+    return boss ? Math.max(0, Math.min(100, (boss.hp / boss.maxHp) * 100)) : 0;
+  }
+
+  // ------------------------------------------------------------
+  // RENDERING
+  // ------------------------------------------------------------
 
   function drawBackground() {
     const gradient = ctx.createLinearGradient(0, 0, 0, H);
     gradient.addColorStop(0, "#07152b");
-    gradient.addColorStop(0.55, "#102b32");
-    gradient.addColorStop(1, "#071016");
+    gradient.addColorStop(0.55, "#0b2940");
+    gradient.addColorStop(1, "#08131f");
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, W, H);
 
-    // Parallax mountains.
-    ctx.fillStyle = "#0a2029";
-    for (let i = 0; i < 8; i++) {
-      const x = ((i * 260 - elapsed * 35) % (W + 300)) - 150;
+    // Moon / sun glow.
+    const glow = ctx.createRadialGradient(990, 100, 8, 990, 100, 120);
+    glow.addColorStop(0, "#d6f5ff55");
+    glow.addColorStop(1, "#d6f5ff00");
+    ctx.fillStyle = glow;
+    ctx.fillRect(850, 0, 280, 240);
+
+    // Clouds.
+    for (const cloud of clouds) {
+      cloud.x -= cloud.speed * 0.008;
+      if (cloud.x < -cloud.size * 2) cloud.x = W + cloud.size;
+      ctx.fillStyle = "#dff8ff12";
       ctx.beginPath();
-      ctx.moveTo(x, GROUND);
-      ctx.lineTo(x + 130, 220 + (i % 3) * 25);
-      ctx.lineTo(x + 280, GROUND);
+      ctx.ellipse(cloud.x, cloud.y, cloud.size, cloud.size * 0.35, 0, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    // Jungle silhouettes.
-    ctx.fillStyle = "#0b3028";
-    for (let i = 0; i < 14; i++) {
-      const x = ((i * 110 - elapsed * 90) % (W + 150)) - 80;
-      const h = 90 + (i % 4) * 25;
-      ctx.fillRect(x, GROUND - h, 18, h);
+    // Distant mountains.
+    ctx.fillStyle = "#102b3b";
+    ctx.beginPath();
+    ctx.moveTo(0, 320);
+    for (let x = 0; x <= W; x += 100) {
+      ctx.lineTo(x, 270 + Math.sin(x * 0.012) * 45);
+    }
+    ctx.lineTo(W, 420);
+    ctx.lineTo(0, 420);
+    ctx.closePath();
+    ctx.fill();
+
+    // Jungle trees.
+    for (const tree of trees) {
+      const x = (tree.x - elapsed * (25 + tree.depth * 50)) % (W + 160);
+      const drawX = x < -80 ? x + W + 160 : x;
+      const scale = tree.scale * (0.55 + tree.depth * 0.65);
+      const base = 380 - tree.depth * 50;
+      ctx.fillStyle = tree.depth > 0.5 ? "#0a2830" : "#0b202a";
+      ctx.fillRect(drawX, base - 120 * scale, 15 * scale, 120 * scale);
       ctx.beginPath();
-      ctx.arc(x + 9, GROUND - h, 46, 0, Math.PI * 2);
+      ctx.arc(drawX + 8 * scale, base - 135 * scale, 42 * scale, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(drawX - 18 * scale, base - 110 * scale, 32 * scale, 0, Math.PI * 2);
       ctx.fill();
     }
 
-    ctx.fillStyle = "#0c1a20";
+    // Ground.
+    const ground = ctx.createLinearGradient(0, GROUND, 0, H);
+    ground.addColorStop(0, "#132a2b");
+    ground.addColorStop(1, "#07151b");
+    ctx.fillStyle = ground;
     ctx.fillRect(0, GROUND, W, H - GROUND);
 
-    ctx.strokeStyle = "#294b51";
-    ctx.lineWidth = 3;
-    for (const laneX of LANES) {
+    // Lane guides / perspective.
+    ctx.strokeStyle = "#5ce4ee19";
+    ctx.lineWidth = 2;
+    for (const lane of LANES) {
       ctx.beginPath();
-      ctx.moveTo(laneX - 70, GROUND);
-      ctx.lineTo(laneX - 190, H);
+      ctx.moveTo(lane - 70, GROUND);
+      ctx.lineTo(lane - 210, H);
       ctx.stroke();
       ctx.beginPath();
-      ctx.moveTo(laneX + 70, GROUND);
-      ctx.lineTo(laneX + 190, H);
+      ctx.moveTo(lane + 70, GROUND);
+      ctx.lineTo(lane + 210, H);
       ctx.stroke();
     }
 
-    for (let i = 0; i < 24; i++) {
-      const x = (i * 193 - elapsed * 180) % W;
-      ctx.fillStyle = "#b5f4d622";
-      ctx.fillRect(x < 0 ? x + W : x, 40 + (i * 37) % 230, 2, 2);
-    }
-  }
-
-  function drawObjects() {
-    for (const o of objects) {
-      if (o.dead) continue;
-      ctx.save();
-      ctx.translate(o.x, o.y + Math.sin(o.phase) * (o.type === "drone" ? 5 : 0));
-
-      if (o.type === "gem") {
-        ctx.shadowBlur = 20;
-        ctx.shadowColor = "#62ecff";
-        ctx.fillStyle = "#62ecff";
-        ctx.beginPath();
-        ctx.moveTo(0, -22);
-        ctx.lineTo(18, 0);
-        ctx.lineTo(0, 22);
-        ctx.lineTo(-18, 0);
-        ctx.closePath();
-        ctx.fill();
-      } else if (o.type === "boss") {
-        ctx.shadowBlur = 28;
-        ctx.shadowColor = "#9b55ff";
-        ctx.fillStyle = "#8a4bd8";
-        ctx.beginPath();
-        ctx.arc(0, -48, 72, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#f4d9ff";
-        ctx.fillRect(-25, -66, 13, 13);
-        ctx.fillRect(12, -66, 13, 13);
-        ctx.fillStyle = "#2a123e";
-        ctx.fillRect(-45, -5, 90, 18);
-      } else if (o.type === "enemy" || o.type === "elite") {
-        ctx.fillStyle = o.type === "elite" ? "#ff9d42" : "#ff4f69";
-        ctx.beginPath();
-        ctx.arc(0, -22, o.type === "elite" ? 34 : 28, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = "#1b0b12";
-        ctx.fillRect(-15, -28, 9, 9);
-        ctx.fillRect(7, -28, 9, 9);
-      } else if (o.type === "drone") {
-        ctx.fillStyle = "#ffb84d";
-        ctx.fillRect(-34, -18, 68, 28);
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(-12, -12, 24, 7);
-      } else {
-        ctx.fillStyle = o.type === "rock" ? "#66798b" : "#ff5470";
-        ctx.beginPath();
-        ctx.moveTo(-32, 28);
-        ctx.lineTo(-25, -25);
-        ctx.lineTo(0, -42);
-        ctx.lineTo(29, -18);
-        ctx.lineTo(32, 28);
-        ctx.closePath();
-        ctx.fill();
-      }
-      ctx.restore();
+    // Speed lines make high speed readable without flooding the canvas.
+    const lineCount = quality === "LOW" ? 8 : quality === "MEDIUM" ? 14 : 22;
+    ctx.strokeStyle = "#8ff7ff13";
+    for (let i = 0; i < lineCount; i += 1) {
+      const x = (i * 137 + elapsed * 180) % W;
+      const y = 220 + ((i * 73) % 170);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.lineTo(x - 35, y);
+      ctx.stroke();
     }
   }
 
   function drawPlayer() {
-    for (const t of trail) {
-      ctx.globalAlpha = t.life * 0.25;
-      ctx.font = "64px serif";
+    const x = player.x;
+    const y = GROUND - player.y - 48;
+    const scale = player.squash > 0 ? 0.92 : 1;
+
+    // Shadow.
+    ctx.fillStyle = "#00000055";
+    ctx.beginPath();
+    ctx.ellipse(x, GROUND + 4, 38 + player.y * 0.03, 8, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Dash trail.
+    for (const trail of trails) {
+      const alpha = Math.max(0, trail.life / 0.22) * 0.25;
+      ctx.globalAlpha = alpha;
+      ctx.font = `${68 * trail.scale}px serif`;
       ctx.textAlign = "center";
-      ctx.fillText("🦖", t.x, GROUND - t.y - 28);
+      ctx.fillText("🦖", trail.x - 25, trail.y + 28);
     }
     ctx.globalAlpha = 1;
 
     ctx.save();
-    ctx.translate(playerX, GROUND - playerY - 42);
-    ctx.textAlign = "center";
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+
+    if (player.invulnerable > 0 && Math.floor(player.invulnerable * 14) % 2 === 0) ctx.globalAlpha = 0.45;
+
+    // Aura.
+    if (rage > 75 || player.dash > 0) {
+      ctx.strokeStyle = player.dash > 0 ? "#ffbd55" : "#9b7cff";
+      ctx.lineWidth = 5;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = ctx.strokeStyle;
+      ctx.beginPath();
+      ctx.arc(0, -8, 54, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
     ctx.font = "72px serif";
-    if (invincible > 0 && Math.floor(invincible * 16) % 2 === 0) ctx.globalAlpha = 0.45;
-    ctx.fillText("🦖", 0, 30);
+    ctx.textAlign = "center";
+    ctx.fillText("🦖", 0, 28);
 
-    if (shieldTimer > 0) {
-      ctx.strokeStyle = "#8d7dff";
-      ctx.lineWidth = 6;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = "#8d7dff";
+    // Attack arc.
+    if (player.attack > 0) {
+      ctx.strokeStyle = "#fff2a3";
+      ctx.lineWidth = 8;
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = "#ffdc68";
       ctx.beginPath();
-      ctx.arc(0, -3, 60, 0, Math.PI * 2);
+      ctx.arc(28, -20, 58, -1.15, 1.15);
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
+
+    // Parry bubble.
+    if (player.parry > 0) {
+      ctx.strokeStyle = "#9d8cff";
+      ctx.lineWidth = 5;
+      ctx.beginPath();
+      ctx.arc(0, -10, 58, 0, Math.PI * 2);
       ctx.stroke();
     }
 
-    if (attackTimer > 0) {
-      ctx.strokeStyle = "#ffe27a";
-      ctx.lineWidth = 9;
-      ctx.shadowBlur = 18;
-      ctx.shadowColor = "#ffe27a";
-      ctx.beginPath();
-      ctx.arc(35, -20, 58, -1.2, 1.2);
-      ctx.stroke();
-    }
     ctx.restore();
   }
 
-  function draw() {
+  function drawObject(object) {
+    if (object.dead) return;
+
+    const x = object.x;
+    const y = object.y;
     ctx.save();
-    if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
-    drawBackground();
-    drawObjects();
-    drawPlayer();
+    ctx.translate(x, y);
 
-    for (const p of particles) {
-      ctx.globalAlpha = p.life;
-      ctx.fillStyle = p.color;
-      ctx.fillRect(p.x, p.y, 5, 5);
+    if (object.type === "gem") {
+      ctx.rotate(elapsed * 2 + object.phase);
+      ctx.fillStyle = "#67eaff";
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = "#67eaff";
+      ctx.beginPath();
+      ctx.moveTo(0, -18);
+      ctx.lineTo(14, 0);
+      ctx.lineTo(0, 18);
+      ctx.lineTo(-14, 0);
+      ctx.closePath();
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.restore();
+      return;
     }
-    ctx.globalAlpha = 1;
 
-    for (const t of texts) {
-      ctx.globalAlpha = t.life;
-      ctx.fillStyle = t.color;
-      ctx.font = "900 18px Arial";
-      ctx.textAlign = "center";
-      ctx.fillText(t.text, t.x, t.y);
+    if (object.type === "boss") {
+      ctx.fillStyle = "#5b2d87";
+      ctx.shadowBlur = 22;
+      ctx.shadowColor = "#a58bff66";
+      ctx.beginPath();
+      ctx.arc(0, -50, 72, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#f7fbff";
+      ctx.fillRect(-28, -67, 12, 12);
+      ctx.fillRect(16, -67, 12, 12);
+      ctx.fillStyle = "#2a173e";
+      ctx.fillRect(-38, -15, 76, 9);
+      ctx.restore();
+      return;
     }
-    ctx.globalAlpha = 1;
 
-    // Energy / rage bars.
-    ctx.fillStyle = "#ffffff18";
-    ctx.fillRect(22, H - 42, 220, 8);
-    ctx.fillStyle = "#62ecff";
-    ctx.fillRect(22, H - 42, 220 * energy / 100, 8);
-    ctx.fillStyle = "#ffffff18";
-    ctx.fillRect(22, H - 25, 220, 5);
-    ctx.fillStyle = "#ff9d42";
-    ctx.fillRect(22, H - 25, 220 * rage / 100, 5);
-
-    if (rage >= 100) {
-      ctx.fillStyle = "#ffe27a";
-      ctx.font = "900 14px Arial";
-      ctx.fillText("RAGE READY", 22, H - 55);
+    if (object.type === "enemy" || object.type === "elite") {
+      ctx.fillStyle = object.type === "elite" ? "#c05d2d" : "#b93c52";
+      ctx.shadowBlur = 12;
+      ctx.shadowColor = object.type === "elite" ? "#ff9b4d55" : "#ff5f7055";
+      ctx.beginPath();
+      ctx.arc(0, -25, object.type === "elite" ? 36 : 29, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(-15, -34, 8, 8);
+      ctx.fillRect(7, -34, 8, 8);
+      ctx.restore();
+      return;
     }
+
+    if (object.type === "air") {
+      ctx.fillStyle = "#d48b39";
+      ctx.beginPath();
+      ctx.moveTo(-38, 8);
+      ctx.lineTo(-14, -22);
+      ctx.lineTo(18, -18);
+      ctx.lineTo(38, 8);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    if (object.type === "trap") {
+      ctx.fillStyle = "#d94f61";
+      ctx.beginPath();
+      ctx.moveTo(-34, 12);
+      ctx.lineTo(-20, -28);
+      ctx.lineTo(-8, 12);
+      ctx.lineTo(8, -28);
+      ctx.lineTo(22, 12);
+      ctx.closePath();
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+
+    // Rock / obstacle.
+    ctx.fillStyle = "#4b5c67";
+    ctx.beginPath();
+    ctx.moveTo(-30, 18);
+    ctx.lineTo(-25, -18);
+    ctx.lineTo(-2, -40);
+    ctx.lineTo(24, -28);
+    ctx.lineTo(31, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = "#6c7d84";
+    ctx.fillRect(-12, -22, 12, 5);
     ctx.restore();
   }
 
-  function loop(now) {
-    const dt = Math.min(0.033, (now - last) / 1000 || 0);
-    last = now;
-    if (running) update(dt);
-    draw();
-    requestAnimationFrame(loop);
+  function drawEffects() {
+    for (const p of particles) {
+      const alpha = Math.max(0, p.life / 0.9);
+      ctx.globalAlpha = alpha;
+      const color = p.type === "red" ? "#ff5f70" : p.type === "orange" ? "#ffb84d" : p.type === "gold" ? "#fff1a1" : p.type === "boss" ? "#a58bff" : p.type === "parry" ? "#9d8cff" : "#67eaff";
+      ctx.fillStyle = color;
+      ctx.fillRect(p.x, p.y, p.size, p.size);
+    }
+    ctx.globalAlpha = 1;
+
+    ctx.textAlign = "center";
+    ctx.font = "900 16px Orbitron, Arial";
+    for (const text of texts) {
+      ctx.globalAlpha = Math.max(0, text.life);
+      ctx.fillStyle = text.type === "red" ? "#ff6d7c" : text.type === "gold" ? "#fff0a0" : text.type === "boss" ? "#c4b2ff" : "#7beeff";
+      ctx.fillText(text.text, text.x, text.y);
+    }
+    ctx.globalAlpha = 1;
   }
 
-  $("startButton").onclick = reset;
-  $("restartButton").onclick = reset;
-  $("leftButton").onclick = () => move(-1);
-  $("rightButton").onclick = () => move(1);
-  $("jumpButton").onclick = jump;
-  $("dashButton").onclick = dash;
-  $("shieldButton").onclick = shield;
+  function render() {
+    ctx.save();
+    ctx.translate(shakeX, shakeY);
+    drawBackground();
 
-  window.addEventListener("keydown", event => {
-    if (event.code === "ArrowLeft" || event.code === "KeyA") move(-1);
-    else if (event.code === "ArrowRight" || event.code === "KeyD") move(1);
-    else if (event.code === "Space" || event.code === "ArrowUp") {
-      event.preventDefault();
-      jump();
-    } else if (event.code === "ShiftLeft" || event.code === "ShiftRight") dash();
-    else if (event.code === "KeyS") shield();
-    else if (event.code === "KeyF") attack();
-  });
+    for (const object of objects) drawObject(object);
+    drawPlayer();
+    drawEffects();
 
-  document.querySelectorAll(".menu-button").forEach(button => {
+    // Top-center combo feedback.
+    if (running && combo >= 3) {
+      ctx.textAlign = "center";
+      ctx.font = "900 20px Orbitron, Arial";
+      ctx.fillStyle = combo >= 15 ? "#fff0a0" : "#67eaff";
+      ctx.globalAlpha = Math.min(1, 0.4 + comboTimer * 0.25);
+      ctx.fillText(`x${combo.toFixed(1)} COMBO`, W / 2, 54);
+      ctx.globalAlpha = 1;
+    }
+
+    ctx.restore();
+  }
+
+  // ------------------------------------------------------------
+  // MENUS / SETTINGS
+  // ------------------------------------------------------------
+
+  document.querySelectorAll(".menu button").forEach((button) => {
     button.addEventListener("click", () => {
-      document.querySelectorAll(".menu-button").forEach(b => b.classList.remove("active"));
-      document.querySelectorAll(".content-panel").forEach(p => p.classList.remove("active"));
+      document.querySelectorAll(".menu button").forEach((item) => item.classList.remove("active"));
+      document.querySelectorAll(".panel").forEach((panel) => panel.classList.remove("active"));
       button.classList.add("active");
       const panel = document.getElementById(button.dataset.panel);
       if (panel) panel.classList.add("active");
     });
   });
 
-  $("bestScore").textContent = best.toLocaleString();
-  $("bestCard").textContent = best.toLocaleString();
-  draw();
+  $("quality").addEventListener("change", (event) => {
+    quality = event.target.value;
+    resizeCanvas();
+  });
+
+  $("reducedEffects").addEventListener("change", (event) => {
+    reducedEffects = event.target.checked;
+  });
+
+  $("screenShake").addEventListener("change", (event) => {
+    screenShake = event.target.checked;
+  });
+
+  $("startButton").addEventListener("click", resetRun);
+  $("restartButton").addEventListener("click", resetRun);
+
+  // ------------------------------------------------------------
+  // MAIN LOOP
+  // ------------------------------------------------------------
+
+  function loop(now) {
+    const dt = Math.min(0.032, Math.max(0, (now - lastTime) / 1000));
+    lastTime = now;
+
+    if (running) update(dt);
+    render();
+    requestAnimationFrame(loop);
+  }
+
+  seedWorld();
+  resizeCanvas();
+  updateHud();
+  render();
   requestAnimationFrame(loop);
 })();
