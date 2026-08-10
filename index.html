@@ -1,51 +1,23 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>DINO LEGENDS</title>
-<link rel="stylesheet" href="style.css">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>DINO LEGENDS</title><link rel="stylesheet" href="style.css">
 </head>
 <body>
-<header class="topbar">
-  <div class="brand"><span class="brand-mark">DL</span><b>DINO LEGENDS</b></div>
-  <div class="hud"><span>HP <i id="health">●●●</i></span><span>ENERGY <i id="energyText">100</i></span><span>SCORE <i id="score">0</i></span><span>COMBO <i id="combo">x1.0</i></span><span>GEMS <i id="gems">0</i></span></div>
-  <button class="icon-btn" id="pauseBtn">Ⅱ</button>
-</header>
+<header><div class="brand"><span>DL</span><b>DINO LEGENDS</b></div><div class="hud"><div>HP <i id="health">●●●</i></div><div>ENERGY <i id="energyText">100</i></div><div>SCORE <i id="score">0</i></div><div>COMBO <i id="combo">x1.0</i></div><div>GEMS <i id="gems">0</i></div></div><button id="pauseBtn">Ⅱ</button></header>
 <main>
-  <section class="game-shell">
-    <canvas id="gameCanvas"></canvas>
-    <div class="scene-vignette"></div>
-    <div class="game-hint">MASTER THE TIMING · BUILD THE COMBO · CHASE THE GUARDIAN</div>
-    <div id="startScreen" class="overlay">
-      <div class="hero-card">
-        <div class="hero-eyebrow">ANCIENT JUNGLE · SEASON 01</div>
-        <div class="hero-dino">🦖</div>
-        <h1>DINO <span>LEGENDS</span></h1>
-        <p>RUN FASTER. FIGHT SMARTER. BECOME THE LEGEND.</p>
-        <button class="primary" id="startButton">START RUN <span>▶</span></button>
-        <small>A/D or ←/→ move · SPACE jump · F attack · SHIFT dash · S parry · R rage</small>
-      </div>
-    </div>
-    <div id="pauseScreen" class="overlay hidden"><div class="modal"><div class="modal-icon">Ⅱ</div><h2>PAUSED</h2><button class="primary" id="resumeButton">RESUME</button></div></div>
-    <div id="gameOverScreen" class="overlay hidden"><div class="modal"><div class="modal-icon">☠</div><h2>RUN ENDED</h2><strong id="finalScore">0</strong><p id="finalStats"></p><button class="primary" id="restartButton">RUN AGAIN</button></div></div>
-    <div class="meters">
-      <div class="meter"><span>ENERGY</span><i><u id="energyBar"></u></i></div>
-      <div class="meter rage"><span>RAGE</span><i><u id="rageBar"></u></i></div>
-      <div class="meter boss"><span>GUARDIAN</span><i><u id="bossBar"></u></i></div>
-    </div>
-    <div class="touch"><button data-action="left">◀</button><button data-action="jump">JUMP</button><button data-action="right">▶</button><button data-action="attack">ATTACK</button><button data-action="dash">DASH</button><button data-action="parry">PARRY</button></div>
-  </section>
-  <nav class="tabs">
-    <button class="active" data-panel="play">PLAY</button><button data-panel="skins">SKINS</button><button data-panel="abilities">ABILITIES</button><button data-panel="missions">MISSIONS</button><button data-panel="worlds">WORLDS</button><button data-panel="settings">OPTIONS</button>
-  </nav>
-  <section class="panel active" id="play"><div class="panel-head"><div><span class="eyebrow">YOUR JOURNEY</span><h2>LEGEND RUN</h2></div><div class="best">BEST <b id="bestScore">0</b></div></div><div class="cards"><article><span class="card-icon">⚔</span><b>PRECISION COMBAT</b><p>Attack, dodge and parry at the right moment. Skill creates score.</p></article><article><span class="card-icon">🔥</span><b>COMBO HUNT</b><p>Keep your chain alive to multiply rewards and charge Rage.</p></article><article><span class="card-icon">👑</span><b>GUARDIAN EVENT</b><p>Fill the meter and survive the Jungle Guardian encounter.</p></article></div></section>
-  <section class="panel" id="skins"><div class="panel-head"><div><span class="eyebrow">CUSTOMIZATION</span><h2>SKIN FORGE</h2></div></div><div class="cards skins"><article><div class="skin-art">🦖</div><h3>ROOKIE REX</h3><p>Head · Armor · Back · Boots · Weapon · Aura</p><button class="chip active-chip">EQUIPPED</button></article><article><div class="skin-art neon">🤖</div><h3>NEON REX</h3><p>Visor · Cyber Armor · Holo Back · Pulse Boots · Plasma</p><button class="chip">5,000 GEMS</button></article><article><div class="skin-art void">🐲</div><h3>VOID REX</h3><p>Halo · Astral Armor · Wings · Void Boots · Scythe · Aura</p><button class="chip">LOCKED</button></article></div></section>
-  <section class="panel" id="abilities"><div class="panel-head"><div><span class="eyebrow">LOADOUT</span><h2>ABILITIES</h2></div></div><div class="cards"><article><span class="card-icon">⚡</span><b>DASH STRIKE</b><p>35 Energy · invulnerable burst with impact.</p></article><article><span class="card-icon">🛡</span><b>PERFECT PARRY</b><p>20 Energy · counter danger and build Rage.</p></article><article><span class="card-icon">🔥</span><b>RAGE BURST</b><p>100 Rage · massive score burst and combo boost.</p></article><article><span class="card-icon">🌌</span><b>TIME BREAK</b><p>Legendary upgrade slot · coming later.</p></article></div></section>
-  <section class="panel" id="missions"><div class="panel-head"><div><span class="eyebrow">DAILY GOALS</span><h2>MISSIONS</h2></div></div><div class="mission-list"><article><span>PERFECT ×5</span><b>+500</b></article><article><span>COMBO ×15</span><b>+1,000</b></article><article><span>DEFEAT THE GUARDIAN</span><b>CHEST</b></article></div></section>
-  <section class="panel" id="worlds"><div class="panel-head"><div><span class="eyebrow">EXPLORE</span><h2>WORLDS</h2></div></div><div class="cards worlds"><article><span class="world-icon">🌴</span><h3>ANCIENT JUNGLE</h3><small>ACTIVE</small></article><article><span class="world-icon">🌋</span><h3>VOLCANIC WASTES</h3><small>LOCKED</small></article><article><span class="world-icon">❄️</span><h3>FROST REALM</h3><small>LOCKED</small></article><article><span class="world-icon">🌌</span><h3>VOID REALM</h3><small>LOCKED</small></article></div></section>
-  <section class="panel" id="settings"><div class="panel-head"><div><span class="eyebrow">PERFORMANCE</span><h2>OPTIONS</h2></div></div><div class="settings"><label>Graphics <select id="quality"><option>ULTRA</option><option selected>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label><label>Reduced effects <input id="reducedEffects" type="checkbox"></label><label>Screen shake <input id="screenShake" type="checkbox" checked></label><label>Touch controls <input id="touchToggle" type="checkbox" checked></label></div></section>
-</main>
-<script src="game.js"></script>
-</body>
-</html>
+<section class="stage"><canvas id="gameCanvas"></canvas><div class="scan"></div><div class="brand-water">ANCIENT JUNGLE / SEASON 01</div>
+<div id="startScreen" class="overlay"><div class="hero"><div class="crest">🦖</div><label>THE LAST HUNTER</label><h1>DINO<br><em>LEGENDS</em></h1><p>A cinematic skill-runner built for speed, combat and mastery.</p><button class="cta" id="startButton">ENTER THE JUNGLE <b>→</b></button><small>A/D or ←/→ Move · SPACE Jump · F Attack · SHIFT Dash · S Parry · R Rage</small></div></div>
+<div id="pauseScreen" class="overlay hidden"><div class="modal"><label>RUN STATE</label><h2>PAUSED</h2><button class="cta" id="resumeButton">RESUME</button></div></div>
+<div id="gameOverScreen" class="overlay hidden"><div class="modal"><label>EXPEDITION COMPLETE</label><h2>RUN ENDED</h2><strong id="finalScore">0</strong><p id="finalStats"></p><button class="cta" id="restartButton">RUN AGAIN</button></div></div>
+<div class="bars"><div><span>ENERGY</span><i><u id="energyBar"></u></i></div><div><span>RAGE</span><i><u id="rageBar"></u></i></div><div><span>GUARDIAN</span><i><u id="bossBar"></u></i></div></div>
+<div class="touch"><button data-action="left">◀</button><button data-action="jump">JUMP</button><button data-action="right">▶</button><button data-action="attack">ATTACK</button><button data-action="dash">DASH</button><button data-action="parry">PARRY</button></div>
+</section>
+<nav><button class="active" data-panel="play">PLAY</button><button data-panel="skins">SKINS</button><button data-panel="abilities">ABILITIES</button><button data-panel="missions">MISSIONS</button><button data-panel="worlds">WORLDS</button><button data-panel="settings">OPTIONS</button></nav>
+<section class="panel active" id="play"><label>YOUR JOURNEY</label><h2>LEGEND RUN <small>BEST <b id="bestScore">0</b></small></h2><div class="cards"><article><b>PRECISION COMBAT</b><p>Attack, dodge and parry to build a devastating chain.</p></article><article><b>RISK / REWARD</b><p>Take the dangerous lane for rare gems and huge multipliers.</p></article><article><b>GUARDIAN HUNT</b><p>Master the run, trigger the Guardian and survive its phases.</p></article></div></section>
+<section class="panel" id="skins"><label>CUSTOMIZATION</label><h2>SKIN FORGE</h2><div class="cards"><article class="skin"><strong>🦖</strong><h3>ROOKIE REX</h3><p>Classic loadout</p><button>EQUIPPED</button></article><article class="skin neon"><strong>🤖</strong><h3>NEON REX</h3><p>Visor · Armor · Back · Boots · Plasma</p><button>5,000 GEMS</button></article><article class="skin void"><strong>🐲</strong><h3>VOID REX</h3><p>Halo · Astral Armor · Wings · Scythe · Aura</p><button>LOCKED</button></article></div></section>
+<section class="panel" id="abilities"><label>LOADOUT</label><h2>ABILITIES</h2><div class="cards"><article><b>⚡ DASH STRIKE</b><p>35 Energy · burst through danger.</p></article><article><b>🛡 PERFECT PARRY</b><p>20 Energy · counter attacks.</p></article><article><b>🔥 RAGE BURST</b><p>100 Rage · massive chain boost.</p></article><article><b>🌌 TIME BREAK</b><p>Legendary slot · coming soon.</p></article></div></section>
+<section class="panel" id="missions"><label>DAILY GOALS</label><h2>MISSIONS</h2><div class="mission"><span>PERFECT ×5</span><b>+500</b></div><div class="mission"><span>COMBO ×15</span><b>+1,000</b></div><div class="mission"><span>DEFEAT GUARDIAN</span><b>CHEST</b></div></section>
+<section class="panel" id="worlds"><label>EXPLORE</label><h2>WORLDS</h2><div class="cards"><article>🌴<h3>ANCIENT JUNGLE</h3><small>ACTIVE</small></article><article>🌋<h3>VOLCANIC WASTES</h3><small>LOCKED</small></article><article>❄️<h3>FROST REALM</h3><small>LOCKED</small></article><article>🌌<h3>VOID REALM</h3><small>LOCKED</small></article></div></section>
+<section class="panel" id="settings"><label>PERFORMANCE</label><h2>OPTIONS</h2><div class="settings"><label>Graphics <select id="quality"><option>ULTRA</option><option selected>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label><label>Reduced effects <input id="reducedEffects" type="checkbox"></label><label>Screen shake <input id="screenShake" type="checkbox" checked></label><label>Touch controls <input id="touchToggle" type="checkbox" checked></label></div></section>
+</main><script src="game.js"></script></body></html>
