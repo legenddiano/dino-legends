@@ -1,164 +1,32 @@
-<!-- index.html -->
-
-<!DOCTYPE html>
-
+<!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DINO LEGENDS — Fantasy Runner</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>DINO LEGENDS — Fantasy Realms</title>
+<link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <div class="app">
-
-```
 <header class="topbar">
-    <div class="brand">
-        <div class="brand-icon">🦖</div>
-        <div>
-            <h1>DINO <span>LEGENDS</span></h1>
-            <p>FANTASY ADVENTURE RUNNER</p>
-        </div>
-    </div>
-
-    <div class="stats">
-        <div class="stat">
-            <span>💎</span>
-            <strong id="gems">0</strong>
-            <small>GEMS</small>
-        </div>
-        <div class="stat">
-            <span>🏆</span>
-            <strong id="bestScore">0</strong>
-            <small>BEST</small>
-        </div>
-        <div class="stat">
-            <span>⭐</span>
-            <strong id="level">1</strong>
-            <small>LEVEL</small>
-        </div>
-    </div>
+ <div class="brand"><div class="logo">🦖</div><div><h1>DINO <b>LEGENDS</b></h1><p>FANTASY REALMS</p></div></div>
+ <div class="stats"><div><span>💎</span><b id="gems">0</b><small>GEMS</small></div><div><span>🏆</span><b id="bestScore">0</b><small>BEST</small></div><div><span>⭐</span><b id="level">1</b><small>LEVEL</small></div></div>
 </header>
-
 <main>
-
-    <section class="game-card">
-        <div class="game-top">
-            <div class="hud-item">
-                <span>SCORE</span>
-                <strong id="score">0</strong>
-            </div>
-
-            <div class="hud-item">
-                <span>COMBO</span>
-                <strong id="combo">x1</strong>
-            </div>
-
-            <div class="hud-item">
-                <span>HEALTH</span>
-                <strong id="health">❤️❤️❤️</strong>
-            </div>
-        </div>
-
-        <div class="canvas-wrap">
-            <canvas id="gameCanvas" width="1200" height="500"></canvas>
-
-            <div class="overlay" id="startScreen">
-                <div class="hero-dino">🦖</div>
-                <h2>DINO <span>LEGENDS</span></h2>
-                <p>ENTER THE FANTASY WORLD</p>
-                <button class="primary-btn" id="startButton">▶ START ADVENTURE</button>
-
-                <div class="controls-info">
-                    <span>SPACE / ↑ JUMP</span>
-                    <span>DOUBLE JUMP</span>
-                    <span>D DASH</span>
-                    <span>S SHIELD</span>
-                </div>
-            </div>
-
-            <div class="overlay hidden" id="gameOverScreen">
-                <div class="hero-dino">💀</div>
-                <h2>ADVENTURE OVER</h2>
-                <p>FINAL SCORE</p>
-                <strong class="final-score" id="finalScore">0</strong>
-                <button class="primary-btn" id="restartButton">↻ PLAY AGAIN</button>
-            </div>
-        </div>
-
-        <div class="mobile-controls">
-            <button id="jumpButton">⬆ JUMP</button>
-            <button id="dashButton">⚡ DASH</button>
-            <button id="shieldButton">🛡 SHIELD</button>
-        </div>
-    </section>
-
-    <nav class="tabs">
-        <button class="tab active" data-panel="characters">🦖 SKINS</button>
-        <button class="tab" data-panel="upgrades">⚡ POWERS</button>
-        <button class="tab" data-panel="worlds">🌎 WORLDS</button>
-        <button class="tab" data-panel="codes">🎁 REDEEM</button>
-    </nav>
-
-    <section class="panel active-panel" id="characters">
-        <div class="section-heading">
-            <div>
-                <small>LEGENDARY COLLECTION</small>
-                <h2>FANTASY SKINS</h2>
-            </div>
-            <strong id="characterCount">1 / 12</strong>
-        </div>
-        <div class="grid characters-grid" id="characterGrid"></div>
-    </section>
-
-    <section class="panel" id="upgrades">
-        <div class="section-heading">
-            <div>
-                <small>MAKE YOUR LEGEND STRONGER</small>
-                <h2>POWERS</h2>
-            </div>
-        </div>
-        <div class="grid upgrades-grid" id="upgradeGrid"></div>
-    </section>
-
-    <section class="panel" id="worlds">
-        <div class="section-heading">
-            <div>
-                <small>CHOOSE YOUR ADVENTURE</small>
-                <h2>FANTASY WORLDS</h2>
-            </div>
-        </div>
-        <div class="grid worlds-grid" id="worldGrid"></div>
-    </section>
-
-    <section class="panel" id="codes">
-        <div class="section-heading">
-            <div>
-                <small>SPECIAL REWARDS</small>
-                <h2>REDEEM CODE</h2>
-            </div>
-        </div>
-
-        <div class="codes-box">
-            <p>Enter your special reward code 💎</p>
-
-            <div class="code-row">
-                <input id="codeInput" type="text" placeholder="ENTER SECRET CODE" autocomplete="off">
-                <button id="redeemButton">REDEEM</button>
-            </div>
-
-            <p id="codeMessage"></p>
-        </div>
-    </section>
-
-</main>
-```
-
-</div>
-
+<section class="game card">
+ <div class="hud"><div>SCORE <b id="score">0</b></div><div>COMBO <b id="combo">x1</b></div><div>HEALTH <b id="health">❤️❤️❤️</b></div></div>
+ <div class="stage"><canvas id="gameCanvas" width="1200" height="520"></canvas>
+  <div class="overlay" id="startScreen"><div class="big">🦖</div><h2>ENTER THE <b>FANTASY</b></h2><p>Run • Jump • Dash • Collect • Become a Legend</p><button class="primary" id="startButton">▶ START ADVENTURE</button><div class="keys"><i>SPACE / ↑</i><i>DOUBLE JUMP</i><i>D DASH</i><i>S SHIELD</i></div></div>
+  <div class="overlay hidden" id="gameOverScreen"><div class="big">💫</div><h2>RUN COMPLETE</h2><p>FINAL SCORE</p><strong class="final" id="finalScore">0</strong><button class="primary" id="restartButton">↻ PLAY AGAIN</button></div>
+ </div>
+ <div class="touch"><button id="jumpButton">⬆ JUMP</button><button id="dashButton">⚡ DASH</button><button id="shieldButton">🛡 SHIELD</button></div>
+</section>
+<nav class="tabs"><button class="tab active" data-panel="profile">👤 PROFILE</button><button class="tab" data-panel="skins">🦖 SKINS</button><button class="tab" data-panel="missions">🎯 MISSIONS</button><button class="tab" data-panel="worlds">🌌 WORLDS</button><button class="tab" data-panel="shop">🛒 SHOP</button><button class="tab" data-panel="redeem">🎁 REDEEM</button></nav>
+<section id="profile" class="panel active"><div class="heroPanel"><div class="avatar" id="avatar">🦖</div><div><small>LEGEND PROFILE</small><h2 id="profileName">Rookie Rex</h2><p>Level <b id="profileLevel">1</b> • Best score <b id="profileBest">0</b></p></div></div><div class="bars"><div><span>LEVEL PROGRESS</span><div class="bar"><i id="xpBar"></i></div></div><div><span>LEGEND RANK</span><strong id="rank">ROOKIE</strong></div></div></section>
+<section id="skins" class="panel"><div class="heading"><div><small>100 FANTASY CREATURES</small><h2>SKIN VAULT</h2></div><b id="skinCount">1 / 100</b></div><div class="grid" id="skinGrid"></div></section>
+<section id="missions" class="panel"><div class="heading"><div><small>PLAY TO EARN</small><h2>MISSIONS</h2></div></div><div class="grid" id="missionGrid"></div></section>
+<section id="worlds" class="panel"><div class="heading"><div><small>FANTASY REALMS</small><h2>WORLDS</h2></div></div><div class="grid" id="worldGrid"></div></section>
+<section id="shop" class="panel"><div class="heading"><div><small>UPGRADES & BOOSTS</small><h2>LEGEND SHOP</h2></div></div><div class="grid" id="shopGrid"></div></section>
+<section id="redeem" class="panel"><div class="redeem"><small>SECRET REWARDS</small><h2>REDEEM</h2><p>Enter a reward code.</p><div class="code"><input id="codeInput" placeholder="ENTER CODE" maxlength="40"><button id="redeemButton">REDEEM</button></div><p id="codeMessage"></p></div></section>
+</main></div>
 <script src="game.js"></script>
-
-</body>
-</html>
+</body></html>
