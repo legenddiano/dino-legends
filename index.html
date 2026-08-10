@@ -1,509 +1,189 @@
-```html
 <!DOCTYPE html>
-<html lang="en" dir="ltr">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>DINO LEGENDS — Ultimate Runner</title>
-
+    <title>DINO LEGENDS: NIGHTMARE</title>
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
+<div class="noise"></div>
+
 <div class="app">
 
-    <!-- ================= HEADER ================= -->
-
     <header class="topbar">
-
         <div class="brand">
             <div class="brand-icon">🦖</div>
-
             <div>
                 <h1>DINO <span>LEGENDS</span></h1>
-                <p>ULTIMATE RUNNER</p>
+                <p>NIGHTMARE RUNNER</p>
             </div>
         </div>
 
-        <div class="top-stats">
-
-            <div class="currency">
+        <div class="stats">
+            <div class="stat">
                 <span>💎</span>
                 <strong id="gems">0</strong>
+                <small>GEMS</small>
             </div>
 
-            <div class="currency">
+            <div class="stat">
                 <span>🏆</span>
                 <strong id="bestScore">0</strong>
+                <small>BEST</small>
             </div>
 
-            <div class="currency">
+            <div class="stat">
                 <span>⭐</span>
                 <strong id="level">1</strong>
+                <small>LEVEL</small>
             </div>
-
         </div>
-
     </header>
 
+    <main>
 
-    <!-- ================= GAME ================= -->
-
-    <section class="game-card">
-
-        <div class="game-top">
-
-            <div>
-                <small>SCORE</small>
-                <strong id="score">0</strong>
-            </div>
-
-            <div>
-                <small>COMBO</small>
-                <strong id="combo">x1</strong>
-            </div>
-
-            <div>
-                <small>HEALTH</small>
-                <strong id="health">❤️❤️❤️</strong>
-            </div>
-
-        </div>
-
-        <div class="canvas-wrap">
-
-            <canvas
-                id="gameCanvas"
-                width="1200"
-                height="500">
-            </canvas>
-
-            <div class="overlay" id="startScreen">
-
-                <div class="hero-icon">🦖</div>
-
-                <div class="eyebrow">DINO LEGENDS</div>
-
-                <h2>ENTER THE <span>LEGEND</span></h2>
-
-                <p>RUN • JUMP • DASH • SURVIVE</p>
-
-                <button
-                    id="startButton"
-                    class="primary-btn">
-                    ▶ START RUN
-                </button>
-
-                <div class="controls-info">
-                    SPACE / ↑ JUMP
-                    <span>•</span>
-                    D DASH
-                    <span>•</span>
-                    S SHIELD
+        <section class="game-card">
+            <div class="game-top">
+                <div class="hud-item">
+                    <span>SCORE</span>
+                    <strong id="score">0</strong>
                 </div>
 
-            </div>
-
-            <div
-                class="overlay hidden"
-                id="gameOverScreen">
-
-                <div class="hero-icon">💀</div>
-
-                <div class="eyebrow">MISSION FAILED</div>
-
-                <h2>RUN <span>OVER</span></h2>
-
-                <p>FINAL SCORE</p>
-
-                <strong
-                    class="final-score"
-                    id="finalScore">
-                    0
-                </strong>
-
-                <button
-                    id="restartButton"
-                    class="primary-btn">
-                    ↻ RUN AGAIN
-                </button>
-
-            </div>
-
-        </div>
-
-        <div class="mobile-controls">
-
-            <button id="jumpButton">⬆ JUMP</button>
-            <button id="dashButton">⚡ DASH</button>
-            <button id="shieldButton">🛡 SHIELD</button>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= NAVIGATION ================= -->
-
-    <nav class="tabs">
-
-        <button class="tab active" data-panel="profile">
-            👤 PROFILE
-        </button>
-
-        <button class="tab" data-panel="shop">
-            🛒 SHOP
-        </button>
-
-        <button class="tab" data-panel="missions">
-            🎯 MISSIONS
-        </button>
-
-        <button class="tab" data-panel="stats">
-            📊 STATS
-        </button>
-
-        <button class="tab" data-panel="characters">
-            🦖 SKINS
-        </button>
-
-        <button class="tab" data-panel="upgrades">
-            ⚡ UPGRADES
-        </button>
-
-        <button class="tab" data-panel="worlds">
-            🌎 WORLDS
-        </button>
-
-    </nav>
-
-
-    <!-- ================= PROFILE ================= -->
-
-    <section class="panel active-panel" id="profile">
-
-        <div class="section-heading">
-            <div>
-                <small>PLAYER CENTER</small>
-                <h2>PROFILE</h2>
-            </div>
-        </div>
-
-        <div class="profile-layout">
-
-            <div class="profile-card">
-
-                <div class="profile-avatar">
-                    <span id="profileAvatar">🦖</span>
+                <div class="hud-item">
+                    <span>COMBO</span>
+                    <strong id="combo">x1</strong>
                 </div>
 
-                <div class="profile-info">
+                <div class="hud-item">
+                    <span>HEALTH</span>
+                    <strong id="health">❤️❤️❤️</strong>
+                </div>
 
-                    <span class="rank-label">CURRENT LEGEND</span>
+                <div class="hud-item">
+                    <span>SKIN</span>
+                    <strong id="skinName">REX</strong>
+                </div>
+            </div>
 
-                    <h3 id="profileName">
-                        DINO RUNNER
-                    </h3>
+            <div class="canvas-wrap">
+                <canvas id="gameCanvas" width="1200" height="500"></canvas>
 
-                    <div class="level-line">
+                <div class="overlay" id="startScreen">
+                    <div class="monster-logo">🦖</div>
+                    <h2>DINO <span>LEGENDS</span></h2>
+                    <p>THE NIGHT IS HUNTING YOU</p>
 
-                        <strong>
-                            LEVEL <span id="profileLevel">1</span>
-                        </strong>
+                    <button id="startButton" class="primary-btn">
+                        ▶ ENTER THE NIGHT
+                    </button>
 
-                        <span>
-                            <b id="xpText">0</b> /
-                            <b id="xpMax">1000</b> XP
-                        </span>
-
+                    <div class="controls-info">
+                        <span>SPACE / ↑ : JUMP</span>
+                        <span>D : DASH</span>
+                        <span>S : SHIELD</span>
+                        <span>DOUBLE JUMP ENABLED</span>
                     </div>
-
-                    <div class="xp-bar">
-                        <div id="xpFill"></div>
-                    </div>
-
                 </div>
 
+                <div class="overlay hidden" id="gameOverScreen">
+                    <div class="monster-logo">☠️</div>
+                    <h2>YOU WERE <span>HUNTED</span></h2>
+                    <p>FINAL SCORE</p>
+                    <strong class="final-score" id="finalScore">0</strong>
+
+                    <button id="restartButton" class="primary-btn">
+                        ↻ SURVIVE AGAIN
+                    </button>
+                </div>
             </div>
 
+            <div class="mobile-controls">
+                <button id="jumpButton">⬆ JUMP</button>
+                <button id="dashButton">⚡ DASH</button>
+                <button id="shieldButton">🛡 SHIELD</button>
+            </div>
+        </section>
 
-            <div class="profile-stat-grid">
+        <nav class="tabs">
+            <button class="tab active" data-panel="skins">🧬 SKINS</button>
+            <button class="tab" data-panel="upgrades">⚡ POWERS</button>
+            <button class="tab" data-panel="worlds">🌑 WORLDS</button>
+            <button class="tab" data-panel="codes">🎁 REDEEM</button>
+        </nav>
 
-                <div class="mini-stat">
-                    <span>🏆</span>
-                    <small>BEST SCORE</small>
-                    <strong id="profileBest">0</strong>
+        <section class="panel active-panel" id="skins">
+            <div class="section-heading">
+                <div>
+                    <small>100 NIGHTMARE LEGENDS</small>
+                    <h2>SKIN VAULT</h2>
+                </div>
+                <strong id="skinCount">1 / 100</strong>
+            </div>
+
+            <div class="rarity-filter">
+                <button class="filter active-filter" data-rarity="ALL">ALL</button>
+                <button class="filter" data-rarity="COMMON">COMMON</button>
+                <button class="filter" data-rarity="RARE">RARE</button>
+                <button class="filter" data-rarity="EPIC">EPIC</button>
+                <button class="filter" data-rarity="LEGENDARY">LEGENDARY</button>
+                <button class="filter" data-rarity="MYTHIC">MYTHIC</button>
+                <button class="filter" data-rarity="ULTIMATE">ULTIMATE</button>
+            </div>
+
+            <div class="grid skins-grid" id="skinGrid"></div>
+        </section>
+
+        <section class="panel" id="upgrades">
+            <div class="section-heading">
+                <div>
+                    <small>DARK POWER SYSTEM</small>
+                    <h2>UPGRADES</h2>
+                </div>
+            </div>
+
+            <div class="grid upgrades-grid" id="upgradeGrid"></div>
+        </section>
+
+        <section class="panel" id="worlds">
+            <div class="section-heading">
+                <div>
+                    <small>CHOOSE YOUR NIGHTMARE</small>
+                    <h2>WORLDS</h2>
+                </div>
+            </div>
+
+            <div class="grid worlds-grid" id="worldGrid"></div>
+        </section>
+
+        <section class="panel" id="codes">
+            <div class="section-heading">
+                <div>
+                    <small>SECRET REWARD TERMINAL</small>
+                    <h2>REDEEM CODE</h2>
+                </div>
+            </div>
+
+            <div class="codes-box">
+                <div class="terminal-icon">🎁</div>
+                <h3>SECRET REWARD TERMINAL</h3>
+                <p>کد ویژه را وارد کن. هر کد فقط یک‌بار قابل استفاده است.</p>
+
+                <div class="code-row">
+                    <input id="codeInput" type="text" placeholder="ENTER SECRET CODE">
+                    <button id="redeemButton">REDEEM</button>
                 </div>
 
-                <div class="mini-stat">
-                    <span>💎</span>
-                    <small>GEMS</small>
-                    <strong id="profileGems">0</strong>
-                </div>
-
-                <div class="mini-stat">
-                    <span>🎮</span>
-                    <small>RUNS</small>
-                    <strong id="profileRuns">0</strong>
-                </div>
-
-                <div class="mini-stat">
-                    <span>👑</span>
-                    <small>SKINS</small>
-                    <strong id="profileSkins">1/100</strong>
-                </div>
-
+                <p id="codeMessage"></p>
+                <small>⚠️ کدهای جایزه در سایت نمایش داده نمی‌شوند.</small>
             </div>
+        </section>
 
-        </div>
-
-    </section>
-
-
-    <!-- ================= SHOP ================= -->
-
-    <section class="panel" id="shop">
-
-        <div class="section-heading">
-
-            <div>
-                <small>LEGENDARY MARKET</small>
-                <h2>SHOP</h2>
-            </div>
-
-            <div class="gem-display">
-                💎 <span id="shopGems">0</span>
-            </div>
-
-        </div>
-
-        <div class="shop-banner">
-
-            <div>
-                <span>NEW COLLECTION</span>
-                <h3>100 LEGENDS</h3>
-                <p>Unlock rare skins and dominate the run.</p>
-            </div>
-
-            <div class="banner-icon">👑</div>
-
-        </div>
-
-        <div
-            class="grid characters-grid"
-            id="shopGrid">
-        </div>
-
-    </section>
-
-
-    <!-- ================= MISSIONS ================= -->
-
-    <section class="panel" id="missions">
-
-        <div class="section-heading">
-
-            <div>
-                <small>DAILY OBJECTIVES</small>
-                <h2>MISSIONS</h2>
-            </div>
-
-        </div>
-
-        <div
-            class="missions-grid"
-            id="missionGrid">
-        </div>
-
-    </section>
-
-
-    <!-- ================= STATS ================= -->
-
-    <section class="panel" id="stats">
-
-        <div class="section-heading">
-
-            <div>
-                <small>PLAYER PERFORMANCE</small>
-                <h2>STATISTICS</h2>
-            </div>
-
-        </div>
-
-        <div class="statistics-grid">
-
-            <div class="stat-box">
-                <span>🏆</span>
-                <small>BEST SCORE</small>
-                <strong id="statBest">0</strong>
-            </div>
-
-            <div class="stat-box">
-                <span>🎮</span>
-                <small>TOTAL RUNS</small>
-                <strong id="statRuns">0</strong>
-            </div>
-
-            <div class="stat-box">
-                <span>💎</span>
-                <small>GEMS COLLECTED</small>
-                <strong id="statGems">0</strong>
-            </div>
-
-            <div class="stat-box">
-                <span>💀</span>
-                <small>OBSTACLES PASSED</small>
-                <strong id="statObstacles">0</strong>
-            </div>
-
-        </div>
-
-
-        <div class="leaderboard">
-
-            <div class="leaderboard-title">
-                <span>GLOBAL LEADERBOARD</span>
-                <strong>TOP PLAYERS</strong>
-            </div>
-
-            <div class="leader-row first">
-                <span>01</span>
-                <b>👑 NIGHTFURY</b>
-                <strong>9,842,120</strong>
-            </div>
-
-            <div class="leader-row">
-                <span>02</span>
-                <b>⚡ VOLT</b>
-                <strong>8,731,500</strong>
-            </div>
-
-            <div class="leader-row">
-                <span>03</span>
-                <b>🔥 BLAZE</b>
-                <strong>7,992,340</strong>
-            </div>
-
-            <div class="leader-row">
-                <span>04</span>
-                <b>🌌 SHADOW</b>
-                <strong>6,445,100</strong>
-            </div>
-
-            <div class="leader-row">
-                <span>05</span>
-                <b>🦖 REX</b>
-                <strong>5,882,900</strong>
-            </div>
-
-        </div>
-
-    </section>
-
-
-    <!-- ================= SKINS ================= -->
-
-    <section class="panel" id="characters">
-
-        <div class="section-heading">
-
-            <div>
-                <small>LEGENDS COLLECTION</small>
-                <h2>100 SKINS</h2>
-            </div>
-
-            <strong id="characterCount">
-                1 / 100
-            </strong>
-
-        </div>
-
-        <div
-            class="grid characters-grid"
-            id="characterGrid">
-        </div>
-
-    </section>
-
-
-    <!-- ================= UPGRADES ================= -->
-
-    <section class="panel" id="upgrades">
-
-        <div class="section-heading">
-
-            <div>
-                <small>POWER SYSTEM</small>
-                <h2>UPGRADES</h2>
-            </div>
-
-        </div>
-
-        <div
-            class="grid upgrades-grid"
-            id="upgradeGrid">
-        </div>
-
-    </section>
-
-
-    <!-- ================= WORLDS ================= -->
-
-    <section class="panel" id="worlds">
-
-        <div class="section-heading">
-
-            <div>
-                <small>EXPLORE NEW DIMENSIONS</small>
-                <h2>WORLDS</h2>
-            </div>
-
-        </div>
-
-        <div
-            class="grid worlds-grid"
-            id="worldGrid">
-        </div>
-
-    </section>
-
-
-    <!-- ================= REDEEM ================= -->
-
-    <!-- Intentionally not advertised with actual codes. -->
-
-    <section class="redeem-mini">
-
-        <div>
-            <span>REDEEM CENTER</span>
-            <strong>Have a secret code?</strong>
-        </div>
-
-        <div class="code-row">
-
-            <input
-                id="codeInput"
-                type="text"
-                placeholder="ENTER SECRET CODE">
-
-            <button id="redeemButton">
-                REDEEM
-            </button>
-
-        </div>
-
-        <p id="codeMessage"></p>
-
-    </section>
-
+    </main>
 </div>
 
-
 <script src="game.js"></script>
-
 </body>
 </html>
-```
