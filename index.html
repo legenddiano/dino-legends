@@ -1,143 +1,137 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#07101d">
   <title>DINO LEGENDS</title>
-  <meta name="description" content="DINO LEGENDS — action survival runner">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div id="app">
+  <div class="app-shell">
     <header class="topbar">
-      <div class="brand">DINO LEGENDS</div>
+      <div class="brand"><span class="brand-mark">DL</span><span>DINO LEGENDS</span></div>
       <div class="hud">
-        <div class="hud-item"><span>SCORE</span><strong id="score">0</strong></div>
-        <div class="hud-item"><span>GEMS</span><strong id="gems">0</strong></div>
-        <div class="hud-item"><span>COMBO</span><strong id="combo">x1.0</strong></div>
-        <div class="hud-item"><span>BEST</span><strong id="bestScore">0</strong></div>
-        <div class="hud-item"><span>HP</span><strong id="health">❤️❤️❤️</strong></div>
+        <div class="hud-box"><small>SCORE</small><b id="score">0</b></div>
+        <div class="hud-box"><small>COMBO</small><b id="combo">x1.0</b></div>
+        <div class="hud-box"><small>GEMS</small><b id="gems">0</b></div>
+        <div class="hud-box"><small>BEST</small><b id="bestScore">0</b></div>
+        <div class="hud-box health"><small>HP</small><b id="health">●●●</b></div>
       </div>
     </header>
 
     <main>
-      <section id="gameScreen" class="screen active">
-        <div class="world-label"><span>ANCIENT JUNGLE</span></div>
+      <section class="game-stage" id="gameStage">
         <canvas id="gameCanvas"></canvas>
 
+        <div class="stage-top">
+          <div class="location"><span class="dot"></span> ANCIENT JUNGLE</div>
+          <div class="run-state" id="runState">READY</div>
+        </div>
+
+        <div class="bars">
+          <div class="bar-wrap"><span>ENERGY</span><div class="bar"><i id="energyBar"></i></div></div>
+          <div class="bar-wrap rage"><span>RAGE</span><div class="bar"><i id="rageBar"></i></div></div>
+          <div class="bar-wrap boss"><span>BOSS</span><div class="bar"><i id="bossBar"></i></div></div>
+        </div>
+
         <div id="startScreen" class="overlay">
-          <div class="panel hero-panel">
-            <div class="logo-dino">🦖</div>
-            <h1>DINO LEGENDS</h1>
-            <p>RUN • FIGHT • DODGE • BECOME A LEGEND</p>
-            <button id="startButton" class="primary-button">START RUN</button>
-            <div class="controls-help">
-              <span>← →</span> MOVE
-              <span>SPACE</span> JUMP
-              <span>F</span> ATTACK
-              <span>SHIFT</span> DASH
-              <span>S</span> SHIELD
-            </div>
+          <div class="start-card">
+            <div class="eyebrow">SURVIVAL / COMBAT / SKILL</div>
+            <div class="title-dino">🦖</div>
+            <h1>DINO <em>LEGENDS</em></h1>
+            <p>Every dodge is a decision. Every combo is earned.</p>
+            <button id="startButton" class="primary">START RUN</button>
+            <div class="key-row"><kbd>A</kbd><kbd>D</kbd> MOVE <kbd>SPACE</kbd> JUMP <kbd>F</kbd> ATTACK <kbd>SHIFT</kbd> DASH <kbd>S</kbd> PARRY</div>
           </div>
         </div>
 
         <div id="gameOverScreen" class="overlay hidden">
-          <div class="panel">
-            <div class="game-over-title">RUN ENDED</div>
-            <div class="final-score-label">SCORE</div>
-            <div id="finalScore" class="final-score">0</div>
-            <button id="restartButton" class="primary-button">RUN AGAIN</button>
+          <div class="end-card">
+            <span class="eyebrow">LEGEND RUN COMPLETE</span>
+            <h2>RUN OVER</h2>
+            <div class="end-score" id="finalScore">0</div>
+            <div class="end-stats" id="finalStats">0 KILLS · 0 PERFECT</div>
+            <button id="restartButton" class="primary">RUN AGAIN</button>
           </div>
         </div>
 
         <div class="mobile-controls">
-          <button id="leftButton" class="control-button">◀</button>
-          <button id="jumpButton" class="control-button jump">JUMP</button>
-          <button id="rightButton" class="control-button">▶</button>
-          <button id="attackButton" class="control-button attack">ATTACK</button>
-          <button id="dashButton" class="control-button dash">DASH</button>
-          <button id="shieldButton" class="control-button shield">SHIELD</button>
+          <button data-action="left">◀</button>
+          <button data-action="jump">JUMP</button>
+          <button data-action="right">▶</button>
+          <button data-action="attack" class="hot">ATTACK</button>
+          <button data-action="dash">DASH</button>
+          <button data-action="parry">PARRY</button>
         </div>
       </section>
 
-      <nav class="main-menu">
-        <button class="menu-button active" data-panel="playPanel">▶<span>PLAY</span></button>
-        <button class="menu-button" data-panel="skinsPanel">🦖<span>SKINS</span></button>
-        <button class="menu-button" data-panel="abilitiesPanel">⚡<span>ABILITIES</span></button>
-        <button class="menu-button" data-panel="missionsPanel">🎯<span>MISSIONS</span></button>
-        <button class="menu-button" data-panel="worldsPanel">🌍<span>WORLDS</span></button>
-        <button class="menu-button" data-panel="settingsPanel">⚙<span>SETTINGS</span></button>
+      <nav class="menu">
+        <button class="active" data-panel="playPanel"><span>▶</span>PLAY</button>
+        <button data-panel="skinsPanel"><span>◈</span>SKINS</button>
+        <button data-panel="abilitiesPanel"><span>ϟ</span>ABILITIES</button>
+        <button data-panel="missionsPanel"><span>◇</span>MISSIONS</button>
+        <button data-panel="worldsPanel"><span>◎</span>WORLDS</button>
+        <button data-panel="settingsPanel"><span>⚙</span>SETTINGS</button>
       </nav>
 
-      <section id="playPanel" class="content-panel active">
-        <h2>RUN CENTER</h2>
-        <div class="cards">
-          <div class="card"><span>BEST SCORE</span><strong id="bestCard">0</strong></div>
-          <div class="card"><span>GEMS</span><strong id="gemCard">0</strong></div>
-          <div class="card"><span>STYLE</span><strong>COMBAT RUNNER</strong></div>
+      <section id="playPanel" class="panel active">
+        <div class="section-head"><div><span>COMMAND CENTER</span><h2>LEGEND RUN</h2></div><div class="status-pill">● LIVE SYSTEM</div></div>
+        <div class="feature-grid">
+          <article><small>BEST SCORE</small><strong id="bestCard">0</strong><p>Your personal record.</p></article>
+          <article><small>COMBAT STYLE</small><strong>PRECISION</strong><p>Skill beats passive running.</p></article>
+          <article><small>RISK BONUS</small><strong>UP TO ×25</strong><p>Build your chain without breaking it.</p></article>
         </div>
-        <p class="info">Skill drives the score: chain attacks, perfect dodges, parries, dashes and risky routes. Passive running gives only a small reward.</p>
+        <div class="tip"><b>LEGEND TIP</b><span>Use PARRY just before impact. Perfect timing turns enemy attacks into combo power.</span></div>
       </section>
 
-      <section id="skinsPanel" class="content-panel">
-        <h2>SKIN FORGE</h2>
+      <section id="skinsPanel" class="panel">
+        <div class="section-head"><div><span>LOADOUT</span><h2>SKIN FORGE</h2></div></div>
         <div class="skin-grid">
-          <article class="skin-card selected">
-            <div class="skin-preview">🦖</div><h3>ROOKIE REX</h3><p>STARTER</p>
-            <div class="parts"><span>Helmet: Basic</span><span>Armor: Basic</span><span>Cape: None</span><span>Boots: Basic</span><span>Weapon: None</span><span>Aura: None</span></div>
-            <button class="equip-button">EQUIPPED</button>
-          </article>
-          <article class="skin-card">
-            <div class="skin-preview cyber">🦖</div><h3>CYBER REX</h3><p>EPIC</p>
-            <div class="parts"><span>Helmet: Neon Visor</span><span>Armor: Cyber Shell</span><span>Cape: Holo Cape</span><span>Boots: Pulse Boots</span><span>Weapon: Plasma Blade</span><span>Aura: Electric</span></div>
-            <button class="equip-button">5,000 GEMS</button>
-          </article>
-          <article class="skin-card">
-            <div class="skin-preview void">🦖</div><h3>VOID REX</h3><p>MYTHIC</p>
-            <div class="parts"><span>Helmet: Void Halo</span><span>Armor: Astral Shell</span><span>Cape: Gravity Cloak</span><span>Boots: Singularity</span><span>Weapon: Void Scythe</span><span>Aura: Black Star</span></div>
-            <button class="equip-button">LOCKED</button>
-          </article>
+          <article class="skin-card selected"><div class="skin-art rookie">🦖</div><h3>ROOKIE REX</h3><p>Balanced starter</p><div class="parts"><span>HEAD <b>Basic Crest</b></span><span>ARMOR <b>Hunter Plate</b></span><span>BACK <b>None</b></span><span>BOOTS <b>Trail Runners</b></span><span>WEAPON <b>Claws</b></span><span>AURA <b>None</b></span></div><button>EQUIPPED</button></article>
+          <article class="skin-card"><div class="skin-art cyber">🦖</div><h3>CYBER REX</h3><p>Epic · 5,000 gems</p><div class="parts"><span>HEAD <b>Neon Visor</b></span><span>ARMOR <b>Cyber Shell</b></span><span>BACK <b>Holo Cape</b></span><span>BOOTS <b>Pulse Boots</b></span><span>WEAPON <b>Plasma Blade</b></span><span>AURA <b>Electric</b></span></div><button>LOCKED</button></article>
+          <article class="skin-card"><div class="skin-art void">🦖</div><h3>VOID REX</h3><p>Mythic · secret</p><div class="parts"><span>HEAD <b>Void Halo</b></span><span>ARMOR <b>Astral Shell</b></span><span>BACK <b>Gravity Cloak</b></span><span>BOOTS <b>Singularity</b></span><span>WEAPON <b>Void Scythe</b></span><span>AURA <b>Black Star</b></span></div><button>LOCKED</button></article>
         </div>
       </section>
 
-      <section id="abilitiesPanel" class="content-panel">
-        <h2>ABILITY LAB</h2>
+      <section id="abilitiesPanel" class="panel">
+        <div class="section-head"><div><span>COMBAT LAB</span><h2>ABILITIES</h2></div></div>
         <div class="ability-grid">
-          <article class="ability-card"><div>⚡</div><h3>DASH STRIKE</h3><p>Break obstacles and enemies during dash.</p><strong>32 ENERGY</strong></article>
-          <article class="ability-card"><div>🛡️</div><h3>PERFECT PARRY</h3><p>Block a hit and turn it into combo power.</p><strong>22 ENERGY</strong></article>
-          <article class="ability-card"><div>🔥</div><h3>RAGE MODE</h3><p>Fill the meter through combat and precision.</p><strong>BUILD IN RUN</strong></article>
-          <article class="ability-card"><div>🌌</div><h3>TIME BREAK</h3><p>Future legendary ability.</p><strong>LOCKED</strong></article>
+          <article><div class="ability-icon">ϟ</div><h3>DASH STRIKE</h3><p>Dash through a target and convert the hit into combo score.</p><b>35 ENERGY</b></article>
+          <article><div class="ability-icon">◉</div><h3>PERFECT PARRY</h3><p>Timed shield negates damage and grants a precision bonus.</p><b>20 ENERGY</b></article>
+          <article><div class="ability-icon">◆</div><h3>RAGE MODE</h3><p>Fill Rage through combat. Activate automatically at full charge.</p><b>100 RAGE</b></article>
+          <article class="locked-card"><div class="ability-icon">✦</div><h3>TIME BREAK</h3><p>Slow the arena and extend your combo window.</p><b>LOCKED</b></article>
         </div>
       </section>
 
-      <section id="missionsPanel" class="content-panel">
-        <h2>MISSIONS</h2>
+      <section id="missionsPanel" class="panel">
+        <div class="section-head"><div><span>DAILY CHALLENGES</span><h2>MISSIONS</h2></div></div>
         <div class="mission-list">
-          <div class="mission"><strong>RUN 1,000 METERS</strong><span>Progress tracked in-game</span><div class="progress"><i style="width:0%"></i></div><b>+500 GEMS</b></div>
-          <div class="mission"><strong>REACH x10 COMBO</strong><span>Build a skill chain</span><div class="progress"><i style="width:0%"></i></div><b>+1,000 GEMS</b></div>
-          <div class="mission"><strong>PERFORM 5 PERFECT DODGES</strong><span>Risk creates reward</span><div class="progress"><i style="width:0%"></i></div><b>RARE CHEST</b></div>
+          <article><div><b>PERFECT × 5</b><span>Perform five perfect dodges.</span></div><strong>+500</strong></article>
+          <article><div><b>COMBO × 15</b><span>Reach a 15-chain without breaking it.</span></div><strong>+1,000</strong></article>
+          <article><div><b>MINI-BOSS</b><span>Defeat a jungle guardian.</span></div><strong>CHEST</strong></article>
         </div>
       </section>
 
-      <section id="worldsPanel" class="content-panel">
-        <h2>WORLDS</h2>
+      <section id="worldsPanel" class="panel">
+        <div class="section-head"><div><span>EXPEDITION MAP</span><h2>WORLDS</h2></div></div>
         <div class="world-grid">
-          <article class="world-card selected"><div>🌲</div><h3>ANCIENT JUNGLE</h3><p>Dense forests, ruins and predators.</p><strong>UNLOCKED</strong></article>
-          <article class="world-card locked"><div>🌋</div><h3>VOLCANIC WASTES</h3><p>Lava changes the safe routes.</p><strong>LOCKED</strong></article>
-          <article class="world-card locked"><div>❄️</div><h3>FROST REALM</h3><p>Ice and frozen hazards.</p><strong>LOCKED</strong></article>
-          <article class="world-card locked"><div>🌌</div><h3>VOID REALM</h3><p>Gravity and portals.</p><strong>LOCKED</strong></article>
+          <article class="world active-world"><div>🌴</div><h3>ANCIENT JUNGLE</h3><p>Ruins · predators · hidden paths</p><b>ACTIVE</b></article>
+          <article class="world locked-card"><div>🌋</div><h3>VOLCANIC WASTES</h3><p>Lava · collapse · heat storms</p><b>LOCKED</b></article>
+          <article class="world locked-card"><div>❄️</div><h3>FROST REALM</h3><p>Ice · slides · frozen traps</p><b>LOCKED</b></article>
+          <article class="world locked-card"><div>🌌</div><h3>VOID REALM</h3><p>Gravity · portals · anomalies</p><b>LOCKED</b></article>
         </div>
       </section>
 
-      <section id="settingsPanel" class="content-panel">
-        <h2>SETTINGS</h2>
-        <div class="settings-list">
-          <label>Graphics <select id="graphicsQuality"><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label>
-          <label>Reduced Effects <input id="reducedEffects" type="checkbox"></label>
-          <label>Screen Shake <input id="screenShake" type="checkbox" checked></label>
+      <section id="settingsPanel" class="panel">
+        <div class="section-head"><div><span>PERFORMANCE</span><h2>SETTINGS</h2></div></div>
+        <div class="settings">
+          <label>GRAPHICS <select id="quality"><option>HIGH</option><option>MEDIUM</option><option>LOW</option></select></label>
+          <label>REDUCED EFFECTS <input id="reducedEffects" type="checkbox"></label>
+          <label>SCREEN SHAKE <input id="screenShake" type="checkbox" checked></label>
         </div>
       </section>
     </main>
